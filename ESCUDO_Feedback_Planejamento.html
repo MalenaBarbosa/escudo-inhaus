@@ -936,6 +936,11 @@ function saveAv() {
   goS('ok');
 }
 
+function sanitizeFbKey(name, mes) {
+  const safe = (name||'').replace(/[ .#$§\[\]]/g,'_');
+  return safe + '__' + mes;
+}
+
 function saveToFirebase() {
   // localStorage backup
   try {
@@ -944,12 +949,36 @@ function saveToFirebase() {
   } catch(e) {}
 
   if (window.$FB) {
-    const { db, ref, set } = window.$FB;
-    // Dados detalhados de feedback de atividade
-    set(ref(db, 'escudo/feedback_atividades'), FB_DATA).catch(() => {});
-    // Scores integrados ao ranking geral
-    set(ref(db, 'escudo/scores'), ESCUDO_S).catch(() => {});
-    setSB('ok', 'Avaliação enviada · dados sincronizados ✓');
+    const { db, ref, set, get } = window.$FB;
+
+    async function mergeAndSave() {
+      try {
+        // ── Merge feedback_atividades ──
+        const snapF = await get(ref(db,'escudo/feedback_atividades'));
+        const existingF = snapF.exists() ? snapF.val() : {};
+        const mergedF = { ...existingF };
+        Object.entries(FB_DATA).forEach(([key, d]) => {
+          const fbKey = sanitizeFbKey(key.split('§')[0], key.split('§')[1]);
+          mergedF[fbKey] = d;
+        });
+
+        // ── Merge scores ──
+        const snapS = await get(ref(db,'escudo/scores'));
+        const existingS = snapS.exists() ? snapS.val() : {};
+        const mergedS = { ...existingS };
+        Object.entries(ESCUDO_S).forEach(([key, vals]) => {
+          const fbKey = sanitizeFbKey(key.split('§')[0], key.split('§')[1]);
+          mergedS[fbKey] = vals;
+        });
+
+        await set(ref(db,'escudo/feedback_atividades'), mergedF);
+        await set(ref(db,'escudo/scores'), mergedS);
+        setSB('ok', 'Avaliação enviada · dados sincronizados ✓');
+      } catch(e) {
+        setSB('err', 'Erro ao sincronizar: ' + e.message);
+      }
+    }
+    mergeAndSave();
   }
 }
 
