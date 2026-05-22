@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1e3a5f">
+<title>ESCUDO — Feedback de Atividades</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#eef1f5;--surface:#fff;--surface2:#f4f6f9;--border:#dde1e8;
+  --ink:#0d1117;--ink2:#3a4152;--ink3:#6b7385;
+  --navy:#1e3a5f;
+  --blue:#0891b2;--blue-lt:#e0f2fe;--blue-md:#38bdf8;--blue-dk:#075985;
+  --gold:#d97706;--gold-lt:#fef3c7;--gold-md:#fbbf24;
+  --green:#065f46;--green-lt:#d1fae5;--green-md:#10b981;
+  --red:#991b1b;--red-lt:#fee2e2;
+  --r:10px;--rsm:6px;
+  --sh:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.05);
+  --sh2:0 4px 14px rgba(0,0,0,.10),0 2px 4px rgba(0,0,0,.06);
+}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--ink);
+  min-height:100vh;-webkit-tap-highlight-color:transparent;}
+
+/* ── TOPBAR ── */
+.topbar{background:var(--navy);padding:.7rem 1.1rem;display:flex;align-items:center;gap:9px;
+  position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.25);}
+.logo{display:flex;align-items:center;gap:8px;}
+.logo svg{width:27px;height:27px;filter:drop-shadow(0 0 6px rgba(251,191,36,.4));}
+.logo-name{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:#fbbf24;letter-spacing:3px;}
+.logo-sub{font-size:8px;color:rgba(255,255,255,.45);letter-spacing:1.5px;text-transform:uppercase;}
+.topbar-r{margin-left:auto;display:flex;align-items:center;gap:5px;}
+.tp{font-size:9px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;padding:4px 9px;border-radius:20px;}
+.tp-blue{background:rgba(8,145,178,.18);border:1px solid rgba(8,145,178,.35);color:#38bdf8;}
+.tp-sync{background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.3);color:#10b981;transition:all .3s;}
+.tp-sync.w{background:rgba(217,119,6,.12);border-color:rgba(217,119,6,.3);color:#fbbf24;}
+.tp-sync.e{background:rgba(153,27,27,.15);border-color:rgba(153,27,27,.3);color:#fca5a5;}
+.tp-sm{background:#fbbf24;color:var(--navy);font-weight:800;}
+
+/* ── NAV TABS ── */
+.nav-tabs{background:var(--surface);border-bottom:1px solid var(--border);display:flex;}
+.ntab{flex:1;font-size:11px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;
+  padding:.65rem .4rem;border:none;background:none;color:var(--ink3);cursor:pointer;
+  border-bottom:2px solid transparent;transition:all .18s;text-align:center;}
+.ntab.on{color:var(--blue);border-bottom-color:var(--blue);}
+
+/* ── STEPS ── */
+.steps-bar{background:var(--surface);border-bottom:1px solid var(--border);
+  padding:.6rem 1.1rem;display:flex;align-items:center;gap:5px;}
+.sdot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:all .25s;}
+.sdot.done{background:var(--green-md);}
+.sdot.act{background:var(--blue);width:22px;border-radius:4px;}
+.slbl{margin-left:auto;font-size:10px;color:var(--ink3);font-weight:600;}
+
+/* ── BANNER ── */
+.banner{background:linear-gradient(135deg,var(--blue) 0%,var(--blue-dk) 100%);
+  margin:1rem 1rem 0;border-radius:var(--r);padding:1rem 1.1rem;
+  box-shadow:var(--sh2);display:flex;align-items:flex-start;gap:12px;}
+.banner-icon{font-size:26px;flex-shrink:0;margin-top:2px;}
+.banner-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;
+  color:#fff;letter-spacing:1px;text-transform:uppercase;line-height:1.2;}
+.banner-desc{font-size:10px;color:rgba(255,255,255,.6);margin-top:4px;line-height:1.5;}
+.banner-badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px;}
+.banner-badge{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);
+  border-radius:20px;padding:3px 9px;font-size:8.5px;font-weight:700;
+  color:#fff;letter-spacing:.6px;text-transform:uppercase;}
+
+/* ── MAIN ── */
+.main{padding:1rem 1rem 4rem;}
+
+/* ── SCREENS ── */
+.sc{display:none;}.sc.on{display:block;}
+
+/* ── CARD ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:1.1rem;box-shadow:var(--sh);margin-bottom:.9rem;}
+.card-title{font-family:'Syne',sans-serif;font-size:11px;font-weight:800;
+  letter-spacing:.5px;text-transform:uppercase;color:var(--navy);
+  margin-bottom:.8rem;padding-bottom:.5rem;border-bottom:2px solid var(--blue-lt);}
+
+/* ── FORM ── */
+.f{margin-bottom:.75rem;}
+.f label{font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;
+  letter-spacing:.7px;display:block;margin-bottom:4px;}
+.f label em{color:var(--blue);font-style:normal;}
+input,select,textarea{width:100%;background:var(--surface2);border:1.5px solid var(--border);
+  color:var(--ink);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:500;
+  padding:9px 12px;border-radius:var(--rsm);outline:none;transition:border-color .2s;-webkit-appearance:none;}
+input:focus,select:focus,textarea:focus{border-color:var(--blue);}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7385' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;}
+textarea{resize:none;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+@media(max-width:420px){.g2{grid-template-columns:1fr;}}
+
+/* ── BUTTONS ── */
+.btn{display:flex;align-items:center;justify-content:center;gap:5px;width:100%;
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;
+  padding:12px;border-radius:var(--rsm);border:none;cursor:pointer;transition:all .15s;}
+.btn-blue{background:var(--blue);color:#fff;}.btn-blue:hover{background:#0e7490;}
+.btn-blue:active{transform:scale(.98);}
+.btn-ghost{background:transparent;border:1.5px solid var(--border);color:var(--ink2);}
+.btn-ghost:hover{border-color:var(--blue);color:var(--blue);}
+.back-btn{background:none;border:none;color:var(--ink3);font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:12px;font-weight:600;cursor:pointer;padding:0;margin-bottom:.8rem;
+  display:flex;align-items:center;gap:4px;}
+.back-btn:hover{color:var(--navy);}
+
+/* ── MONTH PILLS ── */
+.month-g{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;}
+.mpill{font-size:11px;font-weight:600;padding:7px 3px;text-align:center;
+  background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--rsm);
+  cursor:pointer;color:var(--ink3);transition:all .15s;}
+.mpill.on{background:var(--blue);border-color:var(--blue);color:#fff;}
+.mpill.done{border-color:var(--green-md);color:var(--green);}
+
+/* ── SEG TABS ── */
+.seg-tabs{display:flex;gap:5px;margin-bottom:.8rem;flex-wrap:wrap;}
+.stab{font-size:10px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;
+  padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);
+  background:var(--surface);color:var(--ink3);cursor:pointer;transition:all .15s;white-space:nowrap;}
+.stab.on{background:var(--blue);border-color:var(--blue);color:#fff;}
+
+/* ── MEMBER GRID ── */
+.mem-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:7px;}
+.mem-btn{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--rsm);
+  padding:9px 5px;text-align:center;cursor:pointer;transition:all .15s;position:relative;overflow:hidden;}
+.mem-btn::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.mem-btn.on{border-color:var(--blue);box-shadow:0 0 0 2px rgba(8,145,178,.15);}
+.mem-btn.on::after{content:'✓';position:absolute;top:5px;right:6px;
+  font-size:9px;color:var(--blue);font-weight:800;}
+.mem-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;font-size:11px;font-weight:800;color:#fff;margin:0 auto 5px;}
+.mem-nm{font-size:9px;font-weight:700;color:var(--ink);text-transform:uppercase;line-height:1.2;margin-bottom:1px;}
+.mem-role{font-size:7.5px;color:var(--ink3);text-transform:uppercase;}
+.mem-done{font-size:7.5px;color:var(--green);margin-top:2px;font-weight:600;}
+
+/* ── EVAL HEAD ── */
+.eval-head{display:flex;align-items:center;gap:11px;background:var(--blue-lt);
+  border:1.5px solid #bae6fd;border-radius:var(--r);padding:.85rem 1rem;margin-bottom:.9rem;}
+.eval-av{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:#fff;flex-shrink:0;}
+.eval-nm{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;text-transform:uppercase;color:var(--blue-dk);}
+.tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;}
+.tag{font-size:8.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;
+  padding:2px 7px;border-radius:10px;border:1px solid var(--border);
+  background:var(--surface2);color:var(--ink3);}
+.tag-blue{background:var(--blue-lt);border-color:#bae6fd;color:#0369a1;}
+.tag-gold{background:var(--gold-lt);border-color:#fde68a;color:var(--gold);}
+.tag-green{background:var(--green-lt);border-color:#6ee7b7;color:var(--green);}
+
+/* ── CRITÉRIO CARD ── */
+.crit-c{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);
+  padding:1rem;margin-bottom:9px;box-shadow:var(--sh);transition:border-color .2s;}
+.crit-c.rated{border-color:#bae6fd;background:linear-gradient(to bottom,#f0f9ff,#fff);}
+.crit-c.na{opacity:.55;border-style:dashed;}
+.crit-hd{display:flex;align-items:flex-start;gap:8px;margin-bottom:4px;}
+.crit-icon{font-size:20px;flex-shrink:0;margin-top:1px;}
+.crit-info{flex:1;}
+.crit-nm{font-size:12px;font-weight:700;text-transform:uppercase;color:var(--ink);margin-bottom:2px;}
+.crit-desc{font-size:10px;color:var(--ink3);line-height:1.55;margin-bottom:10px;}
+.crit-desc strong{color:var(--ink2);font-weight:600;}
+
+/* Stars */
+.stars-r{display:flex;gap:4px;margin-bottom:5px;}
+.star{flex:1;height:36px;background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:var(--rsm);cursor:pointer;font-family:'Syne',sans-serif;font-size:13px;
+  font-weight:800;color:var(--ink3);transition:all .12s;
+  display:flex;align-items:center;justify-content:center;}
+.star.on{background:var(--blue);border-color:var(--blue);color:#fff;}
+.star:active{transform:scale(.92);}
+.slbl-row{display:flex;justify-content:space-between;font-size:8.5px;color:var(--ink3);margin-bottom:8px;}
+
+/* SCORE LABELS */
+.score-labels{display:grid;grid-template-columns:repeat(5,1fr);gap:3px;margin-bottom:9px;}
+.sc-lbl{font-size:7.5px;text-align:center;color:var(--ink3);line-height:1.3;padding:0 2px;}
+
+/* NA toggle */
+.na-row{display:flex;align-items:center;justify-content:space-between;margin-top:4px;
+  padding-top:8px;border-top:1px solid var(--border);}
+.na-lbl{font-size:10.5px;color:var(--ink3);}
+.tgl{position:relative;width:40px;height:22px;}
+.tgl input{opacity:0;width:0;height:0;}
+.tgl-track{position:absolute;top:0;left:0;right:0;bottom:0;background:var(--border);
+  border-radius:22px;cursor:pointer;transition:.25s;}
+.tgl-track::before{content:'';position:absolute;height:16px;width:16px;left:3px;bottom:3px;
+  background:#fff;border-radius:50%;transition:.25s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+input:checked+.tgl-track{background:var(--blue);}
+input:checked+.tgl-track::before{transform:translateX(18px);}
+
+/* Obs */
+.obs-f{width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--rsm);
+  color:var(--ink);font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;
+  padding:8px 10px;resize:none;min-height:50px;margin-top:8px;outline:none;}
+.obs-f:focus{border-color:var(--blue);}
+.obs-f::placeholder{color:var(--ink3);}
+
+/* ── INFO BOX CÓDIGO ── */
+.info-box{background:var(--blue-lt);border:1px solid #bae6fd;border-radius:var(--rsm);
+  padding:9px 12px;margin-bottom:.9rem;display:flex;gap:8px;align-items:flex-start;}
+.info-box-icon{font-size:16px;flex-shrink:0;}
+.info-box-txt{font-size:10px;color:#0369a1;line-height:1.6;}
+.info-box-txt strong{color:var(--blue-dk);}
+
+/* ── CAMPO CÓDIGO ── */
+.cod-wrap{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:.9rem;}
+.cod-field{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--rsm);
+  padding:.75rem .85rem;box-shadow:var(--sh);}
+.cod-lbl{font-size:9px;font-weight:700;color:var(--ink3);text-transform:uppercase;
+  letter-spacing:.8px;margin-bottom:5px;}
+.cod-input{width:100%;background:var(--surface2);border:1.5px solid var(--border);
+  color:var(--ink);font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:600;
+  padding:8px 10px;border-radius:var(--rsm);outline:none;text-transform:uppercase;}
+.cod-input:focus{border-color:var(--blue);}
+.cod-input::placeholder{text-transform:none;font-weight:400;color:var(--ink3);}
+
+/* ── SUCCESS ── */
+.success-wrap{text-align:center;padding:2rem .5rem;}
+.success-icon{font-size:50px;margin-bottom:.7rem;}
+.success-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--green);margin-bottom:.4rem;}
+.success-score{font-family:'Syne',sans-serif;font-size:50px;font-weight:800;color:var(--blue);line-height:1;}
+.success-sub{font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:1px;margin-bottom:1.5rem;}
+.success-nm{font-size:14px;font-weight:700;text-transform:uppercase;color:var(--ink);}
+.success-team{font-size:11px;color:var(--ink3);margin-top:2px;}
+
+/* ── HISTÓRICO ── */
+.hist-filters{display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;margin-bottom:.9rem;padding-bottom:2px;}
+.hist-filters::-webkit-scrollbar{display:none;}
+.hfpill{flex-shrink:0;font-size:10px;font-weight:700;padding:5px 12px;border-radius:20px;
+  border:1.5px solid var(--border);background:var(--surface);color:var(--ink3);cursor:pointer;
+  transition:all .15s;white-space:nowrap;}
+.hfpill.on{background:var(--blue);border-color:var(--blue);color:#fff;}
+
+.hist-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  box-shadow:var(--sh);margin-bottom:.75rem;overflow:hidden;}
+.hist-hd{background:linear-gradient(135deg,var(--navy),#162d4a);padding:.7rem 1rem;
+  display:flex;align-items:center;gap:10px;}
+.hist-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;font-size:11px;font-weight:800;color:var(--navy);
+  background:#fbbf24;flex-shrink:0;}
+.hist-nm{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:#fff;
+  text-transform:uppercase;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hist-mes-lbl{font-size:9px;color:rgba(255,255,255,.5);text-transform:uppercase;}
+.hist-score-lbl{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#fbbf24;}
+.hist-body{padding:.8rem .9rem;}
+.hist-crit-row{display:flex;align-items:center;gap:8px;padding:.35rem 0;
+  border-bottom:1px solid var(--border);}
+.hist-crit-row:last-child{border-bottom:none;}
+.hist-crit-icon{font-size:14px;flex-shrink:0;}
+.hist-crit-nm{font-size:10px;font-weight:600;color:var(--ink2);flex:1;text-transform:uppercase;letter-spacing:.3px;}
+.hist-crit-val{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;}
+.hist-crit-na{font-size:10px;color:var(--ink3);font-style:italic;}
+.hist-stars{display:flex;gap:2px;}
+.hist-star{width:12px;height:12px;border-radius:2px;background:var(--border);}
+.hist-star.on{background:var(--blue);}
+.hist-obs{background:var(--blue-lt);border-radius:5px;padding:7px 9px;margin-top:.5rem;
+  font-size:10px;color:#0369a1;line-height:1.6;border-left:2px solid var(--blue);}
+.hist-cod{display:flex;gap:6px;flex-wrap:wrap;margin-top:.5rem;}
+.hist-cod-tag{font-size:9px;font-weight:700;padding:3px 8px;border-radius:5px;
+  background:var(--navy-lt,#dbeafe);color:var(--navy);border:1px solid #bfdbfe;
+  font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:.3px;}
+
+/* ── AVALIADOR INFO ── */
+.av-info-box{background:var(--gold-lt);border:1px solid #fde68a;border-radius:var(--rsm);
+  padding:8px 12px;margin-bottom:.8rem;font-size:10px;color:#92400e;line-height:1.6;}
+.av-info-box strong{color:#78350f;}
+
+/* ── SYNC BAR ── */
+.sync-bar{position:fixed;bottom:0;left:0;right:0;background:var(--surface);
+  border-top:1px solid var(--border);padding:7px 14px;display:flex;align-items:center;gap:8px;z-index:200;}
+.sy-dot{width:7px;height:7px;border-radius:50%;background:var(--ink3);flex-shrink:0;}
+.sy-dot.ok{background:var(--green-md);}
+.sy-dot.load{background:var(--gold-md);animation:blink 1s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.2;}}
+.sy-txt{font-size:10px;color:var(--ink3);font-weight:500;flex:1;}
+
+.no-data{text-align:center;padding:2rem;color:var(--ink3);font-size:11px;
+  text-transform:uppercase;letter-spacing:1px;line-height:2;}
+.divider{height:1px;background:var(--border);margin:.7rem 0;}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="logo">
+    <svg viewBox="0 0 28 28" fill="none">
+      <path d="M14 1L2 6.5V15C2 22 14 27 14 27S26 22 26 15V6.5L14 1Z"
+        fill="rgba(251,191,36,.15)" stroke="#fbbf24" stroke-width="1.5"/>
+      <path d="M9 14L12.5 17.5L20 10" stroke="#fbbf24" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div>
+      <div class="logo-name">ESCUDO</div>
+      <div class="logo-sub">Feedback de Atividades</div>
+    </div>
+  </div>
+  <div class="topbar-r">
+    <span class="tp tp-blue">📋 Planejamento</span>
+    <span class="tp tp-sync w" id="fb-badge">⏳</span>
+    <span class="tp tp-sm">Samarco</span>
+  </div>
+</div>
+
+<!-- NAV -->
+<div class="nav-tabs">
+  <button class="ntab on" onclick="goTab('avaliar',this)">📝 Registrar</button>
+  <button class="ntab"    onclick="goTab('historico',this)">📋 Histórico</button>
+</div>
+
+<!-- STEPS -->
+<div class="steps-bar" id="steps-bar">
+  <div class="sdot act" id="dot-1"></div>
+  <div class="sdot"     id="dot-2"></div>
+  <div class="sdot"     id="dot-3"></div>
+  <div class="sdot"     id="dot-4"></div>
+  <span class="slbl"   id="step-lbl">Passo 1 de 4</span>
+</div>
+
+<!-- BANNER -->
+<div class="banner">
+  <div class="banner-icon">📋</div>
+  <div>
+    <div class="banner-title">Feedback de Atividades</div>
+    <div class="banner-desc">Avaliação realizada pelo Planejamento sobre a qualidade dos feedbacks de atividades entregues pelos empregados e encarregados.</div>
+    <div class="banner-badges">
+      <span class="banner-badge">Avaliador: Planejamento</span>
+      <span class="banner-badge">Avaliados: Equipes operacionais</span>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- ══ ABA: REGISTRAR ══ -->
+  <div id="tab-avaliar">
+
+    <!-- PASSO 1: IDENTIFICAÇÃO -->
+    <div id="sc-1" class="sc on">
+      <div class="card">
+        <div class="card-title">Identificação <button onclick="openEditAvaliadores()" style="float:right;background:none;border:1.5px solid #1E8A9A;color:#1E8A9A;border-radius:6px;padding:3px 12px;font-size:12px;cursor:pointer;font-weight:600;vertical-align:middle;">✏️ Editar avaliadores</button></div>
+        <div class="av-info-box">
+          <strong>Quem avalia:</strong> Membro do Planejamento (inspetor, programador, supervisor ou coordenador)<br>
+          <strong>Quem é avaliado:</strong> Empregados e encarregados das equipes operacionais
+        </div>
+        <div class="g2">
+          <div class="f"><label>Avaliador — Planejamento <em>*</em></label>
+            <select id="av-planejador">
+              <option value="">Selecione…</option>
+            </select>
+          </div>
+          <div class="f"><label>Mês de referência <em>*</em></label>
+            <div class="month-g" id="av-meses"></div>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-blue" onclick="goS(2)">Próximo — Selecionar equipe →</button>
+    </div>
+
+    <!-- PASSO 2: EQUIPE + EMPREGADO -->
+    <div id="sc-2" class="sc">
+      <button class="back-btn" onclick="goS(1)">← Voltar</button>
+      <div class="card">
+        <div class="card-title">Equipe e profissional avaliado</div>
+        <div class="f"><label>Segmento <em>*</em></label>
+          <div class="seg-tabs" id="seg-tabs">
+            <button class="stab on" onclick="setSeg('turno',this)">Turno A·B·C·D</button>
+            <button class="stab"    onclick="setSeg('adm',this)">Administrativo</button>
+          </div>
+        </div>
+        <div class="f"><label>Equipe <em>*</em></label>
+          <select id="av-equipe" onchange="buildMemGrid()"><option value="">Selecione…</option></select>
+        </div>
+        <div class="f"><label>Profissional avaliado <em>*</em></label>
+          <div id="mem-grid-wrap"><div class="no-data" style="padding:.5rem;">Selecione a equipe acima.</div></div>
+        </div>
+      </div>
+      <button class="btn btn-blue" onclick="goS(3)">Próximo — Identificar atividade →</button>
+    </div>
+
+    <!-- PASSO 3: IDENTIFICAÇÃO DA ATIVIDADE -->
+    <div id="sc-3" class="sc">
+      <button class="back-btn" onclick="goS(2)">← Voltar</button>
+      <div id="eval-head-wrap"></div>
+      <div class="card">
+        <div class="card-title">Identificação da atividade</div>
+        <div class="info-box">
+          <div class="info-box-icon">ℹ️</div>
+          <div class="info-box-txt">Informe o <strong>código ou indicação do equipamento/local</strong> ao qual o feedback se refere. Esses dados são obrigatórios para rastreabilidade.</div>
+        </div>
+        <div class="cod-wrap">
+          <div class="cod-field">
+            <div class="cod-lbl">Código do equipamento / OS</div>
+            <input class="cod-input" id="cod-equip" placeholder="Ex: BM-01, OS-4521" maxlength="30">
+          </div>
+          <div class="cod-field">
+            <div class="cod-lbl">Local / Área</div>
+            <input class="cod-input" id="cod-local" placeholder="Ex: ETI BN, US03" maxlength="30">
+          </div>
+        </div>
+        <div class="f">
+          <label>Descrição resumida da atividade</label>
+          <textarea id="desc-atividade" class="obs-f" style="min-height:60px;"
+            placeholder="Ex: Manutenção preventiva do agitador, substituição de rolamento…"></textarea>
+        </div>
+      </div>
+      <button class="btn btn-blue" onclick="goS(4)">Próximo — Avaliar feedback →</button>
+    </div>
+
+    <!-- PASSO 4: AVALIAÇÃO DOS CRITÉRIOS -->
+    <div id="sc-4" class="sc">
+      <button class="back-btn" onclick="goS(3)">← Voltar</button>
+      <div id="eval-head-wrap-2"></div>
+
+      <div class="card">
+        <div class="card-title">Avaliação do feedback de atividade</div>
+
+        <!-- CRITÉRIO 1: Dentro do padrão -->
+        <div class="crit-c" id="cc-padrao">
+          <div class="crit-hd">
+            <span class="crit-icon">✅</span>
+            <div class="crit-info">
+              <div class="crit-nm">Feedback dentro do padrão</div>
+              <div class="crit-desc">O feedback foi entregue conforme o <strong>padrão estabelecido</strong> pelo Planejamento — estrutura, campos obrigatórios e formato corretos.</div>
+            </div>
+          </div>
+          <div class="stars-r" id="cs-padrao"></div>
+          <div class="score-labels">
+            <div class="sc-lbl">Fora do padrão</div>
+            <div class="sc-lbl">Parcialmente</div>
+            <div class="sc-lbl">Conforme</div>
+            <div class="sc-lbl">Bom</div>
+            <div class="sc-lbl">Excelente</div>
+          </div>
+          <div class="na-row">
+            <span class="na-lbl">Não se aplica</span>
+            <label class="tgl"><input type="checkbox" id="na-padrao" onchange="toggleNA('padrao')"><span class="tgl-track"></span></label>
+          </div>
+          <textarea class="obs-f" id="ob-padrao" placeholder="Observação sobre conformidade com o padrão…"></textarea>
+        </div>
+
+        <!-- CRITÉRIO 2: Contempla todas as atividades -->
+        <div class="crit-c" id="cc-completo">
+          <div class="crit-hd">
+            <span class="crit-icon">📑</span>
+            <div class="crit-info">
+              <div class="crit-nm">Contempla todas as atividades</div>
+              <div class="crit-desc">O feedback <strong>cobre todas as atividades desenvolvidas</strong> no período — nenhuma tarefa relevante foi omitida ou esquecida.</div>
+            </div>
+          </div>
+          <div class="stars-r" id="cs-completo"></div>
+          <div class="score-labels">
+            <div class="sc-lbl">Muito incompleto</div>
+            <div class="sc-lbl">Incompleto</div>
+            <div class="sc-lbl">Parcial</div>
+            <div class="sc-lbl">Completo</div>
+            <div class="sc-lbl">Totalmente completo</div>
+          </div>
+          <div class="na-row">
+            <span class="na-lbl">Não se aplica</span>
+            <label class="tgl"><input type="checkbox" id="na-completo" onchange="toggleNA('completo')"><span class="tgl-track"></span></label>
+          </div>
+          <textarea class="obs-f" id="ob-completo" placeholder="Atividades omitidas ou pendentes…"></textarea>
+        </div>
+
+        <!-- CRITÉRIO 3: Código e local -->
+        <div class="crit-c" id="cc-codigo">
+          <div class="crit-hd">
+            <span class="crit-icon">🏷️</span>
+            <div class="crit-info">
+              <div class="crit-nm">Código e local do equipamento</div>
+              <div class="crit-desc">O feedback contém a <strong>identificação correta do equipamento</strong> (código, TAG ou número) e a <strong>indicação do local / área</strong> onde a atividade foi realizada.</div>
+            </div>
+          </div>
+          <div class="stars-r" id="cs-codigo"></div>
+          <div class="score-labels">
+            <div class="sc-lbl">Sem identificação</div>
+            <div class="sc-lbl">Parcial</div>
+            <div class="sc-lbl">Identificado</div>
+            <div class="sc-lbl">Claro</div>
+            <div class="sc-lbl">Completo e preciso</div>
+          </div>
+          <div class="na-row">
+            <span class="na-lbl">Não se aplica</span>
+            <label class="tgl"><input type="checkbox" id="na-codigo" onchange="toggleNA('codigo')"><span class="tgl-track"></span></label>
+          </div>
+          <textarea class="obs-f" id="ob-codigo" placeholder="Observação sobre identificação do equipamento/local…"></textarea>
+        </div>
+
+        <!-- CRITÉRIO 4: Descritivo de componentes e ferramentas -->
+        <div class="crit-c" id="cc-descritivo">
+          <div class="crit-hd">
+            <span class="crit-icon">🔧</span>
+            <div class="crit-info">
+              <div class="crit-nm">Descritivo de componentes e ferramentas</div>
+              <div class="crit-desc">O feedback descreve os <strong>componentes utilizados / substituídos</strong> e as <strong>ferramentas empregadas</strong> na execução da atividade com clareza suficiente para rastreabilidade.</div>
+            </div>
+          </div>
+          <div class="stars-r" id="cs-descritivo"></div>
+          <div class="score-labels">
+            <div class="sc-lbl">Sem descritivo</div>
+            <div class="sc-lbl">Superficial</div>
+            <div class="sc-lbl">Adequado</div>
+            <div class="sc-lbl">Detalhado</div>
+            <div class="sc-lbl">Completo e rastreável</div>
+          </div>
+          <div class="na-row">
+            <span class="na-lbl">Não se aplica</span>
+            <label class="tgl"><input type="checkbox" id="na-descritivo" onchange="toggleNA('descritivo')"><span class="tgl-track"></span></label>
+          </div>
+          <textarea class="obs-f" id="ob-descritivo" placeholder="Componentes ou ferramentas não descritos…"></textarea>
+        </div>
+
+        <!-- CRITÉRIO 5: Entregue no prazo -->
+        <div class="crit-c" id="cc-prazo">
+          <div class="crit-hd">
+            <span class="crit-icon">⏰</span>
+            <div class="crit-info">
+              <div class="crit-nm">Entregue no prazo adequado</div>
+              <div class="crit-desc">O feedback foi <strong>entregue dentro do prazo</strong> estabelecido pelo Planejamento, permitindo o fechamento da OS e atualização dos registros sem atraso.</div>
+            </div>
+          </div>
+          <div class="stars-r" id="cs-prazo"></div>
+          <div class="score-labels">
+            <div class="sc-lbl">Muito atrasado</div>
+            <div class="sc-lbl">Atrasado</div>
+            <div class="sc-lbl">No limite</div>
+            <div class="sc-lbl">No prazo</div>
+            <div class="sc-lbl">Adiantado</div>
+          </div>
+          <div class="na-row">
+            <span class="na-lbl">Não se aplica</span>
+            <label class="tgl"><input type="checkbox" id="na-prazo" onchange="toggleNA('prazo')"><span class="tgl-track"></span></label>
+          </div>
+          <textarea class="obs-f" id="ob-prazo" placeholder="Observação sobre prazo de entrega…"></textarea>
+        </div>
+
+      </div><!-- /card critérios -->
+
+      <!-- OBSERVAÇÃO GERAL -->
+      <div class="card" style="border-color:#bae6fd;">
+        <div class="card-title" style="color:var(--blue-dk);">💬 Observação geral</div>
+        <textarea id="obs-geral" class="obs-f" style="min-height:80px;"
+          placeholder="Registre aqui observações gerais sobre o feedback desta atividade — pontos positivos, pendências, sugestões ao empregado…"></textarea>
+      </div>
+
+      <button class="btn btn-blue" onclick="saveAv()">✓ Registrar avaliação de feedback</button>
+      <button class="btn btn-ghost" style="margin-top:7px;" onclick="goS(1)">Cancelar</button>
+    </div>
+
+    <!-- SUCESSO -->
+    <div id="sc-ok" class="sc">
+      <div class="success-wrap">
+        <div class="success-icon">📋</div>
+        <div class="success-title">Feedback avaliado!</div>
+        <div class="success-score" id="succ-score">—</div>
+        <div class="success-sub" id="succ-sub">/ 5.0</div>
+        <div class="success-nm" id="succ-nm"></div>
+        <div class="success-team" id="succ-team"></div>
+      </div>
+      <button class="btn btn-blue" onclick="resetAv()">Nova avaliação</button>
+      <button class="btn btn-ghost" style="margin-top:7px;" onclick="resetAv()">Voltar ao início</button>
+    </div>
+
+  </div><!-- /tab-avaliar -->
+
+  <!-- ══ ABA: HISTÓRICO ══ -->
+  <div id="tab-historico" style="display:none;">
+    <div style="background:linear-gradient(135deg,var(--blue),var(--blue-dk));border-radius:var(--r);
+      padding:1rem;text-align:center;margin-bottom:1rem;color:#fff;box-shadow:var(--sh2);">
+      <div style="font-size:22px;margin-bottom:.4rem;">📋</div>
+      <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:#bae6fd;
+        letter-spacing:1.5px;text-transform:uppercase;">Histórico de avaliações</div>
+      <div style="font-size:10px;color:rgba(255,255,255,.45);margin-top:2px;">Feedbacks de atividades avaliados pelo Planejamento</div>
+    </div>
+    <div class="hist-filters" id="hist-filters">
+      <button class="hfpill on" onclick="setHistFilter('all',this)">Todos</button>
+    </div>
+    <div id="hist-content">
+      <div class="no-data">📋 Nenhuma avaliação de feedback registrada ainda.</div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- SYNC BAR -->
+<div class="sync-bar">
+  <div class="sy-dot load" id="sy-dot"></div>
+  <span class="sy-txt" id="sy-txt">Conectando ao Firebase…</span>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════
+   ESCUDO — Feedback de Atividades (Planejamento avalia)
+   ▸ Avaliadores: membros do Planejamento
+   ▸ Avaliados: empregados e encarregados de todas as equipes
+   ▸ Critérios: 5 específicos de qualidade de feedback de OS
+   ▸ Dados salvos em: escudo/feedback_atividades (caminho próprio)
+   ▸ Score ESCUDO salvo em: escudo/scores (integrado ao ranking)
+   ▸ Firebase sync em tempo real
+══════════════════════════════════════════════════════ */
+
+const MESES   = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const MESES_F = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+// Chaves dos critérios específicos de feedback de atividade
+const CRITS = ['padrao','completo','codigo','descritivo','prazo'];
+const CRIT_NM = {
+  padrao:     'Dentro do padrão',
+  completo:   'Contempla todas as atividades',
+  codigo:     'Código e local do equipamento',
+  descritivo: 'Descritivo de componentes e ferramentas',
+  prazo:      'Entregue no prazo'
+};
+const CRIT_IC = {
+  padrao:'✅', completo:'📑', codigo:'🏷️', descritivo:'🔧', prazo:'⏰'
+};
+
+// Equipes padrão — usadas enquanto Firebase não carrega
+const DEFAULT_TEAMS = {
+  A:{id:'A',label:'Turno A',seg:'turno',color:'#d97706',enc:{n:'CLEUTON FERREIRA DOS SANTOS',c:'ENCARREGADO OPERACIONAL'},members:[{n:'PRISCILA ANDRADE DA SILVA',c:'OPERAÇÃO ETI BN'},{n:'DIOGO VIEIRA BORGES',c:'OPERAÇÃO ETI 1/2'},{n:'BENEDITO PEREIRA DOS SANTOS',c:'OPERAÇÃO DRAGA 01'},{n:'BRENER RIBEIRO DE SOUZA',c:'POLPA/DRAGA 02'},{n:'JOSÉ IGOR COSTA CARDOSO',c:'PRECIPT. US03'},{n:'EDGARD BENA DOS SANTOS',c:'PRECIPT. US03'},{n:'LEONARDO DOS REIS VIEIRA',c:'PENEIRAMENTO US03'},{n:'LUIZ EDUARDO SANTOS SOUTO',c:'PRECIPT. US04'},{n:'JHON ROGER DE MORAES SECATO',c:'PRECIPT. US04'},{n:'RAPHAEL DOS SANTOS LOYOLA',c:'PENEIRAMENTO US04'},{n:'RYAN SOUZA SILVA',c:'FILTRO PRENSA'},{n:'KAUÃ XAVIER SEMEDO',c:'OPERADOR MANTENEDOR'},{n:'BRUNO HENRIQUE BRAGA',c:'OPERADOR MANTENEDOR'},{n:'FLAVIO MORAES NOGUEIRA',c:'OPERADOR MANTENEDOR'},{n:'PAULO LEANDRO REIS FILHO',c:'MECÂNICO'},{n:'EDUARDO DE ANDRADE MENDES',c:'MECÂNICO'},{n:'EDIRLEI MARTINS DE SOUZA',c:'SOLDADOR'},{n:'GABRIEL VIEIRA LIBARDI',c:'OPER. PÁTIO/PORTO'},{n:'ALCENIR DINIZ FARIAS',c:'OPER. PÁTIO/PORTO'},{n:'GEOVANI PASSOS DA VITORIA',c:'OPER. PÁTIO/PORTO ADM'}]},
+  B:{id:'B',label:'Turno B',seg:'turno',color:'#059669',enc:{n:'GEOVANE BRANDAO BELEM',c:'ENCARREGADO OPERACIONAL'},members:[{n:'SIMONE FERREIRA DA SILVA',c:'ETI BN'},{n:'FELLIPE WENDER SIQUEIRA SIMÕES',c:'ETI 1/2'},{n:'JORGE AUGUSTO NASCIMENTO RODRIGUES',c:'DRAGA 01'},{n:'LUIZ FELIPE SENNA DA SILVA',c:'POLPA/DRAGA 02'},{n:'REGES DE SA CORREA',c:'PRECIPT. US03'},{n:'KAUAN TRES CAMARGO',c:'PRECIPT. US03'},{n:'MARCOS ADRIANO GIULIATTI SEMEDO',c:'PENEIRAMENTO US03'},{n:'JOSÉ LUIZ FLUMINENSE DOS SANTOS',c:'PRECIPT. US04'},{n:'PIERRE MECKSON VIEIRA BARBOSA',c:'PRECIPT. US04'},{n:'MATEUS SOUZA MENEZES',c:'PENEIRAMENTO US04'},{n:'DAVI LUCAS CALDEIRA DE MATTOS',c:'FILTRO PRENSA'},{n:'ALEX FRONTINO DE OLIVEIRA DE MATTOS',c:'OPERADOR MANTENEDOR'},{n:'LUIZ HENRIQUE RIGO FERREIRA',c:'OPERADOR MANTENEDOR'},{n:'KRISLAINE SANTANA CARDOSO',c:'OPERADOR MANTENEDOR'},{n:'PEDRO FRANCISCO R ALMEIDA JUNIOR',c:'MECÂNICO'},{n:'FRANKSAID DELFINO FERREIRA',c:'MECÂNICO'},{n:'ALAN VASCONCELOS',c:'SOLDADOR'},{n:'ORLY DINIZ FARIAS',c:'OPER. PÁTIO/PORTO'},{n:'WILLIS SERAFIM DOS SANTOS',c:'OPER. PÁTIO/PORTO'},{n:'DHIOGO MILAGRE RODRIGUES SERAPHIM',c:'OPER. PÁTIO/PORTO ADM'}]},
+  C:{id:'C',label:'Turno C',seg:'turno',color:'#2563eb',enc:{n:'EDINALDO DA SILVA SANTOS',c:'ENCARREGADO OPERACIONAL'},members:[{n:'MAYDIANE TRINDADE RIBEIRO BASTOS',c:'ETI BN'},{n:'REGIS SILVA DAS NEVES',c:'ETI 1/2'},{n:'MARCIUS VINICIUS PINHEIRO SANTANA',c:'DRAGA 01'},{n:'LEONARDO PEREIRA DA FONSECA',c:'POLPA/DRAGA 02'},{n:'WELLINGTON DA SILVA MAGALHÃES',c:'PRECIPT. US03'},{n:'EDUARDO DA SILVA PETRE',c:'PRECIPT. US03'},{n:'REGINALDO SANTOS',c:'PENEIRAMENTO US03'},{n:'DANIEL BARBOZA RODRIGUES',c:'PRECIPT. US04'},{n:'EMERSON FERREIRA SEMEDO',c:'PRECIPT. US04'},{n:'DANIEL VIEIRA BARBOZA',c:'PENEIRAMENTO US04'},{n:'APOLO MARCHEZI CARNEIRO XAVIER',c:'FILTRO PRENSA'},{n:'SAULO BRANDAO DA SILVA',c:'OPERADOR MANTENEDOR'},{n:'NAUBERT LEONARDO CAMBOIM CORREA DA SILVA',c:'OPERADOR MANTENEDOR'},{n:'DAVID FERREIRA DE OLIVEIRA',c:'OPERADOR MANTENEDOR'},{n:'ALDEMAR MENDES NETTO',c:'MECÂNICO'},{n:'LUCIANO MUNIZ NASCIMENTO',c:'MECÂNICO'},{n:'BRUNO VASCO MACHADO DA VITORIA',c:'SOLDADOR'},{n:'ROQUE FERREIRA SANTOS',c:'OPER. PÁTIO/PORTO'},{n:'RENAN PEREIRA HERINGER',c:'OPER. PÁTIO/PORTO'},{n:'DIOGO SILVA QUINTEIRO',c:'OPER. PÁTIO/PORTO ADM'}]},
+  D:{id:'D',label:'Turno D',seg:'turno',color:'#7c3aed',enc:{n:'FABIANO SCHWANZ',c:'ENCARREGADO OPERACIONAL'},members:[{n:'IVANETE DA CRUZ SANTOS',c:'ETI BN'},{n:'LUAN BERMOND ARPINI CHAGAS',c:'ETI 1/2'},{n:'JOVANE CONCEIÇÃO DOS SANTOS',c:'DRAGA 01'},{n:'ALVIMAR DOS SANTOS E SILVA',c:'POLPA/DRAGA 02'},{n:'RAFAEL DE JESUS',c:'PRECIPT. US03'},{n:'UEVERTON SOUZA DE FREITAS',c:'PRECIPT. US03'},{n:'GABRIEL BARBOZA DA TRINDADE ALVES',c:'PENEIRAMENTO US03'},{n:'BRUNO DE ALMEIDA COELHO',c:'PRECIPT. US04'},{n:'BRUNO PERIN DONNA',c:'PRECIPT. US04'},{n:'JALEILTON ERMINIGILDO DOS SANTOS',c:'PENEIRAMENTO US04'},{n:'CARLOS DOUGLAS SENA RAMOS',c:'FILTRO PRENSA'},{n:'ERICK DA SILVA GOLTARA',c:'OPERADOR MANTENEDOR'},{n:'MARCUS VINICIUS DE OLIVEIRA SEMEDO',c:'OPERADOR MANTENEDOR'},{n:'DIANA PEREIRA RODRIGUES',c:'OPERADOR MANTENEDOR'},{n:'FILIPE DAS CHAGAS LUIZ',c:'MECÂNICO'},{n:'ALEXANDRE BARBOSA MOREIRA',c:'MECÂNICO'},{n:'EDUARDO VIEIRA DA SILVA',c:'SOLDADOR'},{n:'LUCAS DA SILVA DE SOUZA',c:'OPER. PÁTIO/PORTO'},{n:'DEIVID SERAFIM DOS SANTOS',c:'OPER. PÁTIO/PORTO'},{n:'FELIPE GONÇALVES DE ANDRADE',c:'OPER. PÁTIO/PORTO ADM'}]},
+  prod:{id:'prod',label:'Prod. Pátio/Porto',seg:'adm',color:'#ea580c',enc:{n:'CLAUDIO DOS SANTOS',c:'ENCARREGADO'},members:[{n:'THIAGO DO SANTÍSSIMO',c:'MANTENEDOR'},{n:'MARCOS PAULO ALVES PIRES',c:'MANTENEDOR'},{n:'JOÃO CARLOS DA TRINDADE PEREIRA',c:'MANTENEDOR'},{n:'FABRICIO DOS SANTOS FARIAS',c:'MANTENEDOR'},{n:'VITOR DA SILVA SOUZA',c:'MANTENEDOR'},{n:'RAI DOS SANTOS SILVA',c:'MANTENEDOR'},{n:'FELIPE CORREA BORGES',c:'MANTENEDOR'},{n:'VITOR DANTAS COUTO',c:'MANTENEDOR'},{n:'WESLLEY VIEIRA SILVA',c:'INSPETOR OPERACIONAL'},{n:'MIGUEL PEREIRA',c:'MANTENEDOR'},{n:'CÉLIO RIBEIRO DE SOUZA',c:'MANTENEDOR'},{n:'JONES VIEIRA BARBOSA',c:'MANTENEDOR'},{n:'GIOVANE CORRÊA BARBOZA',c:'MANTENEDOR'},{n:'LICIOMAR MORAES DA SILVA',c:'MANTENEDOR'},{n:'THIAGO RODOLFO DO SANTOS',c:'MANTENEDOR'},{n:'AUGUSTO RIBEIRO DE ALMEIDA',c:'MANTENEDOR'}]},
+  manut:{id:'manut',label:'Manutenção',seg:'adm',color:'#dc2626',enc:{n:'ALAN PEREIRA DA CRUZ',c:'ENCARREGADO MANUTENÇÃO'},members:[{n:'HERCULES CARVALHO LOYOLA',c:'MECÂNICO'},{n:'JEFERSON OLIVEIRA CHAGAS',c:'MECÂNICO'},{n:'ERICK DE OLIVEIRA SOUZA COUTINHO',c:'MECÂNICO'},{n:'GUILHERME DE SOUZA',c:'MECÂNICO'},{n:'UEBER VIEIRA SANTOS',c:'MECÂNICO'},{n:'GLEISON NEVES DOS SANTOS',c:'MECÂNICO'},{n:'MANOEL MESSIAS SILVA DA CONCEIÇÃO',c:'MECÂNICO'},{n:'CARLOS BOURGUIGNON JUNIOR',c:'MECÂNICO'},{n:'DANIEL GONÇALVES DA SILVA',c:'SOLDADOR'},{n:'ALEX NEVES DOS SANTOS RODRIGUES',c:'SOLDADOR'},{n:'DIONATAN DOS ANJOS VICTOR',c:'CALDEIREIRO'},{n:'AILTON RIBEIRO LIMA',c:'CALDEIREIRO'},{n:'ALDAIR VICTOR OLIVEIRA',c:'CALDEIREIRO'},{n:'WELLIS DE OLIVEIRA BARBOSA',c:'INSTRUMENTISTA'},{n:'CLAUDIO PRADO DE JESUS',c:'INSTRUMENTISTA'},{n:'WALQUIMAR FLORENTINO DE SOUZA RAMOS',c:'INSTRUMENTISTA'}]},
+  plan:{id:'plan',label:'Planejamento',seg:'adm',color:'#0891b2',enc:{n:'REGAZZONY NASCIMENTO DE ALMEIDA',c:'SUPERVISOR'},members:[{n:'TIAGO NUNES',c:'INSPETOR'},{n:'VITOR CURTY VASCONCELOS',c:'INSPETOR'},{n:'MIQUEIAS SENNA ESPIRIDIAO',c:'PROGRAMAÇÃO'},{n:'GEOVANA NASCIMENTO ROCHA',c:'PROGRAMAÇÃO'},{n:'PEDRO COMINOTTI DE ALMEIDA ADOLFO',c:'PLANEJAMENTO'},{n:'LUCCA COUTINHO FAGUNDES',c:'PROGRAMAÇÃO'},{n:'JOSÉ MAURO NASCIMENTO DA SILVA',c:'PLANEJAMENTO'},{n:'HERBERT PITANGA DA ROCHA',c:'PLANEJAMENTO'},{n:'HELLEN CAROLINY NASCIMENTO SCHMIDT',c:'PL. GERENCIAL'},{n:'ELSON MARTINS',c:'COORDENADOR'},{n:'RAYANNE BARBOZA REIS DA MATTA',c:'ADMINISTRATIVO'},{n:'LEONARDO DE OLIVEIRA XIMENES',c:'MÉDICO'}]},
+  sesmt:{id:'sesmt',label:'SESMT',seg:'adm',color:'#065f46',enc:{n:'MALENA BARBOSA COELHO',c:'ENGENHEIRA DE SEGURANÇA'},members:[{n:'RAPHAEL MULINARI DINIZ',c:'TÉC. SEGURANÇA'},{n:'DOUGLAS ALVES DA SILVA',c:'TÉC. SEGURANÇA'},{n:'ALEXANDRE GRIFFO DE LIMA',c:'AUX. SEGURANÇA'}]},
+  windfense:{id:'windfense',label:'Wind Fense',seg:'adm',color:'#1d4ed8',enc:{n:'FAGNER RANGEL DE SOUZA',c:'ENCARREGADO OPERACIONAL'},members:[{n:'JEFFERSON DA SILVA AVELINO',c:'MANTENEDOR'},{n:'PABLO ARAUJO SANTANA',c:'MANTENEDOR'},{n:'DAVI SIMÕES SILVA',c:'MANTENEDOR'},{n:'MATHEUS DIAS DOS SANTOS',c:'MANTENEDOR'},{n:'JOEL FERREIRA',c:'MANTENEDOR'},{n:'DAVIDSON PINTO HELEODORO',c:'ETEI POUPA'},{n:'SILVINO IZACK MARCHESI JUNIOR',c:'PRECIPITADORES'},{n:'JEFFERSON DOS SANTOS FREITAS',c:'INSTRUMENTISTA'},{n:'LUTHER KING FREIRE DA CRUZ',c:'ENC. PRECIPITADORES'},{n:'WESLEY SOUZA BERTOLANI',c:'ENC. ETEI POUPA'}]}
+};
+
+// Estado
+let ALL_TEAMS = JSON.parse(JSON.stringify(DEFAULT_TEAMS)); // começa com dados padrão
+let FB_DATA    = {};       // { "NOME§mes": { scores, obs, cod_equip, cod_local, desc, avaliador } }
+let ESCUDO_S   = {};       // scores do sistema geral (escudo/scores)
+let avMonth    = new Date().getMonth();
+let selMb      = null;     // { name, cargo, teamId, teamColor, teamLabel }
+let avS        = {};       // scores em curso
+let curSeg     = 'turno';
+let curTab     = 'avaliar';
+let histFilter = 'all';
+let curStep    = 1;
+
+// Membros do Planejamento (avaliadores)
+let PLAN_MEMBERS = loadPlanMembers();
+
+function loadPlanMembers() {
+  const DEFAULT = [
+    {n:'REGAZZONY NASCIMENTO DE ALMEIDA',c:'SUPERVISOR'},
+    {n:'TIAGO NUNES',c:'INSPETOR'},
+    {n:'VITOR CURTY VASCONCELOS',c:'INSPETOR'},
+    {n:'MIQUEIAS SENNA ESPIRIDIAO',c:'PROGRAMAÇÃO'},
+    {n:'GEOVANA NASCIMENTO ROCHA',c:'PROGRAMAÇÃO'},
+    {n:'PEDRO COMINOTTI DE ALMEIDA ADOLFO',c:'PLANEJAMENTO'},
+    {n:'LUCCA COUTINHO FAGUNDES',c:'PROGRAMAÇÃO'},
+    {n:'JOSÉ MAURO NASCIMENTO DA SILVA',c:'PLANEJAMENTO'},
+    {n:'HERBERT PITANGA DA ROCHA',c:'PLANEJAMENTO'},
+    {n:'HELLEN CAROLINY NASCIMENTO SCHMIDT',c:'PL. GERENCIAL'},
+    {n:'ELSON MARTINS',c:'COORDENADOR'},
+    {n:'RAYANNE BARBOZA REIS DA MATTA',c:'ADMINISTRATIVO'},
+    {n:'LEONARDO DE OLIVEIRA XIMENES',c:'MÉDICO'},
+  ];
+  try {
+    const saved = localStorage.getItem('escudo_plan_members');
+    if (saved) return JSON.parse(saved);
+  } catch(e) {}
+  return DEFAULT;
+}
+
+function savePlanMembers(list) {
+  try { localStorage.setItem('escudo_plan_members', JSON.stringify(list)); } catch(e) {}
+  PLAN_MEMBERS = list;
+  buildAvSelect();
+}
+
+const ini = n => (n||'?').split(' ').slice(0,2).map(w=>w[0]).join('');
+const f2  = n => (n||'?').split(' ').slice(0,2).join(' ');
+
+function normTeams(raw) {
+  const r = {};
+  Object.entries(raw).forEach(([id, t]) => {
+    if (!t || !t.label || !t.enc) return;
+    let enc = t.enc;
+    if (!enc && t.encarregado) enc = { n: t.encarregado.n||'', c: t.encarregado.c||'' };
+    if (!enc || !enc.n || enc.n.length < 3) return;
+    const labelUp = t.label.toUpperCase();
+    const REJECT = ['CONDIÇÃO','INSEGURA','ACIDENTE','INCIDENTE','TESTE'];
+    if (REJECT.some(w => labelUp.includes(w))) return;
+    r[id] = {
+      id: t.id||id, label: t.label,
+      seg: t.seg||(id==='A'||id==='B'||id==='C'||id==='D'?'turno':'adm'),
+      color: (t.color&&t.color.startsWith('#'))?t.color:'#1e3a5f',
+      enc,
+      members: Array.isArray(t.members)
+        ? t.members.filter(m=>m&&m.n&&m.n.length>2).map(m=>({n:m.n,c:m.c||''}))
+        : []
+    };
+  });
+  return r;
+}
+
+/* ── Sync bar ── */
+function setSB(state, msg) {
+  const dot = document.getElementById('sy-dot');
+  const txt = document.getElementById('sy-txt');
+  dot.className = 'sy-dot' + (state==='ok'?' ok':state==='load'?' load':'');
+  txt.textContent = msg;
+  const badge = document.getElementById('fb-badge');
+  badge.textContent = state==='ok'?'🟢':state==='load'?'⏳':'⚠️';
+  badge.className = 'tp tp-sync' + (state==='ok'?'':state==='load'?' w':' e');
+}
+
+/* ── Tabs ── */
+function goTab(name, btn) {
+  curTab = name;
+  document.getElementById('tab-avaliar').style.display   = name==='avaliar'  ?'block':'none';
+  document.getElementById('tab-historico').style.display = name==='historico'?'block':'none';
+  document.getElementById('steps-bar').style.display     = name==='avaliar'  ?'flex' :'none';
+  document.querySelectorAll('.ntab').forEach(b => b.classList.remove('on'));
+  if (btn) btn.classList.add('on');
+  if (name === 'historico') renderHist();
+}
+
+/* ── Steps ── */
+function updateProgress() {
+  [1,2,3,4].forEach(i => {
+    const d = document.getElementById('dot-'+i); if (!d) return;
+    d.classList.remove('done','act');
+    if (i < curStep) d.classList.add('done');
+    else if (i === curStep) d.classList.add('act');
+  });
+  document.getElementById('step-lbl').textContent = `Passo ${Math.min(curStep,4)} de 4`;
+}
+
+/* ── Passo 1 ── */
+function buildPlanejadorSel() {
+  const sel = document.getElementById('av-planejador'); if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Selecione o avaliador…</option>'
+    + PLAN_MEMBERS.map(m => `<option value="${m.n}">${m.n} — ${m.c}</option>`).join('');
+  if (cur) sel.value = cur;
+}
+
+function buildMeses() {
+  const el = document.getElementById('av-meses'); if (!el) return;
+  el.innerHTML = MESES.map((m, i) => `
+    <button class="mpill${i===avMonth?' on':''}" onclick="setMon(${i})">${m}</button>`
+  ).join('');
+}
+function setMon(i) { avMonth = i; buildMeses(); }
+
+/* ── Passo 2 ── */
+function setSeg(seg, btn) {
+  curSeg = seg;
+  document.querySelectorAll('.stab').forEach(b => b.classList.remove('on'));
+  if (btn) btn.classList.add('on');
+  buildEquipeSel();
+  document.getElementById('mem-grid-wrap').innerHTML =
+    '<div class="no-data" style="padding:.5rem;">Selecione a equipe acima.</div>';
+  selMb = null;
+}
+
+function buildEquipeSel() {
+  const sel = document.getElementById('av-equipe'); if (!sel) return;
+  const cur = sel.value;
+  const teams = Object.values(ALL_TEAMS).filter(t => t.seg === curSeg);
+  sel.innerHTML = '<option value="">Selecione a equipe…</option>'
+    + teams.map(t => `<option value="${t.id}">${t.label}</option>`).join('');
+  if (cur && ALL_TEAMS[cur] && ALL_TEAMS[cur].seg === curSeg) sel.value = cur;
+}
+
+function buildMemGrid() {
+  const tid = document.getElementById('av-equipe').value;
+  const wrap = document.getElementById('mem-grid-wrap'); if (!wrap) return;
+  if (!tid || !ALL_TEAMS[tid]) {
+    wrap.innerHTML = '<div class="no-data" style="padding:.5rem;">Selecione a equipe acima.</div>';
+    selMb = null; return;
+  }
+  const t = ALL_TEAMS[tid];
+  const all = [
+    { n: t.enc.n, c: t.enc.c + ' (Encarregado)', isEnc: true },
+    ...t.members.map(m => ({ n: m.n, c: m.c, isEnc: false }))
+  ];
+  wrap.innerHTML = `<div class="mem-grid">${all.map((m, i) => {
+    const hasDone = !!FB_DATA[m.n + '§' + avMonth];
+    const isSel = selMb && selMb.name === m.n;
+    return `<div class="mem-btn${isSel?' on':''}" id="mb-${i}" onclick="selMember(${i},'${tid}')"
+      style="${isSel?`border-color:${t.color};`:''}">
+      <div class="mem-btn" style="position:absolute;top:0;left:0;right:0;height:3px;background:${t.color};border-radius:var(--rsm) var(--rsm) 0 0;"></div>
+      <div class="mem-av" style="background:${t.color};">${ini(m.n)}</div>
+      <div class="mem-nm">${f2(m.n)}</div>
+      <div class="mem-role">${m.c}</div>
+      ${hasDone ? '<div class="mem-done">✓ avaliado</div>' : ''}
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function selMember(i, tid) {
+  const t = ALL_TEAMS[tid];
+  const all = [
+    { n: t.enc.n, c: t.enc.c + ' (Encarregado)' },
+    ...t.members
+  ];
+  const m = all[i];
+  selMb = { name: m.n, cargo: m.c, teamId: tid, teamColor: t.color, teamLabel: t.label };
+  document.querySelectorAll('.mem-btn').forEach(b => {
+    b.classList.remove('on'); b.style.borderColor = '';
+  });
+  const el = document.getElementById('mb-'+i);
+  if (el) { el.classList.add('on'); el.style.borderColor = t.color; }
+}
+
+/* ── Eval head (passos 3 e 4) ── */
+function buildEvalHead(targetId) {
+  const el = document.getElementById(targetId); if (!el || !selMb) return;
+  el.innerHTML = `
+    <div class="eval-head">
+      <div class="eval-av" style="background:${selMb.teamColor};">${ini(selMb.name)}</div>
+      <div>
+        <div class="eval-nm">${selMb.name}</div>
+        <div class="tags">
+          <span class="tag" style="background:${selMb.teamColor}18;color:${selMb.teamColor};border-color:${selMb.teamColor}40;">${selMb.teamLabel}</span>
+          <span class="tag">${selMb.cargo}</span>
+          <span class="tag tag-gold">${MESES_F[avMonth]}</span>
+          <span class="tag tag-blue">Avaliador: Planejamento</span>
+        </div>
+      </div>
+    </div>`;
+}
+
+/* ── Stars ── */
+function buildStars(k) {
+  const wrap = document.getElementById('cs-'+k); if (!wrap) return;
+  wrap.innerHTML = [1,2,3,4,5].map(s =>
+    `<button class="star" data-k="${k}" data-v="${s}" onclick="setStar('${k}',${s})">${s}</button>`
+  ).join('');
+}
+
+function setStar(k, v) {
+  avS[k] = v;
+  const card = document.getElementById('cc-'+k);
+  card.classList.add('rated'); card.classList.remove('na');
+  document.querySelectorAll(`#cs-${k} .star`).forEach(b =>
+    b.classList.toggle('on', parseInt(b.dataset.v) <= v));
+  const cb = document.getElementById('na-'+k);
+  if (cb) cb.checked = false;
+}
+
+function toggleNA(k) {
+  const cb = document.getElementById('na-'+k);
+  const card = document.getElementById('cc-'+k);
+  if (cb.checked) {
+    avS[k] = 'na'; card.classList.add('na'); card.classList.remove('rated');
+    document.querySelectorAll(`#cs-${k} .star`).forEach(b => b.classList.remove('on'));
+  } else { delete avS[k]; card.classList.remove('na'); }
+}
+
+/* ── Nav steps ── */
+function goS(n) {
+  if (n===2) {
+    if (!document.getElementById('av-planejador').value) { alert('Selecione o avaliador do Planejamento.'); return; }
+  }
+  if (n===3) {
+    if (!selMb) { alert('Selecione o profissional avaliado.'); return; }
+    buildEvalHead('eval-head-wrap');
+  }
+  if (n===4) {
+    const cod = document.getElementById('cod-equip').value.trim();
+    const loc = document.getElementById('cod-local').value.trim();
+    if (!cod || !loc) { alert('Informe o código do equipamento e o local da atividade.'); return; }
+    buildEvalHead('eval-head-wrap-2');
+    // Reinicia stars
+    CRITS.forEach(k => { delete avS[k]; buildStars(k); });
+  }
+
+  ['sc-1','sc-2','sc-3','sc-4','sc-ok'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.classList.remove('on');
+  });
+  const target = n==='ok' ? 'sc-ok' : 'sc-'+n;
+  const el = document.getElementById(target);
+  if (el) el.classList.add('on');
+  curStep = typeof n === 'number' ? n : 4;
+  updateProgress();
+  window.scrollTo(0,0);
+}
+
+/* ── Salvar ── */
+function saveAv() {
+  const vals = CRITS.map(k =>
+    avS[k] !== undefined ? (avS[k]==='na' ? null : avS[k]) : null
+  );
+  const nums = vals.filter(v => v != null);
+  if (!nums.length) { alert('Avalie pelo menos um critério.'); return; }
+
+  const avg = nums.reduce((a,b) => a+b,0) / nums.length;
+  const key = selMb.name + '§' + avMonth;
+  const avaliador = document.getElementById('av-planejador').value;
+  const codEquip = document.getElementById('cod-equip').value.trim().toUpperCase();
+  const codLocal = document.getElementById('cod-local').value.trim().toUpperCase();
+  const descAtiv = document.getElementById('desc-atividade').value.trim();
+  const obsGeral = document.getElementById('obs-geral').value.trim();
+
+  // Observações por critério
+  const obsCrits = {};
+  CRITS.forEach(k => {
+    const v = document.getElementById('ob-'+k)?.value?.trim();
+    if (v) obsCrits[k] = v;
+  });
+
+  // Salva no caminho próprio (histórico detalhado)
+  FB_DATA[key] = {
+    scores: vals,
+    avaliador,
+    codEquip, codLocal, descAtiv,
+    obs: obsGeral,
+    obsCrits,
+    avg: avg.toFixed(2),
+    mes: avMonth,
+    team: selMb.teamLabel,
+    teamId: selMb.teamId,
+    cargo: selMb.cargo,
+    ts: new Date().toISOString()
+  };
+
+  // Também salva no escudo/scores para aparecer no ranking geral
+  ESCUDO_S[key] = vals;
+
+  saveToFirebase();
+
+  document.getElementById('succ-score').textContent = avg.toFixed(1);
+  document.getElementById('succ-sub').textContent = `/ 5.0 · ${MESES_F[avMonth]} · Feedback de Atividade`;
+  document.getElementById('succ-nm').textContent = selMb.name;
+  document.getElementById('succ-team').textContent = `${selMb.teamLabel} · Avaliado por: ${f2(avaliador)}`;
+
+  goS('ok');
+}
+
+function saveToFirebase() {
+  // localStorage backup
+  try {
+    localStorage.setItem('esc_fb_ativ', JSON.stringify(FB_DATA));
+    localStorage.setItem('esc2', JSON.stringify({ teams: ALL_TEAMS, scores: ESCUDO_S }));
+  } catch(e) {}
+
+  if (window.$FB) {
+    const { db, ref, set } = window.$FB;
+    // Dados detalhados de feedback de atividade
+    set(ref(db, 'escudo/feedback_atividades'), FB_DATA).catch(() => {});
+    // Scores integrados ao ranking geral
+    set(ref(db, 'escudo/scores'), ESCUDO_S).catch(() => {});
+    setSB('ok', 'Avaliação enviada · dados sincronizados ✓');
+  }
+}
+
+/* ── Reset ── */
+function resetAv() {
+  avS = {}; selMb = null;
+  document.getElementById('av-planejador').value = '';
+  document.getElementById('cod-equip').value = '';
+  document.getElementById('cod-local').value = '';
+  const da = document.getElementById('desc-atividade'); if (da) da.value = '';
+  const og = document.getElementById('obs-geral'); if (og) og.value = '';
+  CRITS.forEach(k => buildStars(k));
+  buildMeses(); buildEquipeSel();
+  document.getElementById('mem-grid-wrap').innerHTML =
+    '<div class="no-data" style="padding:.5rem;">Selecione a equipe acima.</div>';
+  goS(1);
+}
+
+/* ── HISTÓRICO ── */
+function setHistFilter(f, btn) {
+  histFilter = f;
+  document.querySelectorAll('.hfpill').forEach(b => b.classList.remove('on'));
+  if (btn) btn.classList.add('on');
+  renderHist();
+}
+
+function buildHistFilters() {
+  const wrap = document.getElementById('hist-filters'); if (!wrap) return;
+  // Coleta equipes presentes no histórico
+  const eqs = new Set();
+  Object.values(FB_DATA).forEach(d => { if (d.teamId) eqs.add(d.teamId); });
+  const todasAct = histFilter === 'all';
+  wrap.innerHTML = `<button class="hfpill${todasAct?' on':''}" onclick="setHistFilter('all',this)">Todos</button>`
+    + [...eqs].map(id => {
+        const t = ALL_TEAMS[id];
+        const lbl = t ? t.label : id;
+        const color = t ? t.color : '#1e3a5f';
+        const act = histFilter === id;
+        return `<button class="hfpill${act?' on':''}"
+          style="${act?`background:${color};border-color:${color};`:''}"
+          onclick="setHistFilter('${id}',this)">${lbl}</button>`;
+      }).join('');
+}
+
+function renderHist() {
+  buildHistFilters();
+  const el = document.getElementById('hist-content'); if (!el) return;
+  let entries = Object.entries(FB_DATA);
+  if (histFilter !== 'all') entries = entries.filter(([,d]) => d.teamId === histFilter);
+  entries = entries.sort((a,b) => (b[1].mes||0) - (a[1].mes||0));
+
+  if (!entries.length) {
+    el.innerHTML = '<div class="no-data">📋 Nenhuma avaliação registrada ainda.</div>';
+    return;
+  }
+
+  el.innerHTML = entries.map(([key, d]) => {
+    const name = key.split('§')[0];
+    const t = ALL_TEAMS[d.teamId];
+    const color = t ? t.color : '#1e3a5f';
+    const critRows = CRITS.map((k, ci) => {
+      const v = d.scores[ci];
+      const obs = d.obsCrits?.[k] || '';
+      const stars = [1,2,3,4,5].map(s =>
+        `<div class="hist-star${v!=null&&s<=v?' on':''}"></div>`).join('');
+      return `<div class="hist-crit-row">
+        <span class="hist-crit-icon">${CRIT_IC[k]}</span>
+        <span class="hist-crit-nm">${CRIT_NM[k]}</span>
+        ${v != null
+          ? `<div class="hist-stars">${stars}</div>
+             <span class="hist-crit-val" style="color:${color};margin-left:6px;">${v}</span>`
+          : `<span class="hist-crit-na">N/A</span>`}
+      </div>
+      ${obs ? `<div class="hist-obs" style="margin:3px 0 5px 22px;font-size:9px;">${obs}</div>` : ''}`;
+    }).join('');
+
+    return `<div class="hist-card">
+      <div class="hist-hd">
+        <div class="hist-av">${ini(name)}</div>
+        <div style="flex:1;min-width:0;">
+          <div class="hist-nm">${name}</div>
+          <div class="hist-mes-lbl">${MESES_F[d.mes]||''} · ${d.team||''} · ${d.cargo||''}</div>
+        </div>
+        <div class="hist-score-lbl">${d.avg||'—'}</div>
+      </div>
+      <div class="hist-body">
+        ${d.codEquip||d.codLocal ? `
+          <div class="hist-cod">
+            ${d.codEquip?`<span class="hist-cod-tag">🏷️ ${d.codEquip}</span>`:''}
+            ${d.codLocal?`<span class="hist-cod-tag">📍 ${d.codLocal}</span>`:''}
+          </div>` : ''}
+        ${d.descAtiv ? `<div style="font-size:10px;color:var(--ink3);margin:.4rem 0;line-height:1.5;">${d.descAtiv}</div>` : ''}
+        <div class="divider" style="margin:.5rem 0;"></div>
+        ${critRows}
+        ${d.obs ? `<div class="hist-obs">💬 ${d.obs}</div>` : ''}
+        <div style="margin-top:.5rem;font-size:8.5px;color:var(--ink3);">
+          Avaliador: ${f2(d.avaliador||'—')} · Planejamento
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ── Local storage ── */
+function loadLocal() {
+  try {
+    const r1 = localStorage.getItem('esc2');
+    if (r1) {
+      const d = JSON.parse(r1);
+      if (d.scores) ESCUDO_S = d.scores;
+      // Só sobrescreve equipes se vier dados válidos do localStorage
+      if (d.teams && Object.keys(d.teams).length >= 4) {
+        const norm = normTeams(d.teams);
+        if (Object.keys(norm).length >= 4) ALL_TEAMS = norm;
+      }
+    }
+    const r2 = localStorage.getItem('esc_fb_ativ');
+    if (r2) FB_DATA = JSON.parse(r2);
+  } catch(e) {}
+}
+
+/* ── Firebase ── */
+window._onFbReady = async () => {
+  const { db, ref, set, get, onValue } = window.$FB;
+  setSB('load','Conectando ao Firebase…');
+  try {
+    // Equipes
+    const st = await get(ref(db,'escudo/teams'));
+    if (st.exists()) {
+      const teams = normTeams(st.val());
+      if (Object.keys(teams).length >= 4) ALL_TEAMS = teams;
+      else ALL_TEAMS = JSON.parse(JSON.stringify(DEFAULT_TEAMS)); // mantém padrão se Firebase vazio
+      // Atualiza membros do Planejamento se existir no Firebase
+      if (teams.plan) {
+        const t = teams.plan;
+        const all = [];
+        if (t.enc && t.enc.n) all.push({n:t.enc.n,c:t.enc.c});
+        if (Array.isArray(t.members)) t.members.filter(m=>m&&m.n).forEach(m=>all.push({n:m.n,c:m.c||''}));
+        if (all.length > 0) PLAN_MEMBERS = all;
+      }
+    }
+    // Scores gerais
+    const ss = await get(ref(db,'escudo/scores'));
+    if (ss.exists()) ESCUDO_S = ss.val();
+    // Dados próprios de feedback
+    const sf = await get(ref(db,'escudo/feedback_atividades'));
+    if (sf.exists()) FB_DATA = sf.val();
+
+    setSB('ok','Firebase conectado · dados sincronizados');
+    buildPlanejadorSel(); buildEquipeSel(); buildMeses();
+
+    // Listeners
+    onValue(ref(db,'escudo/teams'), snap => {
+      if (!snap.exists()) return;
+      const teams = normTeams(snap.val());
+      if (Object.keys(teams).length >= 4) {
+        ALL_TEAMS = teams;
+        buildEquipeSel(); // atualiza select quando Firebase mudar
+        if (teams.plan) {
+          const t = teams.plan; const all = [];
+          if (t.enc && t.enc.n) all.push({n:t.enc.n,c:t.enc.c});
+          if (Array.isArray(t.members)) t.members.filter(m=>m&&m.n).forEach(m=>all.push({n:m.n,c:m.c||''}));
+          if (all.length > 0) PLAN_MEMBERS = all;
+          buildPlanejadorSel();
+        }
+        buildEquipeSel();
+      }
+    });
+    onValue(ref(db,'escudo/scores'), snap => {
+      if (snap.exists()) ESCUDO_S = snap.val();
+    });
+    onValue(ref(db,'escudo/feedback_atividades'), snap => {
+      if (snap.exists()) { FB_DATA = snap.val(); if (curTab==='historico') renderHist(); }
+    });
+
+  } catch(e) {
+    setSB('e','Offline — dados locais'); console.warn(e);
+  }
+};
+
+setTimeout(()=>{
+  const dot = document.getElementById('sy-dot');
+  if (dot && dot.classList.contains('load')) setSB('e','Firebase não respondeu — dados locais');
+}, 6000);
+
+/* ── Init ── */
+loadLocal();
+buildPlanejadorSel();
+buildMeses();
+buildEquipeSel();
+CRITS.forEach(k => buildStars(k));
+updateProgress();
+</script>
+
+<!-- Firebase — carregado após script principal -->
+<script type="module">
+  import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import{getDatabase,ref,set,get,onValue}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  const cfg={
+    apiKey:"AIzaSyDP74FugIertZsbbi-LjUeNowEfWPqnmHo",
+    authDomain:"escudo-in-haus.firebaseapp.com",
+    databaseURL:"https://escudo-in-haus-default-rtdb.firebaseio.com",
+    projectId:"escudo-in-haus",
+    storageBucket:"escudo-in-haus.firebasestorage.app",
+    messagingSenderId:"961467182857",
+    appId:"1:961467182857:web:1458526eca1e78fddf6dd8"
+  };
+  try{
+    const app=initializeApp(cfg);const db=getDatabase(app);
+    window.$FB={db,ref,set,get,onValue};
+    if(typeof window._onFbReady==='function') window._onFbReady();
+  }catch(e){console.error('Firebase:',e);}
+</script>
+
+<!-- Modal edição avaliadores -->
+<div id="modal-av" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.55);align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:14px;padding:28px 28px 20px;max-width:580px;width:94vw;max-height:85vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.25);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+      <div style="font-size:16px;font-weight:700;color:#0D2137;">✏️ Editar avaliadores do Planejamento</div>
+      <button onclick="closeEditAvaliadores()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#64748B;">✕</button>
+    </div>
+    <div style="font-size:12px;color:#64748B;margin-bottom:14px;">Adicione, edite ou remova os membros que podem realizar avaliações. As alterações ficam salvas neste dispositivo.</div>
+
+    <div id="av-list-edit"></div>
+
+    <div style="border:1.5px dashed #CBD5E1;border-radius:10px;padding:14px;margin-top:10px;background:#F8FAFC;">
+      <div style="font-size:12px;font-weight:700;color:#1E8A9A;margin-bottom:10px;">➕ Adicionar novo avaliador</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+        <div>
+          <label style="font-size:11px;font-weight:600;color:#475569;display:block;margin-bottom:4px;">NOME COMPLETO *</label>
+          <input id="av-new-nome" placeholder="Ex: JOÃO DA SILVA" style="width:100%;border:1.5px solid #CBD5E1;border-radius:8px;padding:8px 10px;font-size:13px;text-transform:uppercase;outline:none;" oninput="this.value=this.value.toUpperCase()"/>
+        </div>
+        <div>
+          <label style="font-size:11px;font-weight:600;color:#475569;display:block;margin-bottom:4px;">CARGO / FUNÇÃO *</label>
+          <input id="av-new-cargo" placeholder="Ex: INSPETOR" style="width:100%;border:1.5px solid #CBD5E1;border-radius:8px;padding:8px 10px;font-size:13px;text-transform:uppercase;outline:none;" oninput="this.value=this.value.toUpperCase()"/>
+        </div>
+      </div>
+      <button onclick="addAvaliador()" style="background:#1E8A9A;color:#fff;border:none;border-radius:8px;padding:9px 20px;font-size:13px;font-weight:700;cursor:pointer;width:100%;">+ Adicionar avaliador</button>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:16px;">
+      <button onclick="closeEditAvaliadores()" style="flex:1;background:#F1F5F9;color:#475569;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;">Fechar</button>
+      <button onclick="saveAndClose()" style="flex:1;background:#0D9488;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;">✅ Salvar alterações</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let editList = [];
+
+function openEditAvaliadores() {
+  editList = JSON.parse(JSON.stringify(PLAN_MEMBERS));
+  renderEditList();
+  document.getElementById('modal-av').style.display = 'flex';
+}
+
+function closeEditAvaliadores() {
+  document.getElementById('modal-av').style.display = 'none';
+}
+
+function renderEditList() {
+  const el = document.getElementById('av-list-edit');
+  if (!editList.length) {
+    el.innerHTML = '<div style="text-align:center;color:#94A3B8;font-size:13px;padding:12px;">Nenhum avaliador cadastrado.</div>';
+    return;
+  }
+  el.innerHTML = editList.map((m, i) => `
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:9px;margin-bottom:7px;">
+      <div style="width:36px;height:36px;border-radius:50%;background:#1E8A9A;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;">${ini(m.n)}</div>
+      <div style="flex:1;min-width:0;">
+        <input value="${m.n}" oninput="editList[${i}].n=this.value.toUpperCase();this.value=this.value.toUpperCase()"
+          style="width:100%;border:1px solid #CBD5E1;border-radius:6px;padding:5px 8px;font-size:12px;font-weight:600;color:#0D2137;margin-bottom:3px;"/>
+        <input value="${m.c}" oninput="editList[${i}].c=this.value.toUpperCase();this.value=this.value.toUpperCase()"
+          style="width:100%;border:1px solid #CBD5E1;border-radius:6px;padding:4px 8px;font-size:11px;color:#64748B;"/>
+      </div>
+      <button onclick="removeAvaliador(${i})" style="background:none;border:none;color:#EF4444;font-size:18px;cursor:pointer;flex-shrink:0;line-height:1;">🗑</button>
+    </div>
+  `).join('');
+}
+
+function addAvaliador() {
+  const nome  = document.getElementById('av-new-nome').value.trim();
+  const cargo = document.getElementById('av-new-cargo').value.trim();
+  if (!nome || !cargo) { alert('Preencha nome e cargo.'); return; }
+  editList.push({ n: nome, c: cargo });
+  renderEditList();
+  document.getElementById('av-new-nome').value  = '';
+  document.getElementById('av-new-cargo').value = '';
+}
+
+function removeAvaliador(i) {
+  if (!confirm(`Remover "${editList[i].n}"?`)) return;
+  editList.splice(i, 1);
+  renderEditList();
+}
+
+function saveAndClose() {
+  if (!editList.length) { alert('A lista não pode ficar vazia.'); return; }
+  savePlanMembers(editList);
+  closeEditAvaliadores();
+  // Toast
+  const t = document.createElement('div');
+  t.textContent = '✅ Avaliadores salvos com sucesso!';
+  t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#0D9488;color:#fff;padding:12px 24px;border-radius:10px;font-weight:600;font-size:14px;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.2);';
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+</script>
+
+</body>
+</html>

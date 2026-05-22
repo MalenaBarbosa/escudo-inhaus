@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1e3a5f">
+<title>ESCUDO — Desconto de Pontos</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#eef1f5;--surface:#fff;--surface2:#f4f6f9;--border:#dde1e8;
+  --ink:#0d1117;--ink2:#3a4152;--ink3:#6b7385;
+  --navy:#1e3a5f;
+  --red:#dc2626;--red-lt:#fee2e2;--red-dk:#991b1b;--red-md:#ef4444;
+  --orange:#ea580c;--orange-lt:#ffedd5;
+  --gold:#d97706;--gold-lt:#fef3c7;--gold-md:#fbbf24;
+  --green:#065f46;--green-lt:#d1fae5;--green-md:#10b981;
+  --r:10px;--rsm:6px;
+  --sh:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.05);
+  --sh2:0 4px 14px rgba(0,0,0,.10),0 2px 4px rgba(0,0,0,.06);
+}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;-webkit-tap-highlight-color:transparent;}
+
+/* TOPBAR */
+.topbar{background:var(--navy);padding:.7rem 1.1rem;display:flex;align-items:center;gap:9px;
+  position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.25);}
+.logo{display:flex;align-items:center;gap:8px;}
+.logo svg{width:27px;height:27px;filter:drop-shadow(0 0 6px rgba(251,191,36,.4));}
+.logo-name{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:#fbbf24;letter-spacing:3px;}
+.logo-sub{font-size:8px;color:rgba(255,255,255,.45);letter-spacing:1.5px;text-transform:uppercase;}
+.topbar-r{margin-left:auto;display:flex;align-items:center;gap:5px;}
+.tp{font-size:9px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;padding:4px 9px;border-radius:20px;}
+.tp-red{background:rgba(220,38,38,.18);border:1px solid rgba(220,38,38,.35);color:#fca5a5;}
+.tp-sync{background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.3);color:#10b981;transition:all .3s;}
+.tp-sync.w{background:rgba(217,119,6,.12);border-color:rgba(217,119,6,.3);color:#fbbf24;}
+.tp-sync.e{background:rgba(153,27,27,.15);border-color:rgba(153,27,27,.3);color:#fca5a5;}
+.tp-sm{background:#fbbf24;color:var(--navy);font-weight:800;}
+
+/* NAV TABS */
+.nav-tabs{background:var(--surface);border-bottom:1px solid var(--border);display:flex;}
+.ntab{flex:1;font-size:11px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;
+  padding:.65rem .4rem;border:none;background:none;color:var(--ink3);cursor:pointer;
+  border-bottom:2px solid transparent;transition:all .18s;text-align:center;}
+.ntab.on{color:var(--red);border-bottom-color:var(--red);}
+
+/* STEPS */
+.steps-bar{background:var(--surface);border-bottom:1px solid var(--border);
+  padding:.6rem 1.1rem;display:flex;align-items:center;gap:5px;}
+.sdot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:all .25s;}
+.sdot.done{background:var(--green-md);}
+.sdot.act{background:var(--red);width:22px;border-radius:4px;}
+.slbl{margin-left:auto;font-size:10px;color:var(--ink3);font-weight:600;}
+
+/* BANNER */
+.banner{background:linear-gradient(135deg,var(--red-dk),var(--red));
+  margin:1rem 1rem 0;border-radius:var(--r);padding:1rem 1.1rem;
+  box-shadow:var(--sh2);display:flex;align-items:flex-start;gap:12px;}
+.banner-icon{font-size:28px;flex-shrink:0;}
+.banner-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:#fff;
+  letter-spacing:1px;text-transform:uppercase;line-height:1.2;}
+.banner-desc{font-size:10px;color:rgba(255,255,255,.65);margin-top:4px;line-height:1.5;}
+.banner-badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px;}
+.banner-badge{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);
+  border-radius:20px;padding:3px 9px;font-size:8.5px;font-weight:700;color:#fff;letter-spacing:.6px;text-transform:uppercase;}
+
+/* MAIN */
+.main{padding:1rem 1rem 4rem;}
+.sc{display:none;}.sc.on{display:block;}
+
+/* CARD */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:1.1rem;box-shadow:var(--sh);margin-bottom:.9rem;}
+.card-title{font-family:'Syne',sans-serif;font-size:11px;font-weight:800;
+  letter-spacing:.5px;text-transform:uppercase;color:var(--navy);
+  margin-bottom:.8rem;padding-bottom:.5rem;border-bottom:2px solid var(--red-lt);}
+
+/* FORM */
+.f{margin-bottom:.75rem;}
+.f label{font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;
+  letter-spacing:.7px;display:block;margin-bottom:4px;}
+.f label em{color:var(--red);font-style:normal;}
+input,select,textarea{width:100%;background:var(--surface2);border:1.5px solid var(--border);
+  color:var(--ink);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:500;
+  padding:9px 12px;border-radius:var(--rsm);outline:none;transition:border-color .2s;-webkit-appearance:none;}
+input:focus,select:focus,textarea:focus{border-color:var(--red);}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7385' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;}
+textarea{resize:none;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+@media(max-width:420px){.g2{grid-template-columns:1fr;}}
+
+/* BUTTONS */
+.btn{display:flex;align-items:center;justify-content:center;gap:5px;width:100%;
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;
+  padding:12px;border-radius:var(--rsm);border:none;cursor:pointer;transition:all .15s;}
+.btn-red{background:var(--red);color:#fff;}.btn-red:hover{background:var(--red-dk);}
+.btn-red:active{transform:scale(.98);}
+.btn-ghost{background:transparent;border:1.5px solid var(--border);color:var(--ink2);}
+.btn-ghost:hover{border-color:var(--red);color:var(--red);}
+.back-btn{background:none;border:none;color:var(--ink3);font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:12px;font-weight:600;cursor:pointer;padding:0;margin-bottom:.8rem;
+  display:flex;align-items:center;gap:4px;}
+.back-btn:hover{color:var(--navy);}
+
+/* MONTH */
+.month-g{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;}
+.mpill{font-size:11px;font-weight:600;padding:7px 3px;text-align:center;
+  background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--rsm);
+  cursor:pointer;color:var(--ink3);transition:all .15s;}
+.mpill.on{background:var(--red);border-color:var(--red);color:#fff;}
+.mpill.done{border-color:var(--orange);color:var(--orange);}
+
+/* SEG TABS */
+.seg-tabs{display:flex;gap:5px;margin-bottom:.8rem;flex-wrap:wrap;}
+.stab{font-size:10px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;
+  padding:6px 14px;border-radius:20px;border:1.5px solid var(--border);
+  background:var(--surface);color:var(--ink3);cursor:pointer;transition:all .15s;}
+.stab.on{background:var(--navy);border-color:var(--navy);color:#fff;}
+
+/* MEMBER GRID */
+.mem-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:7px;}
+.mem-btn{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--rsm);
+  padding:9px 5px;text-align:center;cursor:pointer;transition:all .15s;position:relative;overflow:hidden;}
+.mem-btn::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.mem-btn.on{border-color:var(--red);box-shadow:0 0 0 2px rgba(220,38,38,.15);}
+.mem-btn.on::after{content:'✓';position:absolute;top:5px;right:6px;font-size:9px;color:var(--red);font-weight:800;}
+.mem-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;font-size:11px;font-weight:800;color:#fff;margin:0 auto 5px;}
+.mem-nm{font-size:9px;font-weight:700;color:var(--ink);text-transform:uppercase;line-height:1.2;margin-bottom:1px;}
+.mem-role{font-size:7.5px;color:var(--ink3);text-transform:uppercase;}
+.mem-desc{font-size:8px;color:var(--red);font-weight:700;margin-top:2px;}
+
+/* EVAL HEAD */
+.eval-head{display:flex;align-items:center;gap:11px;background:var(--red-lt);
+  border:1.5px solid #fca5a5;border-radius:var(--r);padding:.85rem 1rem;margin-bottom:.9rem;}
+.eval-av{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:#fff;flex-shrink:0;}
+.eval-nm{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;text-transform:uppercase;color:var(--red-dk);}
+.tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;}
+.tag{font-size:8.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;
+  padding:2px 7px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--ink3);}
+.tag-red{background:var(--red-lt);border-color:#fca5a5;color:var(--red-dk);}
+.tag-gold{background:var(--gold-lt);border-color:#fde68a;color:#92400e;}
+
+/* ── DESCONTO CARDS ── */
+.desc-card{background:var(--surface);border:2px solid var(--border);border-radius:var(--r);
+  padding:1.1rem;margin-bottom:.9rem;box-shadow:var(--sh);transition:border-color .2s;}
+.desc-card.ativo{border-color:var(--red);}
+.desc-card-header{display:flex;align-items:flex-start;gap:10px;margin-bottom:.8rem;}
+.desc-card-icon{font-size:24px;flex-shrink:0;}
+.desc-card-title{font-size:13px;font-weight:700;text-transform:uppercase;color:var(--ink);letter-spacing:.3px;}
+.desc-card-sub{font-size:10px;color:var(--ink3);margin-top:3px;line-height:1.5;}
+.desc-card-pts{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--red);
+  background:var(--red-lt);border:1px solid #fca5a5;border-radius:8px;
+  padding:4px 10px;margin-left:auto;flex-shrink:0;white-space:nowrap;}
+
+/* TOGGLE ATIVO/INATIVO */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;
+  padding:.7rem .9rem;background:var(--surface2);border-radius:var(--rsm);margin-bottom:.8rem;}
+.toggle-lbl{font-size:12px;font-weight:600;color:var(--ink2);}
+.tgl{position:relative;width:46px;height:24px;}
+.tgl input{opacity:0;width:0;height:0;}
+.tgl-track{position:absolute;top:0;left:0;right:0;bottom:0;background:var(--border);
+  border-radius:24px;cursor:pointer;transition:.25s;}
+.tgl-track::before{content:'';position:absolute;height:18px;width:18px;left:3px;bottom:3px;
+  background:#fff;border-radius:50%;transition:.25s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+input:checked+.tgl-track{background:var(--red);}
+input:checked+.tgl-track::before{transform:translateX(22px);}
+
+/* CONTADOR FALTAS */
+.falta-counter{display:flex;align-items:center;gap:1rem;justify-content:center;
+  margin:.8rem 0;}
+.fc-btn{width:46px;height:46px;border-radius:50%;border:none;cursor:pointer;
+  font-family:'Syne',sans-serif;font-size:22px;font-weight:800;transition:all .15s;
+  display:flex;align-items:center;justify-content:center;}
+.fc-btn.minus{background:var(--red-lt);color:var(--red-dk);}
+.fc-btn.plus{background:var(--green-lt);color:var(--green);}
+.fc-num{font-family:'Syne',sans-serif;font-size:52px;font-weight:800;color:var(--navy);
+  line-height:1;min-width:70px;text-align:center;}
+.fc-pts{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--red);margin-top:.3rem;text-align:center;}
+.fc-lbl{font-size:9px;color:var(--ink3);text-transform:uppercase;letter-spacing:.5px;text-align:center;margin-top:2px;}
+.fc-per{font-size:10px;color:var(--red);background:var(--red-lt);border:1px solid #fca5a5;
+  border-radius:10px;padding:3px 10px;margin-top:.4rem;display:inline-block;}
+
+/* TIPO NC */
+.nc-tipos{display:flex;flex-direction:column;gap:6px;margin:.8rem 0;}
+.nc-tipo{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--rsm);
+  padding:.75rem .9rem;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:10px;}
+.nc-tipo.on{border-color:var(--red);background:var(--red-lt);}
+.nc-tipo-icon{font-size:18px;flex-shrink:0;}
+.nc-tipo-nm{font-size:12px;font-weight:700;color:var(--ink);text-transform:uppercase;letter-spacing:.3px;}
+.nc-tipo-desc{font-size:10px;color:var(--ink3);margin-top:1px;line-height:1.4;}
+.nc-tipo-pts{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--red);
+  margin-left:auto;flex-shrink:0;}
+.nc-tipo-check{width:20px;height:20px;border-radius:50%;border:2px solid var(--border);
+  display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;transition:all .15s;}
+.nc-tipo.on .nc-tipo-check{background:var(--red);border-color:var(--red);color:#fff;}
+
+/* CONTADOR NC */
+.nc-count-wrap{background:var(--red-lt);border:1.5px solid #fca5a5;border-radius:var(--rsm);
+  padding:.9rem;margin-top:.7rem;display:none;}
+.nc-count-wrap.show{display:block;}
+.nc-count-lbl{font-size:10px;font-weight:700;color:var(--red-dk);text-transform:uppercase;
+  letter-spacing:.5px;margin-bottom:.6rem;}
+.nc-count-row{display:flex;align-items:center;gap:.8rem;justify-content:center;}
+.nc-count-btn{width:40px;height:40px;border-radius:50%;border:none;cursor:pointer;
+  font-family:'Syne',sans-serif;font-size:20px;font-weight:800;transition:all .15s;
+  display:flex;align-items:center;justify-content:center;}
+.nc-count-btn.minus{background:#fecaca;color:var(--red-dk);}
+.nc-count-btn.plus{background:var(--green-lt);color:var(--green);}
+.nc-count-num{font-family:'Syne',sans-serif;font-size:42px;font-weight:800;color:var(--red-dk);
+  line-height:1;min-width:60px;text-align:center;}
+
+/* CAMPO OBS */
+.obs-f{width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--rsm);
+  color:var(--ink);font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;
+  padding:8px 10px;resize:none;min-height:50px;outline:none;margin-top:.6rem;}
+.obs-f:focus{border-color:var(--red);}
+.obs-f::placeholder{color:var(--ink3);}
+
+/* TOTAL */
+.total-card{background:linear-gradient(135deg,#fff1f2,#fff);border:2px solid var(--red);
+  border-radius:var(--r);padding:1.1rem;text-align:center;margin-bottom:.9rem;box-shadow:var(--sh2);}
+.total-num{font-family:'Syne',sans-serif;font-size:52px;font-weight:800;color:var(--red);line-height:1;}
+.total-lbl{font-size:11px;color:var(--ink3);text-transform:uppercase;letter-spacing:.8px;}
+.total-brkdwn{font-size:10px;color:var(--ink3);margin-top:.4rem;}
+
+/* SUCCESS */
+.success-wrap{text-align:center;padding:2rem .5rem;}
+.success-icon{font-size:50px;margin-bottom:.7rem;}
+.success-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--red-dk);margin-bottom:.4rem;}
+.success-pts{font-family:'Syne',sans-serif;font-size:52px;font-weight:800;color:var(--red);line-height:1;}
+.success-pts-lbl{font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;}
+.success-nm{font-size:14px;font-weight:700;text-transform:uppercase;color:var(--ink);}
+.success-team{font-size:11px;color:var(--ink3);margin-top:2px;}
+.success-detail{background:var(--red-lt);border:1px solid #fca5a5;border-radius:var(--rsm);
+  padding:.8rem;margin-top:1rem;display:flex;flex-direction:column;gap:5px;}
+.success-detail-row{display:flex;justify-content:space-between;font-size:11px;}
+.success-detail-lbl{color:var(--ink2);}
+.success-detail-val{font-weight:700;color:var(--red-dk);}
+
+/* HISTÓRICO */
+.hist-filters{display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;margin-bottom:.9rem;padding-bottom:2px;}
+.hist-filters::-webkit-scrollbar{display:none;}
+.hfp{flex-shrink:0;font-size:10px;font-weight:700;padding:5px 12px;border-radius:20px;
+  border:1.5px solid var(--border);background:var(--surface);color:var(--ink3);cursor:pointer;transition:all .15s;}
+.hfp.on{background:var(--red);border-color:var(--red);color:#fff;}
+.hist-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  box-shadow:var(--sh);margin-bottom:.75rem;overflow:hidden;}
+.hist-hd{background:linear-gradient(135deg,var(--red-dk),var(--red));padding:.7rem 1rem;
+  display:flex;align-items:center;gap:10px;}
+.hist-av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;font-size:11px;font-weight:800;color:var(--red-dk);background:#fca5a5;flex-shrink:0;}
+.hist-nm{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:#fff;
+  text-transform:uppercase;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hist-pts{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:#fca5a5;}
+.hist-body{padding:.8rem .9rem;}
+.hist-row{display:flex;align-items:center;gap:8px;padding:.4rem 0;border-bottom:1px solid var(--border);}
+.hist-row:last-child{border-bottom:none;}
+.hist-row-icon{font-size:16px;flex-shrink:0;}
+.hist-row-nm{font-size:11px;font-weight:600;color:var(--ink2);flex:1;}
+.hist-row-pts{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:var(--red);}
+.hist-obs{background:var(--red-lt);border-radius:5px;padding:6px 8px;margin-top:.4rem;
+  font-size:10px;color:var(--red-dk);line-height:1.5;border-left:2px solid var(--red);}
+
+/* SYNC BAR */
+.sync-bar{position:fixed;bottom:0;left:0;right:0;background:var(--surface);
+  border-top:1px solid var(--border);padding:7px 14px;display:flex;align-items:center;gap:8px;z-index:200;}
+.sy-dot{width:7px;height:7px;border-radius:50%;background:var(--ink3);flex-shrink:0;}
+.sy-dot.ok{background:var(--green-md);}
+.sy-dot.load{background:var(--gold-md);animation:blink 1s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.2;}}
+.sy-txt{font-size:10px;color:var(--ink3);font-weight:500;flex:1;}
+.no-data{text-align:center;padding:2rem;color:var(--ink3);font-size:11px;text-transform:uppercase;letter-spacing:1px;line-height:2;}
+.info-box{background:var(--red-lt);border:1px solid #fca5a5;border-radius:var(--rsm);
+  padding:9px 12px;margin-bottom:.8rem;display:flex;gap:8px;align-items:flex-start;}
+.info-box-icon{font-size:16px;flex-shrink:0;}
+.info-box-txt{font-size:10px;color:var(--red-dk);line-height:1.6;}
+.info-box-txt strong{color:#7f1d1d;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">
+    <svg viewBox="0 0 28 28" fill="none">
+      <path d="M14 1L2 6.5V15C2 22 14 27 14 27S26 22 26 15V6.5L14 1Z" fill="rgba(251,191,36,.15)" stroke="#fbbf24" stroke-width="1.5"/>
+      <path d="M9 14L12.5 17.5L20 10" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div><div class="logo-name">ESCUDO</div><div class="logo-sub">Desconto de Pontos</div></div>
+  </div>
+  <div class="topbar-r">
+    <span class="tp tp-red">⚠️ Desconto</span>
+    <span class="tp tp-sync w" id="fb-badge">⏳</span>
+    <span class="tp tp-sm">Samarco</span>
+  </div>
+</div>
+
+<div class="nav-tabs">
+  <button class="ntab on" onclick="goTab('registrar',this)">⚠️ Registrar</button>
+  <button class="ntab"    onclick="goTab('historico',this)">📋 Histórico</button>
+</div>
+
+<div class="steps-bar" id="steps-bar">
+  <div class="sdot act" id="dot-1"></div>
+  <div class="sdot"     id="dot-2"></div>
+  <div class="sdot"     id="dot-3"></div>
+  <span class="slbl"   id="step-lbl">Passo 1 de 3</span>
+</div>
+
+<div class="banner">
+  <div class="banner-icon">⚠️</div>
+  <div>
+    <div class="banner-title">Desconto de Pontos</div>
+    <div class="banner-desc">Registro de pontuação negativa por absenteísmo e não conformidades. Os descontos são aplicados na pontuação acumulada mensal e anual do empregado.</div>
+    <div class="banner-badges">
+      <span class="banner-badge">🚫 Absenteísmo −0,3/falta</span>
+      <span class="banner-badge">⚠️ Não conformidade −0,5</span>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- ══ REGISTRAR ══ -->
+  <div id="tab-registrar">
+
+    <!-- PASSO 1 -->
+    <div id="sc-1" class="sc on">
+      <div class="card">
+        <div class="card-title">Identificação</div>
+        <div class="g2">
+          <div class="f"><label>Responsável pelo registro <em>*</em></label>
+            <select id="av-aval">
+              <option value="">Selecione…</option>
+              <option>Encarregado de Turno</option>
+              <option>TST — Técnico de Segurança</option>
+              <option>Coordenador de Operações</option>
+              <option>Supervisor Operacional</option>
+              <option>Engenheiro de Segurança</option>
+              <option>RH / Administração</option>
+            </select>
+          </div>
+          <div class="f"><label>Mês de referência <em>*</em></label>
+            <div class="month-g" id="av-meses"></div>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-red" onclick="goS(2)">Próximo — Selecionar equipe →</button>
+    </div>
+
+    <!-- PASSO 2 -->
+    <div id="sc-2" class="sc">
+      <button class="back-btn" onclick="goS(1)">← Voltar</button>
+      <div class="card">
+        <div class="card-title">Equipe e profissional</div>
+        <div class="f"><label>Segmento</label>
+          <div class="seg-tabs">
+            <button class="stab on" onclick="setSeg('turno',this)">Turno A·B·C·D</button>
+            <button class="stab"    onclick="setSeg('adm',this)">Administrativo</button>
+          </div>
+        </div>
+        <div class="f"><label>Equipe <em>*</em></label>
+          <select id="av-equipe" onchange="buildMemGrid()"><option value="">Selecione…</option></select>
+        </div>
+        <div class="f"><label>Profissional <em>*</em></label>
+          <div id="mem-grid-wrap"><div class="no-data" style="padding:.5rem;">Selecione a equipe acima.</div></div>
+        </div>
+      </div>
+      <button class="btn btn-red" onclick="goS(3)">Próximo — Registrar desconto →</button>
+    </div>
+
+    <!-- PASSO 3 -->
+    <div id="sc-3" class="sc">
+      <button class="back-btn" onclick="goS(2)">← Voltar</button>
+      <div id="eval-head-wrap"></div>
+
+      <div class="info-box">
+        <div class="info-box-icon">⚠️</div>
+        <div class="info-box-txt">Os descontos são acumulativos no mês. Ative apenas os que se aplicam a este empregado neste mês. Cada tipo de desconto pode ser registrado de forma independente.</div>
+      </div>
+
+      <!-- BLOCO 1: ABSENTEÍSMO -->
+      <div class="desc-card" id="card-abs">
+        <div class="desc-card-header">
+          <div class="desc-card-icon">🚫</div>
+          <div style="flex:1;">
+            <div class="desc-card-title">Absenteísmo</div>
+            <div class="desc-card-sub">Falta(s) não justificada(s) ou sem comprovação. Cada falta desconta <strong>−0,3 ponto</strong> da pontuação do mês.</div>
+          </div>
+          <div class="desc-card-pts">−0,3/falta</div>
+        </div>
+        <div class="toggle-row">
+          <span class="toggle-lbl">Houve absenteísmo neste mês?</span>
+          <label class="tgl"><input type="checkbox" id="chk-abs" onchange="toggleDesconto('abs')"><span class="tgl-track"></span></label>
+        </div>
+        <div id="bloco-abs" style="display:none;">
+          <div style="font-size:10px;font-weight:700;color:var(--red-dk);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.5rem;">Número de faltas</div>
+          <div class="falta-counter">
+            <button class="fc-btn minus" onclick="changeFaltas(-1)">−</button>
+            <div>
+              <div class="fc-num" id="num-faltas">0</div>
+            </div>
+            <button class="fc-btn plus" onclick="changeFaltas(1)">+</button>
+          </div>
+          <div class="fc-pts" id="pts-abs">−0,0</div>
+          <div class="fc-lbl">pontos descontados</div>
+          <div class="fc-per">1 falta = −0,3 ponto</div>
+          <textarea class="obs-f" id="obs-abs" placeholder="Motivo ou observação sobre as faltas…"></textarea>
+        </div>
+      </div>
+
+      <!-- BLOCO 2: NÃO CONFORMIDADE -->
+      <div class="desc-card" id="card-nc">
+        <div class="desc-card-header">
+          <div class="desc-card-icon">⚠️</div>
+          <div style="flex:1;">
+            <div class="desc-card-title">Não conformidade / Oportunidade de melhoria</div>
+            <div class="desc-card-sub">Desvio identificado na execução da atividade. Cada ocorrência desconta <strong>−0,5 ponto</strong> da pontuação do mês.</div>
+          </div>
+          <div class="desc-card-pts">−0,5/nc</div>
+        </div>
+        <div class="toggle-row">
+          <span class="toggle-lbl">Houve não conformidade neste mês?</span>
+          <label class="tgl"><input type="checkbox" id="chk-nc" onchange="toggleDesconto('nc')"><span class="tgl-track"></span></label>
+        </div>
+        <div id="bloco-nc" style="display:none;">
+          <div style="font-size:10px;font-weight:700;color:var(--red-dk);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.6rem;">Tipo de não conformidade</div>
+          <div class="nc-tipos">
+            <div class="nc-tipo" id="nct-sst" onclick="toggleNC('sst')">
+              <div class="nc-tipo-check" id="ncc-sst"></div>
+              <div class="nc-tipo-icon">🦺</div>
+              <div style="flex:1;">
+                <div class="nc-tipo-nm">Segurança do Trabalho</div>
+                <div class="nc-tipo-desc">Desvio em EPI, POP, bloqueio, APR ou comportamento inseguro</div>
+              </div>
+              <div class="nc-tipo-pts">−0,5</div>
+            </div>
+            <div class="nc-tipo" id="nct-qual" onclick="toggleNC('qual')">
+              <div class="nc-tipo-check" id="ncc-qual"></div>
+              <div class="nc-tipo-icon">🔧</div>
+              <div style="flex:1;">
+                <div class="nc-tipo-nm">Qualidade da execução</div>
+                <div class="nc-tipo-desc">Retrabalho, erro de execução, não conformidade técnica</div>
+              </div>
+              <div class="nc-tipo-pts">−0,5</div>
+            </div>
+            <div class="nc-tipo" id="nct-proc" onclick="toggleNC('proc')">
+              <div class="nc-tipo-check" id="ncc-proc"></div>
+              <div class="nc-tipo-icon">📋</div>
+              <div style="flex:1;">
+                <div class="nc-tipo-nm">Não seguiu procedimento</div>
+                <div class="nc-tipo-desc">Atividade executada fora do padrão ou sem autorização</div>
+              </div>
+              <div class="nc-tipo-pts">−0,5</div>
+            </div>
+            <div class="nc-tipo" id="nct-ma" onclick="toggleNC('ma')">
+              <div class="nc-tipo-check" id="ncc-ma"></div>
+              <div class="nc-tipo-icon">🌿</div>
+              <div style="flex:1;">
+                <div class="nc-tipo-nm">Meio Ambiente</div>
+                <div class="nc-tipo-desc">Descarte incorreto, vazamento, não conformidade ambiental</div>
+              </div>
+              <div class="nc-tipo-pts">−0,5</div>
+            </div>
+          </div>
+
+          <!-- Contador de ocorrências por tipo selecionado -->
+          <div class="nc-count-wrap" id="nc-count-wrap">
+            <div class="nc-count-lbl" id="nc-count-lbl">Número de ocorrências</div>
+            <div class="nc-count-row">
+              <button class="nc-count-btn minus" onclick="changeNC(-1)">−</button>
+              <div class="nc-count-num" id="num-nc">1</div>
+              <button class="nc-count-btn plus" onclick="changeNC(1)">+</button>
+            </div>
+            <div style="text-align:center;margin-top:.5rem;font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--red);" id="pts-nc-total">−0,5</div>
+            <div style="text-align:center;font-size:9px;color:var(--red-dk);text-transform:uppercase;letter-spacing:.5px;">pontos descontados</div>
+          </div>
+
+          <textarea class="obs-f" id="obs-nc" placeholder="Descreva a não conformidade identificada…"></textarea>
+        </div>
+      </div>
+
+      <!-- TOTAL -->
+      <div class="total-card">
+        <div class="total-num" id="total-desc">−0,0</div>
+        <div class="total-lbl">pontos descontados no total</div>
+        <div class="total-brkdwn" id="total-brkdwn">Nenhum desconto aplicado</div>
+      </div>
+
+      <button class="btn btn-red" onclick="saveAv()">✓ Registrar desconto</button>
+      <button class="btn btn-ghost" style="margin-top:7px;" onclick="goS(1)">Cancelar</button>
+    </div>
+
+    <!-- SUCESSO -->
+    <div id="sc-ok" class="sc">
+      <div class="success-wrap">
+        <div class="success-icon">⚠️</div>
+        <div class="success-title">Desconto registrado!</div>
+        <div class="success-pts" id="succ-pts">−0,0</div>
+        <div class="success-pts-lbl">pontos descontados</div>
+        <div class="success-nm" id="succ-nm"></div>
+        <div class="success-team" id="succ-team"></div>
+        <div class="success-detail" id="succ-detail"></div>
+      </div>
+      <button class="btn btn-red" onclick="resetAv()">Novo registro</button>
+      <button class="btn btn-ghost" style="margin-top:7px;" onclick="resetAv()">Voltar ao início</button>
+    </div>
+
+  </div><!-- /tab-registrar -->
+
+  <!-- ══ HISTÓRICO ══ -->
+  <div id="tab-historico" style="display:none;">
+    <div style="background:linear-gradient(135deg,var(--red-dk),var(--red));border-radius:var(--r);
+      padding:1rem;text-align:center;margin-bottom:1rem;color:#fff;box-shadow:var(--sh2);">
+      <div style="font-size:22px;margin-bottom:.4rem;">📋</div>
+      <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:#fca5a5;
+        letter-spacing:1.5px;text-transform:uppercase;">Histórico de descontos</div>
+      <div style="font-size:10px;color:rgba(255,255,255,.45);margin-top:2px;">Pontuações negativas registradas por empregado</div>
+    </div>
+    <div class="hist-filters" id="hist-filters">
+      <button class="hfp on" onclick="setHF('all',this)">Todos</button>
+    </div>
+    <div id="hist-content"><div class="no-data">Nenhum desconto registrado ainda.</div></div>
+  </div>
+
+</div>
+
+<div class="sync-bar">
+  <div class="sy-dot load" id="sy-dot"></div>
+  <span class="sy-txt" id="sy-txt">Conectando ao Firebase…</span>
+</div>
+
+<script>
+const MESES   = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const MESES_F = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+const PONTO_FALTA = 0.3;
+const PONTO_NC    = 0.5;
+
+const DEFAULT_TEAMS = {
+  A:{id:'A',label:'Turno A',seg:'turno',color:'#d97706',enc:{n:'CLEUTON FERREIRA DOS SANTOS',c:'ENCARREGADO OPERACIONAL'},members:[{n:'PRISCILA ANDRADE DA SILVA',c:'OPERAÇÃO ETI BN'},{n:'DIOGO VIEIRA BORGES',c:'OPERAÇÃO ETI 1/2'},{n:'BENEDITO PEREIRA DOS SANTOS',c:'OPERAÇÃO DRAGA 01'},{n:'BRENER RIBEIRO DE SOUZA',c:'POLPA/DRAGA 02'},{n:'JOSÉ IGOR COSTA CARDOSO',c:'PRECIPT. US03'},{n:'EDGARD BENA DOS SANTOS',c:'PRECIPT. US03'},{n:'LEONARDO DOS REIS VIEIRA',c:'PENEIRAMENTO US03'},{n:'LUIZ EDUARDO SANTOS SOUTO',c:'PRECIPT. US04'},{n:'JHON ROGER DE MORAES SECATO',c:'PRECIPT. US04'},{n:'RAPHAEL DOS SANTOS LOYOLA',c:'PENEIRAMENTO US04'},{n:'RYAN SOUZA SILVA',c:'FILTRO PRENSA'},{n:'KAUÃ XAVIER SEMEDO',c:'OPERADOR MANTENEDOR'},{n:'BRUNO HENRIQUE BRAGA',c:'OPERADOR MANTENEDOR'},{n:'FLAVIO MORAES NOGUEIRA',c:'OPERADOR MANTENEDOR'},{n:'PAULO LEANDRO REIS FILHO',c:'MECÂNICO'},{n:'EDUARDO DE ANDRADE MENDES',c:'MECÂNICO'},{n:'EDIRLEI MARTINS DE SOUZA',c:'SOLDADOR'},{n:'GABRIEL VIEIRA LIBARDI',c:'OPER. PÁTIO/PORTO'},{n:'ALCENIR DINIZ FARIAS',c:'OPER. PÁTIO/PORTO'},{n:'GEOVANI PASSOS DA VITORIA',c:'OPER. PÁTIO/PORTO ADM'}]},
+  B:{id:'B',label:'Turno B',seg:'turno',color:'#059669',enc:{n:'GEOVANE BRANDAO BELEM',c:'ENCARREGADO OPERACIONAL'},members:[{n:'SIMONE FERREIRA DA SILVA',c:'ETI BN'},{n:'FELLIPE WENDER SIQUEIRA SIMÕES',c:'ETI 1/2'},{n:'JORGE AUGUSTO NASCIMENTO RODRIGUES',c:'DRAGA 01'},{n:'LUIZ FELIPE SENNA DA SILVA',c:'POLPA/DRAGA 02'},{n:'REGES DE SA CORREA',c:'PRECIPT. US03'},{n:'KAUAN TRES CAMARGO',c:'PRECIPT. US03'},{n:'MARCOS ADRIANO GIULIATTI SEMEDO',c:'PENEIRAMENTO US03'},{n:'JOSÉ LUIZ FLUMINENSE DOS SANTOS',c:'PRECIPT. US04'},{n:'PIERRE MECKSON VIEIRA BARBOSA',c:'PRECIPT. US04'},{n:'MATEUS SOUZA MENEZES',c:'PENEIRAMENTO US04'},{n:'DAVI LUCAS CALDEIRA DE MATTOS',c:'FILTRO PRENSA'},{n:'ALEX FRONTINO DE OLIVEIRA DE MATTOS',c:'OPERADOR MANTENEDOR'},{n:'LUIZ HENRIQUE RIGO FERREIRA',c:'OPERADOR MANTENEDOR'},{n:'KRISLAINE SANTANA CARDOSO',c:'OPERADOR MANTENEDOR'},{n:'PEDRO FRANCISCO R ALMEIDA JUNIOR',c:'MECÂNICO'},{n:'FRANKSAID DELFINO FERREIRA',c:'MECÂNICO'},{n:'ALAN VASCONCELOS',c:'SOLDADOR'},{n:'ORLY DINIZ FARIAS',c:'OPER. PÁTIO/PORTO'},{n:'WILLIS SERAFIM DOS SANTOS',c:'OPER. PÁTIO/PORTO'},{n:'DHIOGO MILAGRE RODRIGUES SERAPHIM',c:'OPER. PÁTIO/PORTO ADM'}]},
+  C:{id:'C',label:'Turno C',seg:'turno',color:'#2563eb',enc:{n:'EDINALDO DA SILVA SANTOS',c:'ENCARREGADO OPERACIONAL'},members:[{n:'MAYDIANE TRINDADE RIBEIRO BASTOS',c:'ETI BN'},{n:'REGIS SILVA DAS NEVES',c:'ETI 1/2'},{n:'MARCIUS VINICIUS PINHEIRO SANTANA',c:'DRAGA 01'},{n:'LEONARDO PEREIRA DA FONSECA',c:'POLPA/DRAGA 02'},{n:'WELLINGTON DA SILVA MAGALHÃES',c:'PRECIPT. US03'},{n:'EDUARDO DA SILVA PETRE',c:'PRECIPT. US03'},{n:'REGINALDO SANTOS',c:'PENEIRAMENTO US03'},{n:'DANIEL BARBOZA RODRIGUES',c:'PRECIPT. US04'},{n:'EMERSON FERREIRA SEMEDO',c:'PRECIPT. US04'},{n:'DANIEL VIEIRA BARBOZA',c:'PENEIRAMENTO US04'},{n:'APOLO MARCHEZI CARNEIRO XAVIER',c:'FILTRO PRENSA'},{n:'SAULO BRANDAO DA SILVA',c:'OPERADOR MANTENEDOR'},{n:'NAUBERT LEONARDO CAMBOIM CORREA DA SILVA',c:'OPERADOR MANTENEDOR'},{n:'DAVID FERREIRA DE OLIVEIRA',c:'OPERADOR MANTENEDOR'},{n:'ALDEMAR MENDES NETTO',c:'MECÂNICO'},{n:'LUCIANO MUNIZ NASCIMENTO',c:'MECÂNICO'},{n:'BRUNO VASCO MACHADO DA VITORIA',c:'SOLDADOR'},{n:'ROQUE FERREIRA SANTOS',c:'OPER. PÁTIO/PORTO'},{n:'RENAN PEREIRA HERINGER',c:'OPER. PÁTIO/PORTO'},{n:'DIOGO SILVA QUINTEIRO',c:'OPER. PÁTIO/PORTO ADM'}]},
+  D:{id:'D',label:'Turno D',seg:'turno',color:'#7c3aed',enc:{n:'FABIANO SCHWANZ',c:'ENCARREGADO OPERACIONAL'},members:[{n:'IVANETE DA CRUZ SANTOS',c:'ETI BN'},{n:'LUAN BERMOND ARPINI CHAGAS',c:'ETI 1/2'},{n:'JOVANE CONCEIÇÃO DOS SANTOS',c:'DRAGA 01'},{n:'ALVIMAR DOS SANTOS E SILVA',c:'POLPA/DRAGA 02'},{n:'RAFAEL DE JESUS',c:'PRECIPT. US03'},{n:'UEVERTON SOUZA DE FREITAS',c:'PRECIPT. US03'},{n:'GABRIEL BARBOZA DA TRINDADE ALVES',c:'PENEIRAMENTO US03'},{n:'BRUNO DE ALMEIDA COELHO',c:'PRECIPT. US04'},{n:'BRUNO PERIN DONNA',c:'PRECIPT. US04'},{n:'JALEILTON ERMINIGILDO DOS SANTOS',c:'PENEIRAMENTO US04'},{n:'CARLOS DOUGLAS SENA RAMOS',c:'FILTRO PRENSA'},{n:'ERICK DA SILVA GOLTARA',c:'OPERADOR MANTENEDOR'},{n:'MARCUS VINICIUS DE OLIVEIRA SEMEDO',c:'OPERADOR MANTENEDOR'},{n:'DIANA PEREIRA RODRIGUES',c:'OPERADOR MANTENEDOR'},{n:'FILIPE DAS CHAGAS LUIZ',c:'MECÂNICO'},{n:'ALEXANDRE BARBOSA MOREIRA',c:'MECÂNICO'},{n:'EDUARDO VIEIRA DA SILVA',c:'SOLDADOR'},{n:'LUCAS DA SILVA DE SOUZA',c:'OPER. PÁTIO/PORTO'},{n:'DEIVID SERAFIM DOS SANTOS',c:'OPER. PÁTIO/PORTO'},{n:'FELIPE GONÇALVES DE ANDRADE',c:'OPER. PÁTIO/PORTO ADM'}]},
+  prod:{id:'prod',label:'Prod. Pátio/Porto',seg:'adm',color:'#ea580c',enc:{n:'CLAUDIO DOS SANTOS',c:'ENCARREGADO'},members:[{n:'THIAGO DO SANTÍSSIMO',c:'MANTENEDOR'},{n:'MARCOS PAULO ALVES PIRES',c:'MANTENEDOR'},{n:'JOÃO CARLOS DA TRINDADE PEREIRA',c:'MANTENEDOR'},{n:'FABRICIO DOS SANTOS FARIAS',c:'MANTENEDOR'},{n:'VITOR DA SILVA SOUZA',c:'MANTENEDOR'},{n:'RAI DOS SANTOS SILVA',c:'MANTENEDOR'},{n:'FELIPE CORREA BORGES',c:'MANTENEDOR'},{n:'VITOR DANTAS COUTO',c:'MANTENEDOR'},{n:'WESLLEY VIEIRA SILVA',c:'INSPETOR OPERACIONAL'},{n:'MIGUEL PEREIRA',c:'MANTENEDOR'},{n:'CÉLIO RIBEIRO DE SOUZA',c:'MANTENEDOR'},{n:'JONES VIEIRA BARBOSA',c:'MANTENEDOR'},{n:'GIOVANE CORRÊA BARBOZA',c:'MANTENEDOR'},{n:'LICIOMAR MORAES DA SILVA',c:'MANTENEDOR'},{n:'THIAGO RODOLFO DO SANTOS',c:'MANTENEDOR'},{n:'AUGUSTO RIBEIRO DE ALMEIDA',c:'MANTENEDOR'}]},
+  manut:{id:'manut',label:'Manutenção',seg:'adm',color:'#dc2626',enc:{n:'ALAN PEREIRA DA CRUZ',c:'ENCARREGADO MANUTENÇÃO'},members:[{n:'HERCULES CARVALHO LOYOLA',c:'MECÂNICO'},{n:'JEFERSON OLIVEIRA CHAGAS',c:'MECÂNICO'},{n:'ERICK DE OLIVEIRA SOUZA COUTINHO',c:'MECÂNICO'},{n:'GUILHERME DE SOUZA',c:'MECÂNICO'},{n:'UEBER VIEIRA SANTOS',c:'MECÂNICO'},{n:'GLEISON NEVES DOS SANTOS',c:'MECÂNICO'},{n:'MANOEL MESSIAS SILVA DA CONCEIÇÃO',c:'MECÂNICO'},{n:'CARLOS BOURGUIGNON JUNIOR',c:'MECÂNICO'},{n:'DANIEL GONÇALVES DA SILVA',c:'SOLDADOR'},{n:'ALEX NEVES DOS SANTOS RODRIGUES',c:'SOLDADOR'},{n:'DIONATAN DOS ANJOS VICTOR',c:'CALDEIREIRO'},{n:'AILTON RIBEIRO LIMA',c:'CALDEIREIRO'},{n:'ALDAIR VICTOR OLIVEIRA',c:'CALDEIREIRO'},{n:'WELLIS DE OLIVEIRA BARBOSA',c:'INSTRUMENTISTA'},{n:'CLAUDIO PRADO DE JESUS',c:'INSTRUMENTISTA'},{n:'WALQUIMAR FLORENTINO DE SOUZA RAMOS',c:'INSTRUMENTISTA'}]},
+  plan:{id:'plan',label:'Planejamento',seg:'adm',color:'#0891b2',enc:{n:'REGAZZONY NASCIMENTO DE ALMEIDA',c:'SUPERVISOR'},members:[{n:'TIAGO NUNES',c:'INSPETOR'},{n:'VITOR CURTY VASCONCELOS',c:'INSPETOR'},{n:'MIQUEIAS SENNA ESPIRIDIAO',c:'PROGRAMAÇÃO'},{n:'GEOVANA NASCIMENTO ROCHA',c:'PROGRAMAÇÃO'},{n:'PEDRO COMINOTTI DE ALMEIDA ADOLFO',c:'PLANEJAMENTO'},{n:'LUCCA COUTINHO FAGUNDES',c:'PROGRAMAÇÃO'},{n:'JOSÉ MAURO NASCIMENTO DA SILVA',c:'PLANEJAMENTO'},{n:'HERBERT PITANGA DA ROCHA',c:'PLANEJAMENTO'},{n:'HELLEN CAROLINY NASCIMENTO SCHMIDT',c:'PL. GERENCIAL'},{n:'ELSON MARTINS',c:'COORDENADOR'},{n:'RAYANNE BARBOZA REIS DA MATTA',c:'ADMINISTRATIVO'},{n:'LEONARDO DE OLIVEIRA XIMENES',c:'MÉDICO'}]},
+  sesmt:{id:'sesmt',label:'SESMT',seg:'adm',color:'#065f46',enc:{n:'MALENA BARBOSA COELHO',c:'ENGENHEIRA DE SEGURANÇA'},members:[{n:'RAPHAEL MULINARI DINIZ',c:'TÉC. SEGURANÇA'},{n:'DOUGLAS ALVES DA SILVA',c:'TÉC. SEGURANÇA'},{n:'ALEXANDRE GRIFFO DE LIMA',c:'AUX. SEGURANÇA'}]},
+  windfense:{id:'windfense',label:'Wind Fense',seg:'adm',color:'#1d4ed8',enc:{n:'FAGNER RANGEL DE SOUZA',c:'ENCARREGADO OPERACIONAL'},members:[{n:'JEFFERSON DA SILVA AVELINO',c:'MANTENEDOR'},{n:'PABLO ARAUJO SANTANA',c:'MANTENEDOR'},{n:'DAVI SIMÕES SILVA',c:'MANTENEDOR'},{n:'MATHEUS DIAS DOS SANTOS',c:'MANTENEDOR'},{n:'JOEL FERREIRA',c:'MANTENEDOR'},{n:'DAVIDSON PINTO HELEODORO',c:'ETEI POUPA'},{n:'SILVINO IZACK MARCHESI JUNIOR',c:'PRECIPITADORES'},{n:'JEFFERSON DOS SANTOS FREITAS',c:'INSTRUMENTISTA'},{n:'LUTHER KING FREIRE DA CRUZ',c:'ENC. PRECIPITADORES'},{n:'WESLEY SOUZA BERTOLANI',c:'ENC. ETEI POUPA'}]}
+};
+
+const NC_TIPOS = {
+  sst:  {icon:'🦺', nm:'Segurança do Trabalho'},
+  qual: {icon:'🔧', nm:'Qualidade da execução'},
+  proc: {icon:'📋', nm:'Não seguiu procedimento'},
+  ma:   {icon:'🌿', nm:'Meio Ambiente'}
+};
+
+let T = JSON.parse(JSON.stringify(DEFAULT_TEAMS));
+let FB_DESC = {}; // escudo/descontos
+let avMonth = new Date().getMonth();
+let selMb   = null;
+let curSeg  = 'turno';
+let curTab  = 'registrar';
+let histFilter = 'all';
+let curStep = 1;
+
+// Estado descontos
+let absAtivo   = false;
+let numFaltas  = 0;
+let ncAtivo    = false;
+let ncTipoSel  = null; // 'sst'|'qual'|'proc'|'ma'
+let numNC      = 1;
+
+const ini = n => (n||'?').split(' ').slice(0,2).map(w=>w[0]).join('');
+const f2  = n => (n||'?').split(' ').slice(0,2).join(' ');
+const fmt = n => n.toFixed(1);
+
+function normTeams(raw){
+  const r={};
+  Object.entries(raw).forEach(([id,t])=>{
+    if(!t||!t.label||!t.enc)return;
+    let enc=t.enc;
+    if(!enc&&t.encarregado)enc={n:t.encarregado.n||'',c:t.encarregado.c||''};
+    if(!enc||!enc.n||enc.n.length<3)return;
+    const lb=t.label.toUpperCase();
+    if(['CONDIÇÃO','INSEGURA','ACIDENTE','TESTE'].some(w=>lb.includes(w)))return;
+    r[id]={id:t.id||id,label:t.label,seg:t.seg||(id==='A'||id==='B'||id==='C'||id==='D'?'turno':'adm'),
+      color:(t.color&&t.color.startsWith('#'))?t.color:'#1e3a5f',enc,
+      members:Array.isArray(t.members)?t.members.filter(m=>m&&m.n&&m.n.length>2).map(m=>({n:m.n,c:m.c||''})):[]};
+  });
+  return r;
+}
+
+function setSB(st,msg){
+  document.getElementById('sy-dot').className='sy-dot'+(st==='ok'?' ok':st==='load'?' load':'');
+  document.getElementById('sy-txt').textContent=msg;
+  const b=document.getElementById('fb-badge');
+  b.textContent=st==='ok'?'🟢':st==='load'?'⏳':'⚠️';
+  b.className='tp tp-sync'+(st==='ok'?'':st==='load'?' w':' e');
+}
+
+function goTab(name,btn){
+  curTab=name;
+  document.getElementById('tab-registrar').style.display=name==='registrar'?'block':'none';
+  document.getElementById('tab-historico').style.display=name==='historico'?'block':'none';
+  document.getElementById('steps-bar').style.display=name==='registrar'?'flex':'none';
+  document.querySelectorAll('.ntab').forEach(b=>b.classList.remove('on'));
+  if(btn)btn.classList.add('on');
+  if(name==='historico')renderHist();
+}
+
+function updateProgress(){
+  [1,2,3].forEach(i=>{
+    const d=document.getElementById('dot-'+i);if(!d)return;
+    d.classList.remove('done','act');
+    if(i<curStep)d.classList.add('done');
+    else if(i===curStep)d.classList.add('act');
+  });
+  document.getElementById('step-lbl').textContent=`Passo ${Math.min(curStep,3)} de 3`;
+}
+
+function buildMeses(){
+  const el=document.getElementById('av-meses');if(!el)return;
+  el.innerHTML=MESES.map((m,i)=>`<button class="mpill${i===avMonth?' on':''}" onclick="setMon(${i})">${m}</button>`).join('');
+}
+function setMon(i){avMonth=i;buildMeses();}
+
+function setSeg(seg,btn){
+  curSeg=seg;
+  document.querySelectorAll('.stab').forEach(b=>b.classList.remove('on'));
+  if(btn)btn.classList.add('on');
+  buildEquipeSel();
+  document.getElementById('mem-grid-wrap').innerHTML='<div class="no-data" style="padding:.5rem;">Selecione a equipe acima.</div>';
+  selMb=null;
+}
+
+function buildEquipeSel(){
+  const sel=document.getElementById('av-equipe');if(!sel)return;
+  const cur=sel.value;
+  sel.innerHTML='<option value="">Selecione a equipe…</option>'
+    +Object.values(T).filter(t=>t.seg===curSeg).map(t=>`<option value="${t.id}">${t.label}</option>`).join('');
+  if(cur&&T[cur]&&T[cur].seg===curSeg)sel.value=cur;
+}
+
+function buildMemGrid(){
+  const tid=document.getElementById('av-equipe').value;
+  const wrap=document.getElementById('mem-grid-wrap');if(!wrap)return;
+  if(!tid||!T[tid]){wrap.innerHTML='<div class="no-data" style="padding:.5rem;">Selecione a equipe.</div>';selMb=null;return;}
+  const t=T[tid];
+  const all=[{n:t.enc.n,c:t.enc.c+' (Encarregado)'},...t.members];
+  wrap.innerHTML=`<div class="mem-grid">${all.map((m,i)=>{
+    const d=FB_DESC[m.n+'§'+avMonth];
+    const desc=d?`−${fmt((d.faltas||0)*PONTO_FALTA+(d.numNC||0)*PONTO_NC)} pts`:'';
+    const isSel=selMb&&selMb.name===m.n;
+    return `<div class="mem-btn${isSel?' on':''}" id="mb-${i}" onclick="selMember(${i},'${tid}')"
+      style="${isSel?`border-color:${t.color};`:''}">
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:${t.color};border-radius:var(--rsm) var(--rsm) 0 0;"></div>
+      <div class="mem-av" style="background:${t.color};">${ini(m.n)}</div>
+      <div class="mem-nm">${f2(m.n)}</div>
+      <div class="mem-role">${m.c}</div>
+      ${desc?`<div class="mem-desc">${desc}</div>`:''}
+    </div>`}).join('')}</div>`;
+}
+
+function selMember(i,tid){
+  const t=T[tid];
+  const all=[{n:t.enc.n,c:t.enc.c+' (Encarregado)'},...t.members];
+  const m=all[i];
+  selMb={name:m.n,cargo:m.c,teamId:tid,teamColor:t.color,teamLabel:t.label};
+  document.querySelectorAll('.mem-btn').forEach(b=>{b.classList.remove('on');b.style.borderColor='';});
+  const el=document.getElementById('mb-'+i);
+  if(el){el.classList.add('on');el.style.borderColor=t.color;}
+}
+
+/* EVAL HEAD */
+function buildEvalHead(){
+  const el=document.getElementById('eval-head-wrap');if(!el||!selMb)return;
+  el.innerHTML=`<div class="eval-head">
+    <div class="eval-av" style="background:${selMb.teamColor};">${ini(selMb.name)}</div>
+    <div>
+      <div class="eval-nm">${selMb.name}</div>
+      <div class="tags">
+        <span class="tag" style="background:${selMb.teamColor}18;color:${selMb.teamColor};border-color:${selMb.teamColor}40;">${selMb.teamLabel}</span>
+        <span class="tag">${selMb.cargo}</span>
+        <span class="tag tag-gold">${MESES_F[avMonth]}</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ABSENTEÍSMO */
+function toggleDesconto(tipo){
+  if(tipo==='abs'){
+    absAtivo=!absAtivo;
+    document.getElementById('bloco-abs').style.display=absAtivo?'block':'none';
+    document.getElementById('card-abs').classList.toggle('ativo',absAtivo);
+    if(!absAtivo){numFaltas=0;updateFaltas();}
+  }else{
+    ncAtivo=!ncAtivo;
+    document.getElementById('bloco-nc').style.display=ncAtivo?'block':'none';
+    document.getElementById('card-nc').classList.toggle('ativo',ncAtivo);
+    if(!ncAtivo){ncTipoSel=null;numNC=1;updateNCUI();}
+  }
+  updateTotal();
+}
+
+function changeFaltas(delta){
+  numFaltas=Math.max(0,numFaltas+delta);
+  updateFaltas();updateTotal();
+}
+function updateFaltas(){
+  const pts=numFaltas*PONTO_FALTA;
+  document.getElementById('num-faltas').textContent=numFaltas;
+  document.getElementById('pts-abs').textContent='−'+fmt(pts);
+}
+
+function toggleNC(tipo){
+  ncTipoSel=ncTipoSel===tipo?null:tipo;
+  Object.keys(NC_TIPOS).forEach(k=>{
+    const el=document.getElementById('nct-'+k);
+    const ch=document.getElementById('ncc-'+k);
+    if(el)el.className='nc-tipo'+(ncTipoSel===k?' on':'');
+    if(ch)ch.textContent=ncTipoSel===k?'✓':'';
+  });
+  const wrap=document.getElementById('nc-count-wrap');
+  if(wrap)wrap.className='nc-count-wrap'+(ncTipoSel?' show':'');
+  if(ncTipoSel){
+    const lbl=document.getElementById('nc-count-lbl');
+    if(lbl)lbl.textContent=`Ocorrências — ${NC_TIPOS[ncTipoSel].nm}`;
+  }
+  updateNCUI();updateTotal();
+}
+
+function changeNC(delta){
+  numNC=Math.max(1,numNC+delta);
+  updateNCUI();updateTotal();
+}
+function updateNCUI(){
+  const pts=ncTipoSel?numNC*PONTO_NC:0;
+  document.getElementById('num-nc').textContent=numNC;
+  document.getElementById('pts-nc-total').textContent='−'+fmt(pts);
+}
+
+function updateTotal(){
+  const ptsFaltas=absAtivo?numFaltas*PONTO_FALTA:0;
+  const ptsNC=ncAtivo&&ncTipoSel?numNC*PONTO_NC:0;
+  const total=ptsFaltas+ptsNC;
+  document.getElementById('total-desc').textContent='−'+fmt(total);
+  const parts=[];
+  if(ptsFaltas>0)parts.push(`🚫 ${numFaltas} falta${numFaltas>1?'s':''} = −${fmt(ptsFaltas)}`);
+  if(ptsNC>0)parts.push(`⚠️ ${numNC} NC = −${fmt(ptsNC)}`);
+  document.getElementById('total-brkdwn').textContent=parts.length?parts.join('  ·  '):'Nenhum desconto aplicado';
+}
+
+/* NAV */
+function goS(n){
+  if(n===2){
+    if(!document.getElementById('av-aval').value){alert('Selecione o responsável.');return;}
+  }
+  if(n===3){
+    if(!selMb){alert('Selecione o profissional.');return;}
+    buildEvalHead();
+    // Carrega dados existentes
+    const d=FB_DESC[selMb.name+'§'+avMonth];
+    if(d){
+      absAtivo=d.faltas>0;numFaltas=d.faltas||0;
+      ncAtivo=d.numNC>0;ncTipoSel=d.ncTipo||null;numNC=d.numNC||1;
+      document.getElementById('chk-abs').checked=absAtivo;
+      document.getElementById('chk-nc').checked=ncAtivo;
+      document.getElementById('bloco-abs').style.display=absAtivo?'block':'none';
+      document.getElementById('bloco-nc').style.display=ncAtivo?'block':'none';
+      document.getElementById('card-abs').classList.toggle('ativo',absAtivo);
+      document.getElementById('card-nc').classList.toggle('ativo',ncAtivo);
+      if(d.obsAbs){const el=document.getElementById('obs-abs');if(el)el.value=d.obsAbs;}
+      if(d.obsNC){const el=document.getElementById('obs-nc');if(el)el.value=d.obsNC;}
+      Object.keys(NC_TIPOS).forEach(k=>{
+        const el=document.getElementById('nct-'+k);
+        const ch=document.getElementById('ncc-'+k);
+        if(el)el.className='nc-tipo'+(ncTipoSel===k?' on':'');
+        if(ch)ch.textContent=ncTipoSel===k?'✓':'';
+      });
+      const wrap=document.getElementById('nc-count-wrap');
+      if(wrap)wrap.className='nc-count-wrap'+(ncTipoSel?' show':'');
+    }else{
+      absAtivo=false;numFaltas=0;ncAtivo=false;ncTipoSel=null;numNC=1;
+      document.getElementById('chk-abs').checked=false;
+      document.getElementById('chk-nc').checked=false;
+      document.getElementById('bloco-abs').style.display='none';
+      document.getElementById('bloco-nc').style.display='none';
+      document.getElementById('card-abs').classList.remove('ativo');
+      document.getElementById('card-nc').classList.remove('ativo');
+      const obsAbsEl=document.getElementById('obs-abs');if(obsAbsEl)obsAbsEl.value='';
+      const obsNCEl=document.getElementById('obs-nc');if(obsNCEl)obsNCEl.value='';
+      Object.keys(NC_TIPOS).forEach(k=>{
+        const el=document.getElementById('nct-'+k);const ch=document.getElementById('ncc-'+k);
+        if(el)el.className='nc-tipo';if(ch)ch.textContent='';
+      });
+      const wrap=document.getElementById('nc-count-wrap');if(wrap)wrap.className='nc-count-wrap';
+    }
+    updateFaltas();updateNCUI();updateTotal();
+  }
+  ['sc-1','sc-2','sc-3','sc-ok'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('on');});
+  const target=n==='ok'?'sc-ok':'sc-'+n;
+  const el=document.getElementById(target);if(el)el.classList.add('on');
+  curStep=typeof n==='number'?n:3;updateProgress();window.scrollTo(0,0);
+}
+
+/* SALVAR */
+function saveAv(){
+  const ptsFaltas=absAtivo?numFaltas*PONTO_FALTA:0;
+  const ptsNC=ncAtivo&&ncTipoSel?numNC*PONTO_NC:0;
+  const total=ptsFaltas+ptsNC;
+  if(!absAtivo&&!ncAtivo){alert('Ative pelo menos um tipo de desconto.');return;}
+  if(ncAtivo&&!ncTipoSel){alert('Selecione o tipo de não conformidade.');return;}
+  if(absAtivo&&numFaltas===0){alert('Informe o número de faltas.');return;}
+  const key=selMb.name+'§'+avMonth;
+  const obsAbs=document.getElementById('obs-abs')?.value?.trim()||'';
+  const obsNC=document.getElementById('obs-nc')?.value?.trim()||'';
+  FB_DESC[key]={
+    faltas:absAtivo?numFaltas:0,ptsFaltas,
+    numNC:ncAtivo?numNC:0,ptsNC,ncTipo:ncTipoSel,
+    total,obsAbs,obsNC,
+    avaliador:document.getElementById('av-aval').value,
+    team:selMb.teamLabel,teamId:selMb.teamId,cargo:selMb.cargo,
+    mes:avMonth,ts:new Date().toISOString()
+  };
+  saveToFirebase();
+  document.getElementById('succ-pts').textContent='−'+fmt(total);
+  document.getElementById('succ-nm').textContent=selMb.name;
+  document.getElementById('succ-team').textContent=selMb.teamLabel+' · '+selMb.cargo;
+  const rows=[];
+  if(ptsFaltas>0)rows.push(`<div class="success-detail-row"><span class="success-detail-lbl">🚫 ${numFaltas} falta${numFaltas>1?'s':''}</span><span class="success-detail-val">−${fmt(ptsFaltas)} pt</span></div>`);
+  if(ptsNC>0)rows.push(`<div class="success-detail-row"><span class="success-detail-lbl">⚠️ ${numNC} NC (${NC_TIPOS[ncTipoSel]?.nm})</span><span class="success-detail-val">−${fmt(ptsNC)} pt</span></div>`);
+  rows.push(`<div class="success-detail-row" style="border-top:1px solid #fca5a5;margin-top:4px;padding-top:4px;"><span class="success-detail-lbl">Total descontado</span><span class="success-detail-val">−${fmt(total)} pt</span></div>`);
+  document.getElementById('succ-detail').innerHTML=rows.join('');
+  goS('ok');
+}
+
+function saveToFirebase(){
+  try{localStorage.setItem('esc_desc',JSON.stringify(FB_DESC));}catch(e){}
+  if(window.$FB){
+    const{db,ref,set}=window.$FB;
+    set(ref(db,'escudo/descontos'),FB_DESC).catch(()=>{});
+    setSB('ok','Desconto registrado · Firebase sincronizado ✓');
+  }
+}
+
+function resetAv(){
+  selMb=null;absAtivo=false;numFaltas=0;ncAtivo=false;ncTipoSel=null;numNC=1;
+  document.getElementById('av-aval').value='';
+  buildEquipeSel();
+  document.getElementById('mem-grid-wrap').innerHTML='<div class="no-data" style="padding:.5rem;">Selecione a equipe acima.</div>';
+  buildMeses();goS(1);
+}
+
+/* HISTÓRICO */
+function setHF(f,btn){
+  histFilter=f;
+  document.querySelectorAll('.hfp').forEach(b=>b.classList.remove('on'));
+  if(btn)btn.classList.add('on');
+  renderHist();
+}
+function buildHistFilters(){
+  const wrap=document.getElementById('hist-filters');if(!wrap)return;
+  const eqs=new Set(Object.values(FB_DESC).map(d=>d.teamId).filter(Boolean));
+  wrap.innerHTML=`<button class="hfp${histFilter==='all'?' on':''}" onclick="setHF('all',this)">Todos</button>`
+    +[...eqs].map(id=>{
+      const t=T[id];const lbl=t?t.label:id;const color=t?t.color:'#dc2626';const act=histFilter===id;
+      return `<button class="hfp${act?' on':''}" style="${act?`background:${color};border-color:${color};`:''}" onclick="setHF('${id}',this)">${lbl}</button>`;
+    }).join('');
+}
+function renderHist(){
+  buildHistFilters();
+  const el=document.getElementById('hist-content');if(!el)return;
+  let entries=Object.entries(FB_DESC);
+  if(histFilter!=='all')entries=entries.filter(([,d])=>d.teamId===histFilter);
+  entries=entries.sort((a,b)=>(b[1].mes||0)-(a[1].mes||0));
+  if(!entries.length){el.innerHTML='<div class="no-data">⚠️ Nenhum desconto registrado.</div>';return;}
+  el.innerHTML=entries.map(([key,d])=>{
+    const name=key.split('§')[0];
+    const t=T[d.teamId];const color=t?t.color:'#dc2626';
+    const rows=[];
+    if(d.faltas>0)rows.push(`<div class="hist-row">
+      <div class="hist-row-icon">🚫</div>
+      <div class="hist-row-nm">${d.faltas} falta${d.faltas>1?'s':''} · Absenteísmo${d.obsAbs?' — '+d.obsAbs:''}</div>
+      <div class="hist-row-pts">−${fmt(d.ptsFaltas||0)}</div>
+    </div>`);
+    if(d.numNC>0)rows.push(`<div class="hist-row">
+      <div class="hist-row-icon">${NC_TIPOS[d.ncTipo]?.icon||'⚠️'}</div>
+      <div class="hist-row-nm">${d.numNC} NC · ${NC_TIPOS[d.ncTipo]?.nm||d.ncTipo||'—'}${d.obsNC?' — '+d.obsNC:''}</div>
+      <div class="hist-row-pts">−${fmt(d.ptsNC||0)}</div>
+    </div>`);
+    return `<div class="hist-card">
+      <div class="hist-hd">
+        <div class="hist-av">${ini(name)}</div>
+        <div style="flex:1;min-width:0;">
+          <div class="hist-nm">${name}</div>
+          <div style="font-size:9px;color:rgba(255,255,255,.5);text-transform:uppercase;">${MESES_F[d.mes]||''} · ${d.team||''}</div>
+        </div>
+        <div class="hist-pts">−${fmt(d.total||0)}</div>
+      </div>
+      <div class="hist-body">${rows.join('')}</div>
+    </div>`;
+  }).join('');
+}
+
+/* LOCAL + FIREBASE */
+function loadLocal(){
+  try{
+    const r=localStorage.getItem('esc2');
+    if(r){const d=JSON.parse(r);if(d.teams&&Object.keys(d.teams).length>=4){const n=normTeams(d.teams);if(Object.keys(n).length>=4)T=n;}}
+    const r2=localStorage.getItem('esc_desc');
+    if(r2)FB_DESC=JSON.parse(r2);
+  }catch(e){}
+}
+
+window._onFbReady=async()=>{
+  const{db,ref,get,set,onValue}=window.$FB;
+  setSB('load','Conectando…');
+  try{
+    const st=await get(ref(db,'escudo/teams'));
+    if(st.exists()){const n=normTeams(st.val());if(Object.keys(n).length>=4)T=n;}
+    const sd=await get(ref(db,'escudo/descontos'));
+    if(sd.exists())FB_DESC=sd.val();
+    setSB('ok','Firebase conectado ✓');
+    buildEquipeSel();buildMeses();
+    onValue(ref(db,'escudo/teams'),snap=>{
+      if(!snap.exists())return;const n=normTeams(snap.val());
+      if(Object.keys(n).length>=4){T=n;buildEquipeSel();}
+    });
+    onValue(ref(db,'escudo/descontos'),snap=>{
+      if(snap.exists()){FB_DESC=snap.val();if(curTab==='historico')renderHist();}
+    });
+  }catch(e){setSB('e','Offline');console.warn(e);}
+};
+setTimeout(()=>{
+  if(document.getElementById('sy-dot').classList.contains('load'))setSB('e','Firebase não respondeu');
+},6000);
+
+loadLocal();buildEquipeSel();buildMeses();updateProgress();
+</script>
+
+<script type="module">
+  import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import{getDatabase,ref,set,get,onValue}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  const cfg={apiKey:"AIzaSyDP74FugIertZsbbi-LjUeNowEfWPqnmHo",authDomain:"escudo-in-haus.firebaseapp.com",
+    databaseURL:"https://escudo-in-haus-default-rtdb.firebaseio.com",projectId:"escudo-in-haus",
+    storageBucket:"escudo-in-haus.firebasestorage.app",messagingSenderId:"961467182857",
+    appId:"1:961467182857:web:1458526eca1e78fddf6dd8"};
+  try{const app=initializeApp(cfg);const db=getDatabase(app);
+    window.$FB={db,ref,set,get,onValue};
+    if(typeof window._onFbReady==='function')window._onFbReady();
+  }catch(e){console.error(e);}
+</script>
+</body>
+</html>

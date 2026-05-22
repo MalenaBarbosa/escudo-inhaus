@@ -1,0 +1,1487 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ESCUDO — In-Haus Industrial · Samarco</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<!-- Firebase carregado no fim do body -->
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#eef1f5;--surface:#ffffff;--surface2:#f4f6f9;--border:#dde1e8;
+  --ink:#0d1117;--ink2:#3a4152;--ink3:#6b7385;
+  --navy:#1e3a5f;--navy-lt:#dbeafe;
+  --gold:#d97706;--gold-lt:#fef3c7;--gold-md:#fbbf24;
+  --green:#065f46;--green-lt:#d1fae5;--green-md:#10b981;
+  --red:#991b1b;--red-lt:#fee2e2;
+  --r:10px;--rsm:6px;
+  --sh:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.05);
+  --sh2:0 4px 12px rgba(0,0,0,.10),0 2px 4px rgba(0,0,0,.06);
+}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;font-size:14px;}
+
+/* TOP */
+.topbar{background:var(--navy);padding:.7rem 1.5rem;display:flex;align-items:center;gap:12px;
+  position:sticky;top:0;z-index:200;box-shadow:0 2px 8px rgba(0,0,0,.25);}
+.logo{display:flex;align-items:center;gap:10px;}
+.logo svg{width:30px;height:30px;filter:drop-shadow(0 0 8px rgba(251,191,36,.4));}
+.logo-name{font-family:'Syne',sans-serif;font-size:19px;font-weight:800;color:#fbbf24;letter-spacing:3px;}
+.logo-sub{font-size:9px;color:rgba(255,255,255,.45);letter-spacing:2px;text-transform:uppercase;}
+.topbar-r{margin-left:auto;display:flex;align-items:center;gap:8px;}
+.sync-pill{font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;
+  padding:4px 10px;border-radius:20px;transition:all .3s;
+  background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.3);color:#10b981;}
+.sync-pill.w{background:rgba(217,119,6,.12);border-color:rgba(217,119,6,.3);color:#fbbf24;}
+.sync-pill.e{background:rgba(153,27,27,.15);border-color:rgba(153,27,27,.3);color:#fca5a5;}
+.samarco-b{font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;
+  padding:4px 12px;border-radius:20px;background:#fbbf24;color:var(--navy);}
+
+/* NAV */
+.nav{display:flex;gap:0;background:var(--navy);padding:0 1.5rem;
+  border-top:1px solid rgba(255,255,255,.08);overflow-x:auto;scrollbar-width:none;}
+.nav::-webkit-scrollbar{display:none;}
+.nav-btn{flex-shrink:0;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;
+  letter-spacing:.5px;text-transform:uppercase;padding:.65rem 1rem;border:none;background:none;
+  color:rgba(255,255,255,.45);cursor:pointer;border-bottom:2px solid transparent;
+  transition:all .2s;white-space:nowrap;}
+.nav-btn:hover{color:rgba(255,255,255,.8);}
+.nav-btn.on{color:#fbbf24;border-bottom-color:#fbbf24;}
+
+/* SCREENS */
+.sc{display:none;padding:1.4rem 1.5rem 2rem;}
+.sc.on{display:block;}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:1.2rem;box-shadow:var(--sh);margin-bottom:1rem;}
+.card-title{font-family:'Syne',sans-serif;font-size:12px;font-weight:800;
+  letter-spacing:.5px;text-transform:uppercase;color:var(--navy);
+  margin-bottom:.85rem;padding-bottom:.55rem;border-bottom:2px solid var(--gold-lt);}
+.sec-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:var(--navy);margin-bottom:.2rem;}
+.sec-sub{font-size:12px;color:var(--ink3);margin-bottom:1rem;}
+
+/* FORM */
+.f{margin-bottom:.7rem;}
+.f label{font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;
+  letter-spacing:.8px;display:block;margin-bottom:4px;}
+.f label em{color:var(--gold);font-style:normal;}
+input,select,textarea{width:100%;background:var(--surface2);border:1.5px solid var(--border);
+  color:var(--ink);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:500;
+  padding:9px 12px;border-radius:var(--rsm);outline:none;transition:border-color .2s;-webkit-appearance:none;}
+input:focus,select:focus,textarea:focus{border-color:var(--navy);}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7385' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;}
+textarea{resize:vertical;min-height:60px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+@media(max-width:600px){.g2,.g3{grid-template-columns:1fr;}}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:5px;font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:12px;font-weight:700;padding:9px 18px;border-radius:var(--rsm);
+  border:none;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.btn-navy{background:var(--navy);color:#fff;}.btn-navy:hover{background:#162d4a;}
+.btn-gold{background:var(--gold);color:#fff;}.btn-gold:hover{background:#b45309;}
+.btn-red{background:var(--red-lt);color:var(--red);border:1px solid #fca5a5;}.btn-red:hover{background:#fecaca;}
+.btn-ghost{background:transparent;border:1.5px solid var(--border);color:var(--ink2);}.btn-ghost:hover{border-color:var(--navy);color:var(--navy);}
+.btn-sm{padding:5px 11px;font-size:11px;}
+.btn-block{width:100%;justify-content:center;}
+
+/* BADGES */
+.badge{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;padding:2px 8px;border-radius:20px;}
+.b-turno{background:#dbeafe;color:#1e40af;border:1px solid #bfdbfe;}
+.b-adm{background:#f3e8ff;color:#6b21a8;border:1px solid #ddd6fe;}
+.b-gold{background:var(--gold-lt);color:var(--gold);border:1px solid #fde68a;}
+
+/* SEG TABS */
+.seg-tabs{display:inline-flex;gap:4px;background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--rsm);padding:3px;margin-bottom:1rem;}
+.seg-btn{font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:700;
+  letter-spacing:.3px;text-transform:uppercase;padding:6px 16px;border-radius:4px;
+  border:none;background:none;color:var(--ink3);cursor:pointer;transition:all .15s;}
+.seg-btn.on{background:var(--navy);color:#fff;box-shadow:var(--sh);}
+
+/* TEAM TABS */
+.team-tabs-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem;}
+.ttab{font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;
+  padding:5px 14px;border-radius:20px;border:1.5px solid var(--border);
+  background:var(--surface);color:var(--ink3);cursor:pointer;transition:all .15s;white-space:nowrap;}
+.ttab.on{color:#fff;border-color:transparent;}
+
+/* ENC BANNER */
+.enc-banner{display:flex;align-items:center;gap:14px;
+  background:linear-gradient(135deg,var(--navy),#162d4a);
+  border-radius:var(--r);padding:1rem 1.2rem;margin-bottom:1rem;color:#fff;
+  box-shadow:var(--sh2);}
+.enc-av{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--navy);
+  border:2px solid rgba(251,191,36,.5);flex-shrink:0;}
+.enc-lbl{font-size:9px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:2px;}
+.enc-nm{font-family:'Syne',sans-serif;font-size:14px;font-weight:800;text-transform:uppercase;line-height:1.1;}
+.enc-cargo{font-size:10px;color:rgba(255,255,255,.55);margin-top:2px;text-transform:uppercase;}
+.enc-ct{margin-left:auto;text-align:right;}
+.enc-ct-n{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:#fbbf24;line-height:1;}
+.enc-ct-l{font-size:9px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:1px;}
+
+/* MEMBERS */
+.mem-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:8px;margin-bottom:1rem;}
+.mem-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--rsm);
+  padding:10px 7px;text-align:center;cursor:pointer;transition:all .15s;
+  position:relative;overflow:hidden;}
+.mem-card:hover{border-color:var(--navy);box-shadow:var(--sh2);transform:translateY(-1px);}
+.mem-top-bar{position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--rsm) var(--rsm) 0 0;}
+.mem-av{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;font-size:12px;font-weight:800;color:#fff;margin:0 auto 6px;}
+.mem-nm{font-size:9.5px;font-weight:700;color:var(--ink);text-transform:uppercase;line-height:1.2;margin-bottom:2px;}
+.mem-role{font-size:8px;color:var(--ink3);text-transform:uppercase;}
+.mem-score{font-family:'Syne',sans-serif;font-size:12px;font-weight:800;color:var(--gold);margin-top:3px;}
+
+/* RANKING */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1.2rem;}
+.stat-b{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:.85rem 1rem;box-shadow:var(--sh);}
+.stat-n{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--navy);line-height:1;}
+.stat-l{font-size:9px;color:var(--ink3);text-transform:uppercase;letter-spacing:.7px;margin-top:3px;}
+.rank-row{display:flex;align-items:center;gap:10px;background:var(--surface);
+  border:1px solid var(--border);border-radius:var(--rsm);padding:10px 14px;
+  margin-bottom:6px;box-shadow:var(--sh);transition:box-shadow .15s;}
+.rank-row:hover{box-shadow:var(--sh2);}
+.rpos{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;min-width:26px;text-align:center;}
+.p1{color:#d97706;}.p2{color:#6b7280;}.p3{color:#92400e;}.pn{color:#d1d5db;}
+.rav{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;font-size:11px;font-weight:800;color:#fff;flex-shrink:0;}
+.ri{flex:1;min-width:0;}
+.rn{font-size:12px;font-weight:700;text-transform:uppercase;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rt{font-size:9px;color:var(--ink3);text-transform:uppercase;letter-spacing:.4px;margin-top:1px;}
+.rb-wrap{height:4px;background:var(--border);border-radius:3px;margin-top:4px;}
+.rb{height:4px;border-radius:3px;transition:width .6s;}
+.rscore{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;min-width:34px;text-align:right;}
+
+/* AVALIAÇÃO */
+.eval-head-c{display:flex;align-items:center;gap:12px;background:var(--navy-lt);
+  border:1.5px solid #bfdbfe;border-radius:var(--r);padding:.9rem 1rem;margin-bottom:1rem;}
+.eval-av{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:#fff;flex-shrink:0;}
+.eval-nm{font-family:'Syne',sans-serif;font-size:13px;font-weight:800;text-transform:uppercase;color:var(--navy);}
+.tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;}
+.tag{font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;
+  padding:2px 8px;border-radius:10px;border:1px solid var(--border);
+  background:var(--surface2);color:var(--ink3);}
+
+.month-g{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-bottom:1rem;}
+.mpill{font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;
+  padding:7px 4px;text-align:center;background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:var(--rsm);cursor:pointer;color:var(--ink3);transition:all .15s;}
+.mpill.on{background:var(--navy);border-color:var(--navy);color:#fff;}
+.mpill.done{border-color:var(--green-md);color:var(--green);}
+
+.crit-c{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);
+  padding:1.05rem;margin-bottom:10px;box-shadow:var(--sh);transition:border-color .2s;}
+.crit-c.rated{border-color:#bfdbfe;}
+.crit-c.na{opacity:.6;}
+.crit-hd{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+.crit-icon{font-size:19px;}
+.crit-nm{font-size:12px;font-weight:700;text-transform:uppercase;color:var(--ink);flex:1;}
+.crit-desc{font-size:10px;color:var(--ink3);margin-bottom:9px;line-height:1.5;}
+.stars-r{display:flex;gap:5px;margin-bottom:5px;}
+.star{flex:1;height:34px;background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:var(--rsm);cursor:pointer;font-family:'Syne',sans-serif;font-size:13px;
+  font-weight:800;color:var(--ink3);transition:all .12s;display:flex;align-items:center;justify-content:center;}
+.star.on{background:var(--navy);border-color:var(--navy);color:#fff;}
+.star:hover{border-color:var(--navy);}
+.slbl{display:flex;justify-content:space-between;font-size:9px;color:var(--ink3);margin-bottom:8px;}
+.na-r{display:flex;align-items:center;justify-content:space-between;margin-top:5px;}
+.na-lbl{font-size:11px;color:var(--ink3);}
+.tgl{position:relative;width:40px;height:22px;}
+.tgl input{opacity:0;width:0;height:0;}
+.tgl-track{position:absolute;top:0;left:0;right:0;bottom:0;background:var(--border);
+  border-radius:22px;cursor:pointer;transition:.25s;}
+.tgl-track::before{content:'';position:absolute;height:16px;width:16px;left:3px;bottom:3px;
+  background:#fff;border-radius:50%;transition:.25s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+input:checked + .tgl-track{background:var(--navy);}
+input:checked + .tgl-track::before{transform:translateX(18px);}
+.obs-f{width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--rsm);
+  color:var(--ink);font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;padding:7px 10px;
+  resize:none;min-height:42px;margin-top:7px;outline:none;}
+.obs-f:focus{border-color:var(--navy);}
+.obs-f::placeholder{color:var(--ink3);}
+
+.back-btn{background:none;border:none;color:var(--ink3);font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:12px;font-weight:600;cursor:pointer;padding:0;margin-bottom:.9rem;
+  display:flex;align-items:center;gap:4px;}
+.back-btn:hover{color:var(--navy);}
+
+/* SUCCESS */
+.success-wrap{text-align:center;padding:2rem 1rem;}
+.success-icon{font-size:50px;margin-bottom:.8rem;}
+.success-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--green);margin-bottom:.4rem;}
+.success-score{font-family:'Syne',sans-serif;font-size:50px;font-weight:800;color:var(--navy);line-height:1;}
+.success-sub{font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:1px;margin-bottom:1.5rem;}
+.success-nm{font-size:14px;font-weight:700;text-transform:uppercase;color:var(--ink);}
+.success-team{font-size:11px;color:var(--ink3);margin-top:2px;}
+
+/* ADMIN */
+.adm-tabs{display:inline-flex;gap:3px;background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--rsm);padding:3px;margin-bottom:1.2rem;flex-wrap:wrap;}
+.adm-tab{font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:700;
+  letter-spacing:.3px;text-transform:uppercase;padding:6px 14px;border-radius:4px;
+  border:none;background:none;color:var(--ink3);cursor:pointer;transition:all .15s;}
+.adm-tab.on{background:var(--navy);color:#fff;}
+.adm-pane{display:none;}
+.adm-pane.on{display:block;}
+.team-row{display:flex;align-items:center;gap:10px;background:var(--surface2);
+  border:1px solid var(--border);border-radius:var(--rsm);padding:10px 12px;margin-bottom:6px;}
+.team-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.team-nm-b{font-size:13px;font-weight:700;text-transform:uppercase;color:var(--ink);flex:1;}
+.team-enc-s{font-size:10px;color:var(--ink3);text-transform:uppercase;}
+.team-ct{font-size:11px;font-weight:700;color:var(--gold);}
+.mb-row{display:flex;align-items:center;gap:8px;background:var(--surface2);
+  border:1px solid var(--border);border-radius:var(--rsm);padding:8px 12px;margin-bottom:5px;}
+.mb-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;font-size:9px;font-weight:800;color:#fff;flex-shrink:0;}
+.mb-nm{font-size:12px;font-weight:600;text-transform:uppercase;color:var(--ink);flex:1;}
+.mb-role{font-size:10px;color:var(--ink3);}
+
+/* ANUAL / APRES */
+.prize-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:8px;margin-bottom:1rem;}
+.prize-c{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:.9rem;text-align:center;box-shadow:var(--sh);}
+.prize-icon{font-size:22px;margin-bottom:5px;}
+.prize-nm{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--navy);line-height:1.3;}
+.prize-tier{font-size:9px;color:var(--ink3);margin-top:3px;}
+.pres-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:8px;margin-bottom:1rem;}
+.pres-c{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem;box-shadow:var(--sh);}
+.pres-icon{font-size:20px;margin-bottom:5px;}
+.pres-ttl{font-size:12px;font-weight:700;text-transform:uppercase;color:var(--navy);margin-bottom:3px;}
+.pres-desc{font-size:11px;color:var(--ink3);line-height:1.6;}
+.step-item{display:flex;gap:11px;align-items:flex-start;margin-bottom:.85rem;}
+.step-n{width:26px;height:26px;border-radius:50%;background:var(--navy);color:#fff;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:12px;font-weight:800;}
+.step-ttl{font-size:12px;font-weight:700;text-transform:uppercase;color:var(--navy);}
+.step-d{font-size:11px;color:var(--ink3);line-height:1.5;margin-top:2px;}
+
+/* TOAST */
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);
+  background:var(--navy);color:#fff;font-size:13px;font-weight:600;
+  padding:10px 20px;border-radius:30px;box-shadow:0 4px 16px rgba(0,0,0,.2);
+  opacity:0;pointer-events:none;transition:opacity .3s;z-index:999;white-space:nowrap;}
+.toast.on{opacity:1;}
+
+.divider{height:1px;background:var(--border);margin:.8rem 0;}
+.no-data{text-align:center;padding:2rem;color:var(--ink3);font-size:12px;}
+.alert-info{background:var(--navy-lt);border:1px solid #bfdbfe;color:var(--navy);
+  border-radius:var(--rsm);padding:9px 12px;font-size:12px;margin-bottom:.8rem;}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="logo">
+    <svg viewBox="0 0 30 30" fill="none">
+      <path d="M15 1L2 7V16C2 23.5 15 29 15 29C15 29 28 23.5 28 16V7L15 1Z"
+        fill="rgba(251,191,36,.15)" stroke="#fbbf24" stroke-width="1.5"/>
+      <path d="M9 15L13.5 19.5L22 11" stroke="#fbbf24" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div>
+      <div class="logo-name">ESCUDO</div>
+      <div class="logo-sub">In-Haus Industrial</div>
+    </div>
+  </div>
+  <div class="topbar-r">
+    <span class="sync-pill w" id="sync-pill">⏳ Conectando…</span>
+    <span class="samarco-b">Samarco</span>
+  </div>
+</div>
+
+<!-- NAV -->
+<div class="nav">
+  <button class="nav-btn on" onclick="goSc('equipes',this)">Equipes</button>
+  <button class="nav-btn"    onclick="goSc('avaliar', this)">Avaliar</button>
+  <button class="nav-btn"    onclick="goSc('ranking', this)">Ranking</button>
+  <button class="nav-btn"    onclick="goSc('anual',   this)">Anual</button>
+  <button class="nav-btn"    onclick="goSc('apres',   this)">Apresentação</button>
+  <button class="nav-btn"    onclick="goSc('admin',   this)">⚙ Admin</button>
+</div>
+
+<!-- ── EQUIPES ── -->
+<div id="sc-equipes" class="sc on">
+  <div class="seg-tabs">
+    <button class="seg-btn on" onclick="setSeg('turno',this)">Turno A·B·C·D</button>
+    <button class="seg-btn"    onclick="setSeg('adm',  this)">Administrativo</button>
+  </div>
+  <div id="ttabs"  class="team-tabs-row"></div>
+  <div id="tblock"></div>
+  <div id="eval-ov" style="display:none;"></div>
+</div>
+
+<!-- ── AVALIAR ── -->
+<div id="sc-avaliar" class="sc">
+  <div id="avs1">
+    <div class="sec-title">Avaliação em campo</div>
+    <div class="sec-sub">Preencha todos os campos e avalie os critérios.</div>
+    <div class="card">
+      <div class="g2">
+        <div class="f"><label>Avaliador <em>*</em></label>
+          <select id="av-aval">
+            <option value="">Selecione…</option>
+            <option>Encarregado de Turno</option><option>TST — Técnico de Segurança</option>
+            <option>Coordenador de Operações</option><option>Supervisor Operacional</option>
+            <option>Engenheiro de Segurança</option><option>Planejamento</option>
+          </select>
+        </div>
+        <div class="f"><label>Local <em>*</em></label>
+          <select id="av-local">
+            <option value="">Selecione…</option>
+            <option>ETI BN</option><option>ETI 1/2</option><option>Draga 01</option>
+            <option>Draga 02 / Polpa</option><option>Precipitador US03</option>
+            <option>Precipitador US04</option><option>Peneiramento US03</option>
+            <option>Peneiramento US04</option><option>Filtro Prensa</option>
+            <option>Pátio / Porto</option><option>Manutenção</option><option>Administrativo</option>
+          </select>
+        </div>
+      </div>
+      <div class="g2">
+        <div class="f"><label>Equipe <em>*</em></label>
+          <select id="av-eq" onchange="onAvEq()"><option value="">Selecione…</option></select>
+        </div>
+        <div class="f"><label>Profissional <em>*</em></label>
+          <select id="av-mb"><option value="">Selecione a equipe…</option></select>
+        </div>
+      </div>
+      <div class="f"><label>Mês <em>*</em></label><div class="month-g" id="av-meses"></div></div>
+      <button class="btn btn-navy btn-block" onclick="goAvS(2)">Próximo →</button>
+    </div>
+  </div>
+  <div id="avs2" style="display:none;">
+    <button class="back-btn" onclick="goAvS(1)">← Voltar</button>
+    <div id="av-head"></div>
+    <div id="av-crits"></div>
+    <button class="btn btn-navy btn-block" onclick="saveAv()">✓ Registrar avaliação</button>
+    <button class="btn btn-ghost btn-block" style="margin-top:6px;" onclick="goAvS(1)">Cancelar</button>
+  </div>
+  <div id="avs3" style="display:none;">
+    <div class="success-wrap">
+      <div class="success-icon">🛡️</div>
+      <div class="success-title">Registrada!</div>
+      <div class="success-score" id="av-score">—</div>
+      <div class="success-sub" id="av-sub">/ 5.0</div>
+      <div class="success-nm" id="av-snm"></div>
+      <div class="success-team" id="av-steam"></div>
+    </div>
+    <button class="btn btn-navy btn-block" onclick="resetAv()">Nova avaliação</button>
+  </div>
+</div>
+
+<!-- ── RANKING ── -->
+<div id="sc-ranking" class="sc">
+  <div class="sec-title" style="margin-bottom:.6rem;">Placar ESCUDO</div>
+  <div class="stats-row">
+    <div class="stat-b"><div class="stat-n" id="st-av">0</div><div class="stat-l">Avaliações</div></div>
+    <div class="stat-b"><div class="stat-n" id="st-md">—</div><div class="stat-l">Média</div></div>
+    <div class="stat-b"><div class="stat-n" id="st-pr">0</div><div class="stat-l">Avaliados</div></div>
+    <div class="stat-b"><div class="stat-n" id="st-eq">0</div><div class="stat-l">Equipes</div></div>
+  </div>
+  <div class="f" style="margin-bottom:.8rem;">
+    <select id="rk-filter" onchange="renderRanking()"><option value="all">Todas as equipes</option></select>
+  </div>
+  <div id="rank-list"><div class="no-data">Nenhuma avaliação ainda.</div></div>
+</div>
+
+<!-- ── ANUAL ── -->
+<div id="sc-anual" class="sc">
+  <div class="sec-title">Reconhecimento Anual</div>
+  <div class="sec-sub">Cerimônia de premiação — Dezembro</div>
+  <div style="background:linear-gradient(135deg,var(--navy),#162d4a);border-radius:var(--r);padding:1.4rem;text-align:center;margin-bottom:1rem;color:#fff;box-shadow:var(--sh2);">
+    <div style="font-size:30px;margin-bottom:.4rem;">🏆</div>
+    <div style="font-family:'Syne',sans-serif;font-size:19px;font-weight:800;color:#fbbf24;letter-spacing:2px;text-transform:uppercase;">Grande Guardião ESCUDO</div>
+    <div style="font-size:10px;color:rgba(255,255,255,.5);margin-top:3px;">In-Haus Industrial · Samarco Mineração</div>
+  </div>
+  <div class="prize-grid">
+    <div class="prize-c"><div class="prize-icon">🦺</div><div class="prize-nm">Guardião do Comportamento</div><div class="prize-tier">Maior média em Comportamento</div></div>
+    <div class="prize-c"><div class="prize-icon">⚙️</div><div class="prize-nm">Mestre da Operação Segura</div><div class="prize-tier">Maior média em Atividade Segura</div></div>
+    <div class="prize-c"><div class="prize-icon">📘</div><div class="prize-nm">Referência em Conhecimento</div><div class="prize-tier">Maior média em Conhecimento SST</div></div>
+    <div class="prize-c"><div class="prize-icon">💡</div><div class="prize-nm">Inovador da Segurança</div><div class="prize-tier">Maior média em Ideias de Valor</div></div>
+    <div class="prize-c" style="grid-column:1/-1;border-color:#fde68a;"><div class="prize-icon">🛡️</div><div class="prize-nm">Grande Guardião ESCUDO — Destaque do Ano</div><div class="prize-tier">Maior pontuação acumulada no ano</div></div>
+  </div>
+  <div class="sec-title" style="font-size:15px;margin-bottom:.6rem;">Placar acumulado</div>
+  <div id="anual-list"><div class="no-data">Realize avaliações para ver.</div></div>
+</div>
+
+<!-- ── APRESENTAÇÃO ── -->
+<div id="sc-apres" class="sc">
+  <div class="sec-title">Apresentação — Samarco</div>
+  <div class="sec-sub">Material completo do Programa ESCUDO</div>
+  <div class="pres-grid">
+    <div class="pres-c"><div class="pres-icon">🛡️</div><div class="pres-ttl">O que é</div><div class="pres-desc">Programa mensal de reconhecimento em segurança, com avaliação em campo, ranking por equipe e cerimônia anual.</div></div>
+    <div class="pres-c"><div class="pres-icon">🎯</div><div class="pres-ttl">Objetivo</div><div class="pres-desc">Valorizar quem faz da segurança um valor real — mudando cultura e engajando toda a operação.</div></div>
+    <div class="pres-c"><div class="pres-icon">📊</div><div class="pres-ttl">Metodologia</div><div class="pres-desc">5 critérios avaliados mensalmente em campo, padrão único para toda a operação.</div></div>
+    <div class="pres-c"><div class="pres-icon">🏆</div><div class="pres-ttl">Reconhecimento</div><div class="pres-desc">Mensal: destaque com brinde. Anual: cerimônia em dezembro com troféu por categoria.</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Fluxo de avaliação</div>
+    <div class="step-item"><div class="step-n">1</div><div><div class="step-ttl">Observação em campo</div><div class="step-d">Avaliador observa o profissional na jornada e preenche os 5 critérios. Avaliação feita no local de trabalho.</div></div></div>
+    <div class="step-item"><div class="step-n">2</div><div><div class="step-ttl">Padrão único</div><div class="step-d">Mesma ficha para encarregado, TST, coordenador e planejamento. Critérios claros garantem imparcialidade.</div></div></div>
+    <div class="step-item"><div class="step-n">3</div><div><div class="step-ttl">Ranking mensal</div><div class="step-d">Notas consolidadas até o dia 5. O destaque é divulgado no mural e na reunião de turno.</div></div></div>
+    <div class="step-item"><div class="step-n">4</div><div><div class="step-ttl">Cerimônia — Dezembro</div><div class="step-d">Médias mensais formam a pontuação anual. Guardiões do ano recebem premiação.</div></div></div>
+  </div>
+  <div id="apres-info" style="text-align:center;padding:.8rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);font-size:11px;color:var(--ink3);"></div>
+</div>
+
+<!-- ── ADMIN ── -->
+<div id="sc-admin" class="sc">
+  <div class="sec-title">⚙ Administração</div>
+  <div class="sec-sub">Alterações propagam para todas as telas automaticamente.</div>
+  <div class="adm-tabs">
+    <button class="adm-tab on" onclick="showPane('equipes',this)">Equipes</button>
+    <button class="adm-tab"    onclick="showPane('membros',this)">Profissionais</button>
+    <button class="adm-tab"    onclick="showPane('remanejar',this)">Remanejar</button>
+    <button class="adm-tab"    onclick="showPane('guia',this)">Guia</button>
+    <button class="adm-tab" style="color:#dc2626;" onclick="showPane('dados',this)">🗑 Dados</button>
+  </div>
+
+  <!-- Equipes -->
+  <div id="adm-equipes" class="adm-pane on">
+    <div class="card">
+      <div class="card-title">Nova equipe</div>
+      <div class="g3">
+        <div class="f"><label>ID <em>*</em></label><input id="ne-id" placeholder="Ex: E" maxlength="12"></div>
+        <div class="f"><label>Nome <em>*</em></label><input id="ne-label" placeholder="Ex: Turno E"></div>
+        <div class="f"><label>Segmento</label><select id="ne-seg"><option value="turno">Turno</option><option value="adm">Administrativo</option></select></div>
+      </div>
+      <div class="g3">
+        <div class="f"><label>Cor</label><input type="color" id="ne-color" value="#2563eb" style="height:36px;padding:2px 6px;cursor:pointer;"></div>
+        <div class="f"><label>Encarregado <em>*</em></label><input id="ne-enc-n" placeholder="NOME COMPLETO" style="text-transform:uppercase;"></div>
+        <div class="f"><label>Cargo</label><input id="ne-enc-c" placeholder="ENCARREGADO OPERACIONAL" style="text-transform:uppercase;"></div>
+      </div>
+      <button class="btn btn-navy" onclick="addEq()">+ Criar equipe</button>
+    </div>
+    <div class="card">
+      <div class="card-title">Equipes cadastradas</div>
+      <div id="adm-eq-list"></div>
+    </div>
+    <button class="btn btn-red" onclick="resetEqs()" style="margin-top:.4rem;">🔄 Restaurar equipes padrão</button>
+  </div>
+
+  <!-- Membros -->
+  <div id="adm-membros" class="adm-pane">
+    <div class="card">
+      <div class="card-title">Incluir profissional</div>
+      <div class="g3">
+        <div class="f"><label>Equipe <em>*</em></label><select id="nm-eq"><option value="">Selecione…</option></select></div>
+        <div class="f"><label>Nome <em>*</em></label><input id="nm-nome" placeholder="NOME COMPLETO" style="text-transform:uppercase;"></div>
+        <div class="f"><label>Função <em>*</em></label><input id="nm-cargo" placeholder="EX: OPERADOR MANTENEDOR" style="text-transform:uppercase;"></div>
+      </div>
+      <button class="btn btn-navy" onclick="addMb()">+ Incluir</button>
+    </div>
+    <div class="card">
+      <div class="card-title">Profissionais cadastrados</div>
+      <div class="g2" style="margin-bottom:.6rem;">
+        <input id="busca-mb" placeholder="Buscar por nome…" oninput="renderAdmMbs()">
+        <select id="filtro-eq-mb" onchange="renderAdmMbs()"><option value="">Todas as equipes</option></select>
+      </div>
+      <div id="adm-mb-list" style="max-height:400px;overflow-y:auto;"></div>
+    </div>
+  </div>
+
+  <!-- Remanejar -->
+  <div id="adm-remanejar" class="adm-pane">
+    <div class="card">
+      <div class="card-title">Remanejar profissional</div>
+      <div class="alert-info">O histórico de avaliações é preservado — só a equipe muda.</div>
+      <div class="g3">
+        <div class="f"><label>Equipe atual <em>*</em></label><select id="rem-orig" onchange="loadRemMbs()"><option value="">Selecione…</option></select></div>
+        <div class="f"><label>Profissional <em>*</em></label><select id="rem-mb"><option value="">Selecione a equipe…</option></select></div>
+        <div class="f"><label>Nova equipe <em>*</em></label><select id="rem-dest"><option value="">Selecione…</option></select></div>
+      </div>
+      <button class="btn btn-navy" onclick="remanejar()">Confirmar remanejamento</button>
+    </div>
+    <div class="card">
+      <div class="card-title">Trocar encarregado</div>
+      <div class="g3">
+        <div class="f"><label>Equipe <em>*</em></label><select id="enc-eq"><option value="">Selecione…</option></select></div>
+        <div class="f"><label>Novo nome <em>*</em></label><input id="enc-nome" placeholder="NOME COMPLETO" style="text-transform:uppercase;"></div>
+        <div class="f"><label>Novo cargo</label><input id="enc-cargo" placeholder="ENCARREGADO OPERACIONAL" style="text-transform:uppercase;"></div>
+      </div>
+      <button class="btn btn-navy" onclick="trocarEnc()">Atualizar encarregado</button>
+    </div>
+  </div>
+
+  <!-- Guia -->
+  <div id="adm-guia" class="adm-pane">
+    <div class="card"><div class="card-title">Como usar o Admin</div>
+      <div class="step-item"><div class="step-n">1</div><div><div class="step-ttl">Criar equipe</div><div class="step-d">Aba Equipes → preencha ID, nome, segmento, cor e encarregado → Criar. Aparece em todas as telas.</div></div></div>
+      <div class="step-item"><div class="step-n">2</div><div><div class="step-ttl">Adicionar membros</div><div class="step-d">Aba Profissionais → selecione a equipe → preencha nome e função → Incluir.</div></div></div>
+      <div class="step-item"><div class="step-n">3</div><div><div class="step-ttl">Remanejar</div><div class="step-d">Aba Remanejar → equipe atual → profissional → nova equipe → Confirmar. Histórico preservado.</div></div></div>
+      <div class="step-item"><div class="step-n">4</div><div><div class="step-ttl">Excluir</div><div class="step-d">Equipes: botão Excluir na lista. Profissionais: botão Remover na lista de membros.</div></div></div>
+    </div>
+  </div>
+
+  <!-- Dados / Limpeza -->
+  <div id="adm-dados" class="adm-pane">
+
+    <div style="background:#fee2e2;border:1.5px solid #fca5a5;border-radius:var(--r);padding:1rem 1.1rem;margin-bottom:1rem;display:flex;gap:10px;align-items:flex-start;">
+      <div style="font-size:20px;flex-shrink:0;">⚠️</div>
+      <div style="font-size:11px;color:#991b1b;line-height:1.6;"><strong style="color:#7f1d1d;">Atenção:</strong> Exclusões são permanentes e não podem ser desfeitas. Use somente para remover dados de teste.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="color:#dc2626;border-bottom-color:#fca5a5;">🎯 Excluir avaliação específica</div>
+      <div style="font-size:11px;color:var(--ink3);margin-bottom:.9rem;line-height:1.6;">Selecione equipe, profissional e mês para excluir somente aquela avaliação.</div>
+      <div class="cols3">
+        <div class="f"><label>Equipe</label><select id="del-eq" onchange="loadDelMbs()"><option value="">Selecione…</option></select></div>
+        <div class="f"><label>Profissional</label><select id="del-mb" onchange="updateDelPreview()"><option value="">Selecione a equipe…</option></select></div>
+        <div class="f"><label>Mês</label>
+          <select id="del-mes" onchange="updateDelPreview()">
+            <option value="all">Todos os meses</option>
+            <option value="0">Janeiro</option><option value="1">Fevereiro</option><option value="2">Março</option>
+            <option value="3">Abril</option><option value="4">Maio</option><option value="5">Junho</option>
+            <option value="6">Julho</option><option value="7">Agosto</option><option value="8">Setembro</option>
+            <option value="9">Outubro</option><option value="10">Novembro</option><option value="11">Dezembro</option>
+          </select>
+        </div>
+      </div>
+      <div id="del-preview" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:var(--rsm);padding:.8rem;margin-bottom:.8rem;font-size:11px;color:var(--ink3);"></div>
+      <button onclick="delAvaliacao()" style="width:100%;background:#dc2626;color:#fff;border:none;border-radius:var(--rsm);padding:11px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;margin-top:.3rem;">🗑 Excluir avaliação selecionada</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="color:#dc2626;border-bottom-color:#fca5a5;">🏢 Excluir todas as avaliações de uma equipe</div>
+      <div style="font-size:11px;color:var(--ink3);margin-bottom:.9rem;">Remove <strong>todas</strong> as avaliações de todos os membros desta equipe.</div>
+      <div class="f"><label>Equipe</label><select id="del-eq-all"><option value="">Selecione…</option></select></div>
+      <button onclick="delEquipeScores()" style="width:100%;background:#dc2626;color:#fff;border:none;border-radius:var(--rsm);padding:11px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;">🗑 Excluir todas as avaliações desta equipe</button>
+    </div>
+
+    <div class="card" style="border-color:#dc2626;">
+      <div class="card-title" style="color:#dc2626;border-bottom-color:#fca5a5;">🗑 Limpar dados por tipo</div>
+      <div style="font-size:11px;color:var(--ink3);margin-bottom:.9rem;">Clique no tipo de dado que deseja zerar. As equipes e membros <strong>não são afetados</strong>.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:.8rem;">
+        <button onclick="delTipo('scores')"              style="background:#fee2e2;color:#dc2626;border:1.5px solid #fca5a5;border-radius:var(--rsm);padding:10px;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:700;cursor:pointer;">🗑 Avaliações de campo</button>
+        <button onclick="delTipo('scores_bonus')"        style="background:#fee2e2;color:#dc2626;border:1.5px solid #fca5a5;border-radius:var(--rsm);padding:10px;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:700;cursor:pointer;">🗑 Ideias de valor</button>
+        <button onclick="delTipo('scores_desconto')"     style="background:#fee2e2;color:#dc2626;border:1.5px solid #fca5a5;border-radius:var(--rsm);padding:10px;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:700;cursor:pointer;">🗑 Descontos de pontos</button>
+        <button onclick="delTipo('feedback_atividades')" style="background:#fee2e2;color:#dc2626;border:1.5px solid #fca5a5;border-radius:var(--rsm);padding:10px;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:700;cursor:pointer;">🗑 Feedbacks Planejamento</button>
+        <button onclick="delTipo('ideias_valor')"        style="background:#fee2e2;color:#dc2626;border:1.5px solid #fca5a5;border-radius:var(--rsm);padding:10px;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:700;cursor:pointer;">🗑 Dados ideias (detalhe)</button>
+        <button onclick="delTipo('descontos')"           style="background:#fee2e2;color:#dc2626;border:1.5px solid #fca5a5;border-radius:var(--rsm);padding:10px;font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:700;cursor:pointer;">🗑 Dados desconto (detalhe)</button>
+      </div>
+      <div style="height:1px;background:var(--border);margin:.5rem 0;"></div>
+      <button onclick="delTudo()" style="width:100%;background:#7f1d1d;color:#fff;border:none;border-radius:var(--rsm);padding:13px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;">⚠️ ZERAR TUDO — Limpar todas as inspeções e dados</button>
+    </div>
+
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ══════════════════════════════
+   DADOS PADRÃO
+══════════════════════════════ */
+const DEFAULT_TEAMS = {
+  A:{id:'A',label:'Turno A',seg:'turno',color:'#d97706',enc:{n:'CLEUTON FERREIRA DOS SANTOS',c:'ENCARREGADO OPERACIONAL'},members:[{n:'PRISCILA ANDRADE DA SILVA',c:'OPERAÇÃO ETI BN'},{n:'DIOGO VIEIRA BORGES',c:'OPERAÇÃO ETI 1/2'},{n:'BENEDITO PEREIRA DOS SANTOS',c:'OPERAÇÃO DRAGA 01'},{n:'BRENER RIBEIRO DE SOUZA',c:'POLPA/DRAGA 02'},{n:'JOSÉ IGOR COSTA CARDOSO',c:'PRECIPT. US03'},{n:'EDGARD BENA DOS SANTOS',c:'PRECIPT. US03'},{n:'LEONARDO DOS REIS VIEIRA',c:'PENEIRAMENTO US03'},{n:'LUIZ EDUARDO SANTOS SOUTO',c:'PRECIPT. US04'},{n:'JHON ROGER DE MORAES SECATO',c:'PRECIPT. US04'},{n:'RAPHAEL DOS SANTOS LOYOLA',c:'PENEIRAMENTO US04'},{n:'RYAN SOUZA SILVA',c:'FILTRO PRENSA'},{n:'KAUÃ XAVIER SEMEDO',c:'OPERADOR MANTENEDOR'},{n:'BRUNO HENRIQUE BRAGA',c:'OPERADOR MANTENEDOR'},{n:'FLAVIO MORAES NOGUEIRA',c:'OPERADOR MANTENEDOR'},{n:'PAULO LEANDRO REIS FILHO',c:'MECÂNICO'},{n:'EDUARDO DE ANDRADE MENDES',c:'MECÂNICO'},{n:'EDIRLEI MARTINS DE SOUZA',c:'SOLDADOR'},{n:'GABRIEL VIEIRA LIBARDI',c:'OPER. PÁTIO/PORTO'},{n:'ALCENIR DINIZ FARIAS',c:'OPER. PÁTIO/PORTO'},{n:'GEOVANI PASSOS DA VITORIA',c:'OPER. PÁTIO/PORTO ADM'}]},
+  B:{id:'B',label:'Turno B',seg:'turno',color:'#059669',enc:{n:'GEOVANE BRANDAO BELEM',c:'ENCARREGADO OPERACIONAL'},members:[{n:'SIMONE FERREIRA DA SILVA',c:'ETI BN'},{n:'FELLIPE WENDER SIQUEIRA SIMÕES',c:'ETI 1/2'},{n:'JORGE AUGUSTO NASCIMENTO RODRIGUES',c:'DRAGA 01'},{n:'LUIZ FELIPE SENNA DA SILVA',c:'POLPA/DRAGA 02'},{n:'REGES DE SA CORREA',c:'PRECIPT. US03'},{n:'KAUAN TRES CAMARGO',c:'PRECIPT. US03'},{n:'MARCOS ADRIANO GIULIATTI SEMEDO',c:'PENEIRAMENTO US03'},{n:'JOSÉ LUIZ FLUMINENSE DOS SANTOS',c:'PRECIPT. US04'},{n:'PIERRE MECKSON VIEIRA BARBOSA',c:'PRECIPT. US04'},{n:'MATEUS SOUZA MENEZES',c:'PENEIRAMENTO US04'},{n:'DAVI LUCAS CALDEIRA DE MATTOS',c:'FILTRO PRENSA'},{n:'ALEX FRONTINO DE OLIVEIRA DE MATTOS',c:'OPERADOR MANTENEDOR'},{n:'LUIZ HENRIQUE RIGO FERREIRA',c:'OPERADOR MANTENEDOR'},{n:'KRISLAINE SANTANA CARDOSO',c:'OPERADOR MANTENEDOR'},{n:'PEDRO FRANCISCO R ALMEIDA JUNIOR',c:'MECÂNICO'},{n:'FRANKSAID DELFINO FERREIRA',c:'MECÂNICO'},{n:'ALAN VASCONCELOS',c:'SOLDADOR'},{n:'ORLY DINIZ FARIAS',c:'OPER. PÁTIO/PORTO'},{n:'WILLIS SERAFIM DOS SANTOS',c:'OPER. PÁTIO/PORTO'},{n:'DHIOGO MILAGRE RODRIGUES SERAPHIM',c:'OPER. PÁTIO/PORTO ADM'}]},
+  C:{id:'C',label:'Turno C',seg:'turno',color:'#2563eb',enc:{n:'EDINALDO DA SILVA SANTOS',c:'ENCARREGADO OPERACIONAL'},members:[{n:'MAYDIANE TRINDADE RIBEIRO BASTOS',c:'ETI BN'},{n:'REGIS SILVA DAS NEVES',c:'ETI 1/2'},{n:'MARCIUS VINICIUS PINHEIRO SANTANA',c:'DRAGA 01'},{n:'LEONARDO PEREIRA DA FONSECA',c:'POLPA/DRAGA 02'},{n:'WELLINGTON DA SILVA MAGALHÃES',c:'PRECIPT. US03'},{n:'EDUARDO DA SILVA PETRE',c:'PRECIPT. US03'},{n:'REGINALDO SANTOS',c:'PENEIRAMENTO US03'},{n:'DANIEL BARBOZA RODRIGUES',c:'PRECIPT. US04'},{n:'EMERSON FERREIRA SEMEDO',c:'PRECIPT. US04'},{n:'DANIEL VIEIRA BARBOZA',c:'PENEIRAMENTO US04'},{n:'APOLO MARCHEZI CARNEIRO XAVIER',c:'FILTRO PRENSA'},{n:'SAULO BRANDAO DA SILVA',c:'OPERADOR MANTENEDOR'},{n:'NAUBERT LEONARDO CAMBOIM CORREA DA SILVA',c:'OPERADOR MANTENEDOR'},{n:'DAVID FERREIRA DE OLIVEIRA',c:'OPERADOR MANTENEDOR'},{n:'ALDEMAR MENDES NETTO',c:'MECÂNICO'},{n:'LUCIANO MUNIZ NASCIMENTO',c:'MECÂNICO'},{n:'BRUNO VASCO MACHADO DA VITORIA',c:'SOLDADOR'},{n:'ROQUE FERREIRA SANTOS',c:'OPER. PÁTIO/PORTO'},{n:'RENAN PEREIRA HERINGER',c:'OPER. PÁTIO/PORTO'},{n:'DIOGO SILVA QUINTEIRO',c:'OPER. PÁTIO/PORTO ADM'}]},
+  D:{id:'D',label:'Turno D',seg:'turno',color:'#7c3aed',enc:{n:'FABIANO SCHWANZ',c:'ENCARREGADO OPERACIONAL'},members:[{n:'IVANETE DA CRUZ SANTOS',c:'ETI BN'},{n:'LUAN BERMOND ARPINI CHAGAS',c:'ETI 1/2'},{n:'JOVANE CONCEIÇÃO DOS SANTOS',c:'DRAGA 01'},{n:'ALVIMAR DOS SANTOS E SILVA',c:'POLPA/DRAGA 02'},{n:'RAFAEL DE JESUS',c:'PRECIPT. US03'},{n:'UEVERTON SOUZA DE FREITAS',c:'PRECIPT. US03'},{n:'GABRIEL BARBOZA DA TRINDADE ALVES',c:'PENEIRAMENTO US03'},{n:'BRUNO DE ALMEIDA COELHO',c:'PRECIPT. US04'},{n:'BRUNO PERIN DONNA',c:'PRECIPT. US04'},{n:'JALEILTON ERMINIGILDO DOS SANTOS',c:'PENEIRAMENTO US04'},{n:'CARLOS DOUGLAS SENA RAMOS',c:'FILTRO PRENSA'},{n:'ERICK DA SILVA GOLTARA',c:'OPERADOR MANTENEDOR'},{n:'MARCUS VINICIUS DE OLIVEIRA SEMEDO',c:'OPERADOR MANTENEDOR'},{n:'DIANA PEREIRA RODRIGUES',c:'OPERADOR MANTENEDOR'},{n:'FILIPE DAS CHAGAS LUIZ',c:'MECÂNICO'},{n:'ALEXANDRE BARBOSA MOREIRA',c:'MECÂNICO'},{n:'EDUARDO VIEIRA DA SILVA',c:'SOLDADOR'},{n:'LUCAS DA SILVA DE SOUZA',c:'OPER. PÁTIO/PORTO'},{n:'DEIVID SERAFIM DOS SANTOS',c:'OPER. PÁTIO/PORTO'},{n:'FELIPE GONÇALVES DE ANDRADE',c:'OPER. PÁTIO/PORTO ADM'}]},
+  prod:{id:'prod',label:'Prod. Pátio/Porto',seg:'adm',color:'#ea580c',enc:{n:'CLAUDIO DOS SANTOS',c:'ENCARREGADO'},members:[{n:'THIAGO DO SANTÍSSIMO',c:'MANTENEDOR'},{n:'MARCOS PAULO ALVES PIRES',c:'MANTENEDOR'},{n:'JOÃO CARLOS DA TRINDADE PEREIRA',c:'MANTENEDOR'},{n:'FABRICIO DOS SANTOS FARIAS',c:'MANTENEDOR'},{n:'VITOR DA SILVA SOUZA',c:'MANTENEDOR'},{n:'RAI DOS SANTOS SILVA',c:'MANTENEDOR'},{n:'FELIPE CORREA BORGES',c:'MANTENEDOR'},{n:'VITOR DANTAS COUTO',c:'MANTENEDOR'},{n:'WESLLEY VIEIRA SILVA',c:'INSPETOR OPERACIONAL'},{n:'MIGUEL PEREIRA',c:'MANTENEDOR'},{n:'CÉLIO RIBEIRO DE SOUZA',c:'MANTENEDOR'},{n:'JONES VIEIRA BARBOSA',c:'MANTENEDOR'},{n:'GIOVANE CORRÊA BARBOZA',c:'MANTENEDOR'},{n:'LICIOMAR MORAES DA SILVA',c:'MANTENEDOR'},{n:'THIAGO RODOLFO DO SANTOS',c:'MANTENEDOR'},{n:'AUGUSTO RIBEIRO DE ALMEIDA',c:'MANTENEDOR'}]},
+  manut:{id:'manut',label:'Manutenção',seg:'adm',color:'#dc2626',enc:{n:'ALAN PEREIRA DA CRUZ',c:'ENCARREGADO MANUTENÇÃO'},members:[{n:'HERCULES CARVALHO LOYOLA',c:'MECÂNICO'},{n:'JEFERSON OLIVEIRA CHAGAS',c:'MECÂNICO'},{n:'ERICK DE OLIVEIRA SOUZA COUTINHO',c:'MECÂNICO'},{n:'GUILHERME DE SOUZA',c:'MECÂNICO'},{n:'UEBER VIEIRA SANTOS',c:'MECÂNICO'},{n:'GLEISON NEVES DOS SANTOS',c:'MECÂNICO'},{n:'MANOEL MESSIAS SILVA DA CONCEIÇÃO',c:'MECÂNICO'},{n:'CARLOS BOURGUIGNON JUNIOR',c:'MECÂNICO'},{n:'DANIEL GONÇALVES DA SILVA',c:'SOLDADOR'},{n:'ALEX NEVES DOS SANTOS RODRIGUES',c:'SOLDADOR'},{n:'DIONATAN DOS ANJOS VICTOR',c:'CALDEIREIRO'},{n:'AILTON RIBEIRO LIMA',c:'CALDEIREIRO'},{n:'ALDAIR VICTOR OLIVEIRA',c:'CALDEIREIRO'},{n:'WELLIS DE OLIVEIRA BARBOSA',c:'INSTRUMENTISTA'},{n:'CLAUDIO PRADO DE JESUS',c:'INSTRUMENTISTA'},{n:'WALQUIMAR FLORENTINO DE SOUZA RAMOS',c:'INSTRUMENTISTA'}]},
+  plan:{id:'plan',label:'Planejamento',seg:'adm',color:'#0891b2',enc:{n:'REGAZZONY NASCIMENTO DE ALMEIDA',c:'SUPERVISOR'},members:[{n:'TIAGO NUNES',c:'INSPETOR'},{n:'VITOR CURTY VASCONCELOS',c:'INSPETOR'},{n:'MIQUEIAS SENNA ESPIRIDIAO',c:'PROGRAMAÇÃO'},{n:'GEOVANA NASCIMENTO ROCHA',c:'PROGRAMAÇÃO'},{n:'PEDRO COMINOTTI DE ALMEIDA ADOLFO',c:'PLANEJAMENTO'},{n:'LUCCA COUTINHO FAGUNDES',c:'PROGRAMAÇÃO'},{n:'JOSÉ MAURO NASCIMENTO DA SILVA',c:'PLANEJAMENTO'},{n:'HERBERT PITANGA DA ROCHA',c:'PLANEJAMENTO'},{n:'HELLEN CAROLINY NASCIMENTO SCHMIDT',c:'PL. GERENCIAL'},{n:'ELSON MARTINS',c:'COORDENADOR'},{n:'RAYANNE BARBOZA REIS DA MATTA',c:'ADMINISTRATIVO'},{n:'LEONARDO DE OLIVEIRA XIMENES',c:'MÉDICO'}]},
+  sesmt:{id:'sesmt',label:'SESMT',seg:'adm',color:'#065f46',enc:{n:'MALENA BARBOSA COELHO',c:'ENGENHEIRA DE SEGURANÇA'},members:[{n:'RAPHAEL MULINARI DINIZ',c:'TÉC. SEGURANÇA'},{n:'DOUGLAS ALVES DA SILVA',c:'TÉC. SEGURANÇA'},{n:'ALEXANDRE GRIFFO DE LIMA',c:'AUX. SEGURANÇA'}]},
+  windfense:{id:'windfense',label:'Wind Fense',seg:'adm',color:'#1d4ed8',enc:{n:'FAGNER RANGEL DE SOUZA',c:'ENCARREGADO OPERACIONAL'},members:[{n:'JEFFERSON DA SILVA AVELINO',c:'MANTENEDOR'},{n:'PABLO ARAUJO SANTANA',c:'MANTENEDOR'},{n:'DAVI SIMÕES SILVA',c:'MANTENEDOR'},{n:'MATHEUS DIAS DOS SANTOS',c:'MANTENEDOR'},{n:'JOEL FERREIRA',c:'MANTENEDOR'},{n:'DAVIDSON PINTO HELEODORO',c:'ETEI POUPA'},{n:'SILVINO IZACK MARCHESI JUNIOR',c:'PRECIPITADORES'},{n:'JEFFERSON DOS SANTOS FREITAS',c:'INSTRUMENTISTA'},{n:'LUTHER KING FREIRE DA CRUZ',c:'ENC. PRECIPITADORES'},{n:'WESLEY SOUZA BERTOLANI',c:'ENC. ETEI POUPA'}]}
+};
+
+const CRITS = [
+  {k:'comportamento',icon:'🦺',nm:'Comportamento',desc:'Postura, disciplina e respeito às normas e colegas. Atitudes proativas.'},
+  {k:'atividade',    icon:'⚙️', nm:'Atividade Segura',desc:'Uso correto de EPI/EPC, cumprimento de POP e análise de risco.'},
+  {k:'conhecimento', icon:'📘',nm:'Conhecimento SST',desc:'Domínio das NRs e normas internas, aplicação prática no dia a dia.'},
+  {k:'ideia',        icon:'💡',nm:'Ideias de Valor', desc:'Sugestões concretas de melhoria em processos ou segurança.'},
+  {k:'feedback',     icon:'💬',nm:'Feedback Diário', desc:'Qualidade do feedback sobre atividades. Exclusivo para Planejamento.',planOnly:true}
+];
+const MONTHS = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+/* ── ESTADO ── */
+let T       = JSON.parse(JSON.stringify(DEFAULT_TEAMS));
+let S       = {};   // scores inspeções
+let S_BONUS = {};   // bônus ideias de valor
+let S_DESC  = {};   // descontos (absenteísmo/NC)   // scores: { "NOME§mes": [v1,v2,v3,v4,v5|null] }
+let seg     = 'turno';
+let teamId  = 'A';
+let avMonth = new Date().getMonth();
+let avS     = {};  // scores da avaliação em curso (aba Avaliar)
+let eS      = {};  // scores da avaliação inline (aba Equipes)
+let eMonth  = new Date().getMonth();
+let eCtx    = null;
+let curSc   = 'equipes';
+
+/* ── UTILS ── */
+const ini = n => (n||'?').split(' ').slice(0,2).map(w=>w[0]).join('');
+const f2  = n => (n||'?').split(' ').slice(0,2).join(' ');
+
+// Normaliza dados do Firebase (pode vir de versões anteriores com campos diferentes)
+function normalizeTeams(raw) {
+  const result = {};
+  Object.entries(raw).forEach(([id, t]) => {
+    // Normaliza campo do encarregado: 'encarregado' -> 'enc'
+    let enc = t.enc;
+    if (!enc && t.encarregado) {
+      enc = { n: t.encarregado.n || t.encarregado.nome || '', c: t.encarregado.c || t.encarregado.cargo || '' };
+    }
+    if (!enc) enc = { n: 'NÃO DEFINIDO', c: 'ENCARREGADO' };
+
+    // Garante seg existe
+    const seg_ = t.seg || (id==='A'||id==='B'||id==='C'||id==='D' ? 'turno' : 'adm');
+
+    result[id] = {
+      id:      t.id      || id,
+      label:   t.label   || id,
+      seg:     seg_,
+      color:   t.color   || '#1e3a5f',
+      enc,
+      members: Array.isArray(t.members) ? t.members.map(m => ({
+        n: m.n || m.nome || m.name || '',
+        c: m.c || m.cargo || m.role || ''
+      })) : []
+    };
+  });
+  return result;
+}
+
+function toast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('on');
+  setTimeout(()=>el.classList.remove('on'),2500);
+}
+function setSyncPill(st,msg){
+  const el=document.getElementById('sync-pill');
+  el.textContent=msg; el.className='sync-pill'+(st==='ok'?'':st==='w'?' w':' e');
+}
+
+/* ── FIREBASE ── */
+// Callback chamado pelo módulo Firebase quando ele estiver pronto
+window._onFbReady = async () => {
+  const {db,ref,set,get,onValue} = window.$FB;
+  setSyncPill('w','⏳ Conectando…');
+  try {
+    // Carrega equipes da nuvem
+    const s = await get(ref(db,'escudo/teams'));
+    if(s.exists()){
+      const c = normalizeTeams(s.val());
+      if(Object.values(c).some(t=>t.members&&t.members.length>0)){
+        T = c;
+        // Sobe dados normalizados de volta se vieram com formato antigo
+        await set(ref(db,'escudo/teams'), T);
+      } else {
+        await set(ref(db,'escudo/teams'), T);
+      }
+    } else {
+      await set(ref(db,'escudo/teams'), T);
+    }
+    // Carrega scores
+    const s2 = await get(ref(db,'escudo/scores'));
+    if(s2.exists()) S = s2.val();
+
+    setSyncPill('ok','● Sincronizado');
+    refreshAll();
+
+    // Escuta mudanças em tempo real
+    onValue(ref(db,'escudo/teams'), snap => {
+      if(!snap.exists()) return;
+      const c = normalizeTeams(snap.val());
+      if(Object.values(c).some(t=>t.members&&t.members.length>0)){ T=c; refreshAll(); }
+    });
+    onValue(ref(db,'escudo/scores'), snap => {
+      if(snap.exists()){ S=snap.val(); refreshAll(); }
+    });
+    onValue(ref(db,'escudo/scores_bonus'),snap=>{
+      if(snap.exists()){S_BONUS=snap.val();refreshAll();}
+    });
+    onValue(ref(db,'escudo/scores_desconto'),snap=>{
+      if(snap.exists()){S_DESC=snap.val();refreshAll();}
+    });
+
+  } catch(e) {
+    const msg = e.code === 'PERMISSION_DENIED'
+      ? '🔒 Regras Firebase — libere no console'
+      : e.message && e.message.includes('network')
+      ? '📡 Sem conexão de rede'
+      : '⚠️ Offline — ' + (e.code || e.message || 'erro desconhecido');
+    setSyncPill('e', msg);
+    console.error('Firebase error:', e.code, e.message, e);
+  }
+};
+
+// Timeout de segurança — se Firebase não responder em 6s, usa dados locais
+setTimeout(()=>{
+  if(document.getElementById('sync-pill').classList.contains('w')){
+    setSyncPill('e','● Offline');
+    console.warn('Firebase timeout');
+  }
+}, 6000);
+
+function loadLocal(){
+  try{
+    const r=localStorage.getItem('esc2');
+    if(r){ const d=JSON.parse(r);
+      if(d.teams&&Object.keys(d.teams).length>=4) T=normalizeTeams(d.teams);
+      if(d.scores) S=d.scores;
+    }
+  }catch(e){}
+  if(!window.$FB) setSyncPill('e','● Offline');
+  refreshAll();
+}
+function save(){
+  if(window.$FB){
+    const {db,ref,set}=window.$FB;
+    set(ref(db,'escudo/teams'),T).catch(()=>{});
+    set(ref(db,'escudo/scores'),S).catch(()=>{});
+  }
+  try{localStorage.setItem('esc2',JSON.stringify({teams:T,scores:S}));}catch(e){}
+  setSyncPill('ok','● Sincronizado');
+}
+
+/* ── NAVEGAÇÃO ── */
+function goSc(name,btn){
+  document.querySelectorAll('.sc').forEach(s=>s.classList.remove('on'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('on'));
+  document.getElementById('sc-'+name).classList.add('on');
+  if(btn)btn.classList.add('on');
+  curSc=name;
+  if(name==='equipes')  renderEqs();
+  if(name==='avaliar')  initAv();
+  if(name==='ranking')  renderRanking();
+  if(name==='anual')    renderAnual();
+  if(name==='apres')    renderApres();
+  if(name==='admin')    renderAdmin();
+}
+function refreshAll(){
+  if(curSc==='equipes') renderEqs();
+  if(curSc==='ranking') renderRanking();
+  if(curSc==='anual')   renderAnual();
+  if(curSc==='apres')   renderApres();
+  if(curSc==='admin')   renderAdmin();
+  populateSels();
+  populateDelSelects(); // Atualiza selects da aba Dados sempre que T mudar
+}
+
+/* ── EQUIPES ── */
+function setSeg(s,btn){
+  seg=s;
+  const first=Object.values(T).find(t=>t.seg===s);
+  if(first) teamId=first.id;
+  document.querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('on'));
+  if(btn)btn.classList.add('on');
+  document.getElementById('eval-ov').style.display='none';
+  renderEqs();
+}
+
+function renderEqs(){
+  const teams=Object.values(T).filter(t=>t.seg===seg);
+  const tabWrap=document.getElementById('ttabs');
+  const blkWrap=document.getElementById('tblock');
+  if(!teams.length){
+    tabWrap.innerHTML='';
+    blkWrap.innerHTML='<div class="no-data">Nenhuma equipe neste segmento.</div>';
+    return;
+  }
+  // Valida teamId
+  if(!teams.find(t=>t.id===teamId)) teamId=teams[0].id;
+  const active=T[teamId];
+
+  // Tabs
+  tabWrap.innerHTML=teams.map(t=>`
+    <button class="ttab${t.id===teamId?' on':''}"
+      style="${t.id===teamId?`background:${t.color};border-color:${t.color};`:''}"
+      onclick="selTeam('${t.id}')">${t.label}</button>`).join('');
+
+  // Bloco
+  const avg=empAvg(active.enc.n);
+  blkWrap.innerHTML=`
+    <div class="enc-banner">
+      <div class="enc-av" style="background:${active.color};">${ini(active.enc.n)}</div>
+      <div style="flex:1;">
+        <div class="enc-lbl">Encarregado / Responsável</div>
+        <div class="enc-nm">${active.enc.n}</div>
+        <div class="enc-cargo">${active.enc.c}${avg>0?' &nbsp;·&nbsp; Média: <span style="color:#fbbf24;font-weight:800;">'+avg.toFixed(1)+'</span>':''}</div>
+      </div>
+      <div class="enc-ct">
+        <div class="enc-ct-n">${active.members.length}</div>
+        <div class="enc-ct-l">membros</div>
+      </div>
+    </div>
+    <div style="font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:.6rem;font-weight:600;">
+      ${active.label} — ${active.members.length} profissionais
+    </div>
+    <div class="mem-grid">
+      ${active.members.map((m,i)=>{
+        const sc=empAvg(m.n);
+        return `<div class="mem-card" onclick="openEvalInline('${active.id}',${i})">
+          <div class="mem-top-bar" style="background:${active.color};"></div>
+          <div class="mem-av" style="background:${active.color};">${ini(m.n)}</div>
+          <div class="mem-nm">${f2(m.n)}</div>
+          <div class="mem-role">${m.c}</div>
+          ${sc>0?`<div class="mem-score">${sc.toFixed(1)}</div>`:''}
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+function selTeam(id){
+  teamId=id;
+  document.getElementById('eval-ov').style.display='none';
+  renderEqs();
+}
+
+/* ── AVALIAÇÃO INLINE (aba Equipes) ── */
+function openEvalInline(tid,mi){
+  eCtx={tid,mi}; eMonth=new Date().getMonth(); eS={};
+  document.getElementById('ttabs').style.display='none';
+  document.getElementById('tblock').style.display='none';
+  document.querySelector('.seg-tabs').style.display='none';
+  const ov=document.getElementById('eval-ov');
+  ov.style.display='block';
+  drawEvalOv();
+}
+function closeEvalInline(){
+  document.getElementById('eval-ov').style.display='none';
+  document.getElementById('ttabs').style.display='';
+  document.getElementById('tblock').style.display='';
+  document.querySelector('.seg-tabs').style.display='';
+  renderEqs();
+}
+function drawEvalOv(){
+  const {tid,mi}=eCtx;
+  const t=T[tid]; const m=t.members[mi];
+  const saved=S[m.n+'§'+eMonth];
+  if(saved) CRITS.forEach((cr,ci)=>{if(saved[ci]!=null)eS[cr.k]=saved[ci];});
+  const isPlan=tid==='plan';
+  const crits=CRITS.filter(cr=>!cr.planOnly||isPlan);
+  const mBtns=MONTHS.map((mo,i)=>`
+    <button class="mpill${i===eMonth?' on':''}${S[m.n+'§'+i]&&i!==eMonth?' done':''}"
+      onclick="setEMon(${i},'${tid}',${mi})">${mo}</button>`).join('');
+  const critH=crits.map(cr=>{
+    const v=eS[cr.k]||0; const isNA=eS[cr.k]==='na';
+    const stars=[1,2,3,4,5].map(s=>`<button class="star${!isNA&&v>=s?' on':''}"
+      data-k="${cr.k}" data-v="${s}" onclick="setEStar('${cr.k}',${s})">${s}</button>`).join('');
+    return `<div class="crit-c${v>0&&!isNA?' rated':''}${isNA?' na':''}" id="ec-${cr.k}">
+      <div class="crit-hd">
+        <span class="crit-icon">${cr.icon}</span>
+        <span class="crit-nm">${cr.nm}</span>
+        ${cr.planOnly?'<span class="badge b-gold">Planejamento</span>':''}
+      </div>
+      <div class="crit-desc">${cr.desc}</div>
+      <div class="stars-r" id="es-${cr.k}">${stars}</div>
+      <div class="slbl"><span>Insatisfatório</span><span>Excelente</span></div>
+      <div class="na-r">
+        <span class="na-lbl">Não se aplica</span>
+        <label class="tgl"><input type="checkbox" ${isNA?'checked':''} onchange="toggleE('${cr.k}')">
+        <span class="tgl-track"></span></label>
+      </div>
+      <textarea class="obs-f" placeholder="Observação em campo…"></textarea>
+    </div>`;
+  }).join('');
+  document.getElementById('eval-ov').innerHTML=`
+    <button class="back-btn" onclick="closeEvalInline()">← Voltar para ${t.label}</button>
+    <div class="eval-head-c">
+      <div class="eval-av" style="background:${t.color};">${ini(m.n)}</div>
+      <div>
+        <div class="eval-nm">${m.n}</div>
+        <div class="tags">
+          <span class="tag" style="background:${t.color}18;color:${t.color};border-color:${t.color}40;">${t.label}</span>
+          <span class="tag">${m.c}</span>
+          <span class="tag b-gold">${MONTHS[eMonth]}</span>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Mês de referência</div>
+      <div class="month-g">${mBtns}</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Critérios de avaliação</div>
+      ${critH}
+      <button class="btn btn-navy btn-block" style="margin-top:.5rem;" onclick="saveEvalInline('${tid}',${mi})">✓ Registrar avaliação</button>
+    </div>`;
+}
+function setEMon(i,tid,mi){eMonth=i;eCtx={tid,mi};eS={};drawEvalOv();}
+function setEStar(k,v){
+  eS[k]=v;
+  document.getElementById('ec-'+k).classList.add('rated');
+  document.getElementById('ec-'+k).classList.remove('na');
+  document.querySelectorAll('#es-'+k+' .star').forEach(b=>b.classList.toggle('on',parseInt(b.dataset.v)<=v));
+  const cb=document.querySelector('#ec-'+k+' input[type=checkbox]');if(cb)cb.checked=false;
+}
+function toggleE(k){
+  const cb=document.querySelector('#ec-'+k+' input[type=checkbox]');
+  const card=document.getElementById('ec-'+k);
+  if(cb.checked){eS[k]='na';card.classList.add('na');card.classList.remove('rated');document.querySelectorAll('#es-'+k+' .star').forEach(b=>b.classList.remove('on'));}
+  else{delete eS[k];card.classList.remove('na');}
+}
+function saveEvalInline(tid,mi){
+  const t=T[tid];const m=t.members[mi];
+  const vals=CRITS.map(cr=>eS[cr.k]!==undefined?(eS[cr.k]==='na'?null:eS[cr.k]):null);
+  if(!vals.some(v=>v!=null)){alert('Avalie pelo menos um critério.');return;}
+  S[m.n+'§'+eMonth]=vals; save();
+  toast('✓ Avaliação de '+f2(m.n)+' registrada!'); closeEvalInline();
+}
+
+/* ── AVALIAÇÃO (aba própria) ── */
+function initAv(){
+  const sel=document.getElementById('av-eq'); if(!sel)return;
+  const cur=sel.value;
+  sel.innerHTML='<option value="">Selecione…</option>'+Object.values(T).map(t=>`<option value="${t.id}">${t.label}</option>`).join('');
+  if(cur)sel.value=cur;
+  buildAvMeses(); buildAvCrits();
+}
+function buildAvMeses(){
+  const el=document.getElementById('av-meses');if(!el)return;
+  el.innerHTML=MONTHS.map((m,i)=>`<button class="mpill${i===avMonth?' on':''}" onclick="setAvMon(${i})">${m}</button>`).join('');
+}
+function setAvMon(i){avMonth=i;buildAvMeses();}
+function onAvEq(){
+  const tid=document.getElementById('av-eq').value;
+  const sel=document.getElementById('av-mb');
+  sel.innerHTML='<option value="">Selecione…</option>';
+  if(!tid||!T[tid])return;
+  const t=T[tid];
+  sel.innerHTML+=`<option value="enc">${t.enc.n} (Encarregado)</option>`;
+  t.members.forEach((m,i)=>sel.innerHTML+=`<option value="${i}">${m.n}</option>`);
+  buildAvCrits();
+}
+function buildAvCrits(){
+  const el=document.getElementById('av-crits');if(!el)return;
+  const tid=document.getElementById('av-eq')?.value||'';
+  const isPlan=tid==='plan';
+  avS={};
+  el.innerHTML=CRITS.filter(cr=>!cr.planOnly||isPlan).map(cr=>{
+    const stars=[1,2,3,4,5].map(s=>`<button class="star" data-k="${cr.k}" data-v="${s}" onclick="setAvStar('${cr.k}',${s})">${s}</button>`).join('');
+    return `<div class="crit-c" id="avc-${cr.k}">
+      <div class="crit-hd"><span class="crit-icon">${cr.icon}</span><span class="crit-nm">${cr.nm}</span>${cr.planOnly?'<span class="badge b-gold">Planejamento</span>':''}</div>
+      <div class="crit-desc">${cr.desc}</div>
+      <div class="stars-r" id="avs-${cr.k}">${stars}</div>
+      <div class="slbl"><span>Insatisfatório</span><span>Excelente</span></div>
+      <div class="na-r"><span class="na-lbl">Não se aplica</span>
+        <label class="tgl"><input type="checkbox" onchange="toggleAvNA('${cr.k}')"><span class="tgl-track"></span></label>
+      </div>
+      <textarea class="obs-f" placeholder="Observação em campo…"></textarea>
+    </div>`;
+  }).join('');
+}
+function setAvStar(k,v){
+  avS[k]=v;
+  document.getElementById('avc-'+k).classList.add('rated');
+  document.getElementById('avc-'+k).classList.remove('na');
+  document.querySelectorAll('#avs-'+k+' .star').forEach(b=>b.classList.toggle('on',parseInt(b.dataset.v)<=v));
+  const cb=document.querySelector('#avc-'+k+' input[type=checkbox]');if(cb)cb.checked=false;
+}
+function toggleAvNA(k){
+  const cb=document.querySelector('#avc-'+k+' input[type=checkbox]');
+  const card=document.getElementById('avc-'+k);
+  if(cb.checked){avS[k]='na';card.classList.add('na');document.querySelectorAll('#avs-'+k+' .star').forEach(b=>b.classList.remove('on'));}
+  else{delete avS[k];card.classList.remove('na');}
+}
+function goAvS(n){
+  if(n===2){
+    if(!document.getElementById('av-aval').value){alert('Selecione o avaliador.');return;}
+    if(!document.getElementById('av-local').value){alert('Selecione o local.');return;}
+    const tid=document.getElementById('av-eq').value;
+    if(!tid){alert('Selecione a equipe.');return;}
+    const mi=document.getElementById('av-mb').value;
+    if(mi===''){alert('Selecione o profissional.');return;}
+    const t=T[tid];
+    const nm=mi==='enc'?t.enc.n:t.members[parseInt(mi)].n;
+    const cargo=mi==='enc'?t.enc.c:t.members[parseInt(mi)].c;
+    document.getElementById('av-head').innerHTML=`
+      <div class="eval-head-c">
+        <div class="eval-av" style="background:${t.color};">${ini(nm)}</div>
+        <div>
+          <div class="eval-nm">${nm}</div>
+          <div class="tags">
+            <span class="tag" style="background:${t.color}18;color:${t.color};border-color:${t.color}40;">${t.label}</span>
+            <span class="tag">${cargo}</span>
+            <span class="tag b-gold">${MONTHS[avMonth]}</span>
+          </div>
+        </div>
+      </div>`;
+    buildAvCrits();
+  }
+  ['avs1','avs2','avs3'].forEach((id,i)=>document.getElementById(id).style.display=i+1===n?'block':'none');
+}
+function saveAv(){
+  const tid=document.getElementById('av-eq').value;
+  const mi=document.getElementById('av-mb').value;
+  const t=T[tid];
+  const nm=mi==='enc'?t.enc.n:t.members[parseInt(mi)].n;
+  const isPlan=tid==='plan';
+  const crits=CRITS.filter(cr=>!cr.planOnly||isPlan);
+  const vals=crits.map(cr=>avS[cr.k]!==undefined?(avS[cr.k]==='na'?null:avS[cr.k]):null);
+  const nums=vals.filter(v=>v!=null);
+  if(!nums.length){alert('Avalie pelo menos um critério.');return;}
+  S[nm+'§'+avMonth]=vals; save();
+  const avg=nums.reduce((a,b)=>a+b,0)/nums.length;
+  document.getElementById('av-score').textContent=avg.toFixed(1);
+  document.getElementById('av-sub').textContent='/ 5.0 — '+MONTHS[avMonth];
+  document.getElementById('av-snm').textContent=nm;
+  document.getElementById('av-steam').textContent=t.label;
+  goAvS(3);
+}
+function resetAv(){
+  avS={};document.getElementById('av-eq').value='';
+  document.getElementById('av-mb').innerHTML='<option value="">Selecione a equipe…</option>';
+  document.getElementById('av-aval').value='';document.getElementById('av-local').value='';
+  buildAvMeses();buildAvCrits();goAvS(1);
+}
+
+/* ── SCORES ── */
+function empAvg(name){
+  const keys=Object.keys(S).filter(k=>k.startsWith(name+'§'));
+  const bonusKeys=Object.keys(S_BONUS).filter(k=>k.startsWith(name+'§'));
+  const descKeys=Object.keys(S_DESC).filter(k=>k.startsWith(name+'§'));
+  // Nada registrado — não aparece no ranking
+  if(!keys.length && !bonusKeys.length && !descKeys.length) return null;
+  // Média base das inspeções
+  const inspNums=keys.flatMap(k=>(S[k]||[])).filter(v=>v!=null&&v>0);
+  const base=inspNums.length?inspNums.reduce((a,b)=>a+b,0)/inspNums.length:0;
+  // Bônus de ideias
+  const bonus=bonusKeys.reduce((s,k)=>s+(S_BONUS[k]?.ideias||0),0);
+  // Descontos
+  const desc=descKeys.reduce((s,k)=>s+Math.abs(S_DESC[k]?.total||0),0);
+  return Math.max(0, base+bonus-desc);
+}
+function getRankData(filter){
+  const by={};
+  Object.values(T).forEach(t=>{
+    [...[t.enc],...t.members].forEach(m=>{
+      if(!m||!m.n)return;
+      if(filter!=='all'&&t.id!==filter)return;
+
+      // Scores de inspeção
+      const keys=Object.keys(S).filter(k=>k.startsWith(m.n+'§'));
+      // Bônus ideias de valor
+      const bonusKeys=Object.keys(S_BONUS).filter(k=>k.startsWith(m.n+'§'));
+      const totalBonus=bonusKeys.reduce((s,k)=>s+(S_BONUS[k]?.ideias||0),0);
+      // Descontos
+      const descKeys=Object.keys(S_DESC).filter(k=>k.startsWith(m.n+'§'));
+      const totalDesc=descKeys.reduce((s,k)=>s+Math.abs(S_DESC[k]?.total||0),0);
+
+      // Nada registrado — ignora
+      if(!keys.length&&totalBonus===0&&totalDesc===0)return;
+
+      // Média das inspeções
+      const inspNums=keys.flatMap(k=>(S[k]||[])).filter(v=>v!=null&&v>0);
+      const base=inspNums.length?inspNums.reduce((a,b)=>a+b,0)/inspNums.length:0;
+
+      // Pontuação final
+      const tot=Math.max(0, base+totalBonus-totalDesc);
+
+      by[m.n]={total:tot,n:Math.max(keys.length,1),tid:t.id,color:t.color,label:t.label,cargo:m.c||t.enc.c};
+    });
+  });
+  return Object.entries(by).sort((a,b)=>(b[1].total/b[1].n)-(a[1].total/a[1].n));
+}
+
+/* ── RANKING ── */
+function renderRanking(){
+  const rf=document.getElementById('rk-filter');
+  if(rf){const cur=rf.value;rf.innerHTML='<option value="all">Todas as equipes</option>'+Object.values(T).map(t=>`<option value="${t.id}">${t.label}</option>`).join('');if(cur)rf.value=cur;}
+  const filter=document.getElementById('rk-filter')?.value||'all';
+  const data=getRankData(filter);
+  const totAv=new Set([...Object.keys(S),...Object.keys(S_BONUS),...Object.keys(S_DESC)]).size;
+  document.getElementById('st-av').textContent=totAv;
+  document.getElementById('st-pr').textContent=data.length;
+  document.getElementById('st-eq').textContent=Object.keys(T).length;
+  if(data.length){const avg=data.reduce((s,[,d])=>s+d.total/d.n,0)/data.length;document.getElementById('st-md').textContent=avg.toFixed(1);}
+  else document.getElementById('st-md').textContent='—';
+  const list=document.getElementById('rank-list');
+  if(!data.length){list.innerHTML='<div class="no-data">Nenhuma avaliação registrada.</div>';return;}
+  list.innerHTML=data.map(([nm,d],i)=>{
+    const avg=d.total/d.n;const pct=Math.round(avg/5*100);
+    const pc=i===0?'p1':i===1?'p2':i===2?'p3':'pn';
+    return `<div class="rank-row">
+      <div class="rpos ${pc}">${i+1}</div>
+      <div class="rav" style="background:${d.color};">${ini(nm)}</div>
+      <div class="ri">
+        <div class="rn">${f2(nm)}</div>
+        <div class="rt" style="color:${d.color};">${d.label} · ${d.cargo}</div>
+        <div class="rb-wrap"><div class="rb" style="width:${pct}%;background:${d.color};"></div></div>
+      </div>
+      <div class="rscore" style="color:${d.color};">${avg.toFixed(1)}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ── ANUAL ── */
+function renderAnual(){
+  const data=getRankData('all');
+  const el=document.getElementById('anual-list');
+  if(!data.length){el.innerHTML='<div class="no-data">Realize avaliações para ver.</div>';return;}
+  el.innerHTML=data.map(([nm,d],i)=>{
+    const avg=d.total/d.n;const pct=Math.round(avg/5*100);
+    const pc=i===0?'p1':i===1?'p2':i===2?'p3':'pn';
+    return `<div class="rank-row">
+      <div class="rpos ${pc}">${i+1}</div>
+      <div class="rav" style="background:${d.color};">${ini(nm)}</div>
+      <div class="ri">
+        <div class="rn">${f2(nm)}</div>
+        <div class="rt" style="color:${d.color};">${d.label}</div>
+        <div class="rb-wrap"><div class="rb" style="width:${pct}%;background:${d.color};"></div></div>
+      </div>
+      <div class="rscore" style="color:${d.color};">${avg.toFixed(1)}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ── APRESENTAÇÃO ── */
+function renderApres(){
+  const total=Object.values(T).reduce((s,t)=>s+t.members.length,0);
+  const el=document.getElementById('apres-info');
+  if(el)el.textContent=`${Object.keys(T).length} equipes · ${total} profissionais · In-Haus Industrial · Samarco · 2025/2026`;
+}
+
+/* ── ADMIN ── */
+function showPane(name,btn){
+  document.querySelectorAll('.adm-pane').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.adm-tab').forEach(b=>b.classList.remove('on'));
+  document.getElementById('adm-'+name).classList.add('on');
+  if(btn)btn.classList.add('on');
+  if(name==='equipes') renderAdmEqs();
+  if(name==='membros'){renderAdmMbs();populateSels();}
+  if(name==='remanejar') populateSels();
+  if(name==='dados') populateDelSelects();
+}
+function renderAdmin(){renderAdmEqs();populateSels();}
+
+function renderAdmEqs(){
+  const el=document.getElementById('adm-eq-list');if(!el)return;
+  const teams=Object.values(T);
+  if(!teams.length){el.innerHTML='<div class="no-data">Nenhuma equipe.</div>';return;}
+  el.innerHTML=teams.map(t=>`
+    <div class="team-row">
+      <div class="team-dot" style="background:${t.color};"></div>
+      <div style="flex:1;">
+        <div class="team-nm-b">${t.label}</div>
+        <div class="team-enc-s">${t.enc.n} — ${t.enc.c}</div>
+      </div>
+      <span class="badge ${t.seg==='turno'?'b-turno':'b-adm'}">${t.seg==='turno'?'Turno':'ADM'}</span>
+      <span class="team-ct">${t.members.length} membros</span>
+      <button class="btn btn-red btn-sm" onclick="delEq('${t.id}')">Excluir</button>
+    </div>`).join('');
+}
+function renderAdmMbs(){
+  const q=(document.getElementById('busca-mb')?.value||'').toLowerCase();
+  const fEq=document.getElementById('filtro-eq-mb')?.value||'';
+  const el=document.getElementById('adm-mb-list');if(!el)return;
+  const rows=[];
+  Object.values(T).forEach(t=>{
+    if(fEq&&t.id!==fEq)return;
+    t.members.forEach((m,mi)=>{
+      if(q&&!m.n.toLowerCase().includes(q)&&!m.c.toLowerCase().includes(q))return;
+      rows.push({t,m,mi});
+    });
+  });
+  if(!rows.length){el.innerHTML='<div class="no-data">Nenhum profissional encontrado.</div>';return;}
+  el.innerHTML=rows.map(({t,m,mi})=>`
+    <div class="mb-row">
+      <div class="mb-av" style="background:${t.color};">${ini(m.n)}</div>
+      <div style="flex:1;min-width:0;">
+        <div class="mb-nm">${m.n}</div>
+        <div class="mb-role">${m.c}</div>
+      </div>
+      <span class="badge" style="background:${t.color}18;color:${t.color};border:1px solid ${t.color}40;">${t.label}</span>
+      <button class="btn btn-red btn-sm" onclick="delMb('${t.id}',${mi})" style="margin-left:6px;">Remover</button>
+    </div>`).join('');
+}
+function populateSels(){
+  ['nm-eq','rem-orig','rem-dest','enc-eq','filtro-eq-mb','av-eq'].forEach(id=>{
+    const el=document.getElementById(id);if(!el)return;
+    const cur=el.value;
+    const ph=id==='filtro-eq-mb'?'<option value="">Todas as equipes</option>':'<option value="">Selecione…</option>';
+    el.innerHTML=ph+Object.values(T).map(t=>`<option value="${t.id}">${t.label}</option>`).join('');
+    if(cur)el.value=cur;
+  });
+}
+
+function addEq(){
+  const id=document.getElementById('ne-id').value.trim().replace(/\s/g,'');
+  const label=document.getElementById('ne-label').value.trim();
+  const seg_=document.getElementById('ne-seg').value;
+  const color=document.getElementById('ne-color').value;
+  const encN=document.getElementById('ne-enc-n').value.trim().toUpperCase();
+  const encC=document.getElementById('ne-enc-c').value.trim().toUpperCase()||'ENCARREGADO OPERACIONAL';
+  if(!id||!label||!encN){alert('Preencha ID, nome e encarregado.');return;}
+  if(T[id]){alert('Já existe uma equipe com esse ID.');return;}
+  T[id]={id,label,seg:seg_,color,enc:{n:encN,c:encC},members:[]};
+  save();renderAdmEqs();populateSels();renderEqs();
+  ['ne-id','ne-label','ne-enc-n','ne-enc-c'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
+  toast('Equipe "'+label+'" criada!');
+}
+function delEq(id){
+  if(!confirm('Excluir "'+T[id]?.label+'"? Todos os membros serão removidos.'))return;
+  delete T[id];
+  if(teamId===id){const k=Object.keys(T)[0];teamId=k||null;}
+  save();renderAdmEqs();populateSels();renderEqs();toast('Equipe excluída.');
+}
+function addMb(){
+  const tid=document.getElementById('nm-eq').value;
+  const nome=document.getElementById('nm-nome').value.trim().toUpperCase();
+  const cargo=document.getElementById('nm-cargo').value.trim().toUpperCase();
+  if(!tid||!nome||!cargo){alert('Preencha todos os campos.');return;}
+  if(T[tid].members.find(m=>m.n===nome)){alert('Profissional já cadastrado nesta equipe.');return;}
+  T[tid].members.push({n:nome,c:cargo});
+  save();renderAdmMbs();renderEqs();
+  document.getElementById('nm-nome').value='';document.getElementById('nm-cargo').value='';
+  toast(nome.split(' ')[0]+' incluído!');
+}
+function delMb(tid,mi){
+  if(!confirm('Remover '+T[tid].members[mi].n+'?'))return;
+  T[tid].members.splice(mi,1);
+  save();renderAdmMbs();renderEqs();toast('Profissional removido.');
+}
+function loadRemMbs(){
+  const tid=document.getElementById('rem-orig').value;
+  const sel=document.getElementById('rem-mb');
+  sel.innerHTML='<option value="">Selecione…</option>';
+  if(!tid||!T[tid])return;
+  T[tid].members.forEach((m,i)=>sel.innerHTML+=`<option value="${i}">${m.n}</option>`);
+}
+function remanejar(){
+  const orig=document.getElementById('rem-orig').value;
+  const miStr=document.getElementById('rem-mb').value;
+  const dest=document.getElementById('rem-dest').value;
+  if(!orig||miStr===''||!dest){alert('Preencha todos os campos.');return;}
+  if(orig===dest){alert('Origem e destino são iguais.');return;}
+  const m=T[orig].members[parseInt(miStr)];
+  T[dest].members.push({...m});
+  T[orig].members.splice(parseInt(miStr),1);
+  save();populateSels();renderEqs();renderAdmMbs();
+  toast(m.n.split(' ')[0]+' remanejado!');
+  document.getElementById('rem-mb').innerHTML='<option value="">Selecione…</option>';
+}
+function trocarEnc(){
+  const tid=document.getElementById('enc-eq').value;
+  const nome=document.getElementById('enc-nome').value.trim().toUpperCase();
+  const cargo=document.getElementById('enc-cargo').value.trim().toUpperCase()||'ENCARREGADO OPERACIONAL';
+  if(!tid||!nome){alert('Preencha equipe e nome.');return;}
+  T[tid].enc={n:nome,c:cargo};
+  save();renderEqs();
+  document.getElementById('enc-nome').value='';document.getElementById('enc-cargo').value='';
+  toast('Encarregado de '+T[tid].label+' atualizado!');
+}
+function resetEqs(){
+  if(!confirm('Restaurar equipes padrão? Isso apaga os dados do Firebase e restaura as 9 equipes originais.'))return;
+  T=JSON.parse(JSON.stringify(DEFAULT_TEAMS));
+  S={};
+  // Limpa localStorage
+  try{localStorage.removeItem('esc2');}catch(e){}
+  // Salva no Firebase
+  save();
+  renderAdmin();renderEqs();
+  toast('Equipes e dados restaurados!');
+}
+
+/* ── INIT ── */
+loadLocal();
+renderEqs();
+initAv();
+
+/* ══════════════════════════════════════════
+   GESTÃO DE DADOS — Exclusão de avaliações
+══════════════════════════════════════════ */
+
+function loadDelMbs() {
+  const tid = document.getElementById('del-eq').value;
+  const sel = document.getElementById('del-mb');
+  sel.innerHTML = '<option value="">Selecione…</option>';
+  if (!tid) return;
+  // Aceita tanto T[tid] direto quanto busca pelo id interno
+  const t = T[tid] || Object.values(T).find(x => x.id === tid);
+  if (!t) return;
+  // Encarregado
+  if (t.enc && t.enc.n) {
+    sel.innerHTML += `<option value="${t.enc.n}">${t.enc.n} — ${t.enc.c||'Encarregado'}</option>`;
+  }
+  // Membros
+  (t.members||[]).forEach(m => {
+    if (m && m.n) sel.innerHTML += `<option value="${m.n}">${m.n} — ${m.c||''}</option>`;
+  });
+  updateDelPreview();
+}
+
+function updateDelPreview() {
+  const name = document.getElementById('del-mb').value;
+  const mes  = document.getElementById('del-mes').value;
+  const prev = document.getElementById('del-preview');
+  if (!name) { prev.style.display = 'none'; return; }
+
+  let keys = [];
+  if (mes === 'all') {
+    keys = Object.keys(S).filter(k => k.startsWith(name + '§'));
+  } else {
+    const k = name + '§' + mes;
+    if (S[k]) keys = [k];
+  }
+
+  prev.style.display = 'block';
+  if (!keys.length) {
+    prev.innerHTML = `<span style="color:var(--green);">✓ Nenhuma avaliação encontrada para este filtro.</span>`;
+    return;
+  }
+  const MESES_F = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  prev.innerHTML = `<strong style="color:#dc2626;">Serão excluídas ${keys.length} avaliação(ões):</strong><br>` +
+    keys.map(k => {
+      const m = parseInt(k.split('§')[1]);
+      const vals = S[k] || [];
+      const nums = vals.filter(v => v != null && v > 0);
+      const avg  = nums.length ? (nums.reduce((a,b)=>a+b,0)/nums.length).toFixed(1) : '—';
+      return `• ${MESES_F[m]} — Média: ${avg}`;
+    }).join('<br>');
+}
+
+function delAvaliacao() {
+  const name = document.getElementById('del-mb').value;
+  const mes  = document.getElementById('del-mes').value;
+  if (!name) { alert('Selecione o profissional.'); return; }
+
+  let keys = mes === 'all'
+    ? Object.keys(S).filter(k => k.startsWith(name + '§'))
+    : (S[name + '§' + mes] ? [name + '§' + mes] : []);
+
+  if (!keys.length) { alert('Nenhuma avaliação encontrada para este filtro.'); return; }
+
+  const MESES_F = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const desc = mes === 'all' ? 'todos os meses' : MESES_F[parseInt(mes)];
+  if (!confirm(`Excluir ${keys.length} avaliação(ões) de ${name} (${desc})?\nEsta ação não pode ser desfeita.`)) return;
+
+  keys.forEach(k => delete S[k]);
+  if (window.$FB) {
+    const { db, ref, set } = window.$FB;
+    set(ref(db, 'escudo/scores'), S).catch(() => {});
+  }
+  save();
+  refreshAll();
+  updateDelPreview();
+  toast(`✓ ${keys.length} avaliação(ões) de ${name.split(' ')[0]} excluída(s).`);
+}
+
+function delEquipeScores() {
+  const tid = document.getElementById('del-eq-all').value;
+  const t = T[tid] || Object.values(T).find(x => x.id === tid);
+  if (!tid || !t) { alert('Selecione a equipe.'); return; }
+  const allNames = [t.enc.n, ...t.members.map(m => m.n)];
+  const keys = Object.keys(S).filter(k => allNames.some(n => k.startsWith(n + '§')));
+
+  if (!keys.length) { alert('Nenhuma avaliação encontrada para esta equipe.'); return; }
+  if (!confirm(`Excluir ${keys.length} avaliação(ões) de todos os membros do ${t.label}?\nEsta ação não pode ser desfeita.`)) return;
+
+  keys.forEach(k => delete S[k]);
+  if (window.$FB) {
+    const { db, ref, set } = window.$FB;
+    set(ref(db, 'escudo/scores'), S).catch(() => {});
+  }
+  save();
+  refreshAll();
+  toast(`✓ ${keys.length} avaliação(ões) do ${t.label} excluída(s).`);
+}
+
+function delTipo(tipo) {
+  const labels = {
+    scores:              'avaliações de campo',
+    scores_bonus:        'bônus de ideias de valor',
+    scores_desconto:     'descontos de pontos',
+    feedback_atividades: 'feedbacks do Planejamento',
+    ideias_valor:        'dados detalhados de ideias',
+    descontos:           'dados detalhados de descontos',
+  };
+  if (!confirm(`Excluir TODOS os ${labels[tipo] || tipo}?\nEsta ação não pode ser desfeita.`)) return;
+
+  if (window.$FB) {
+    const { db, ref, remove } = window.$FB;
+    if (remove) {
+      remove(ref(db, 'escudo/' + tipo)).catch(() => {});
+    } else {
+      // Fallback: set null to delete
+      const { set } = window.$FB;
+      set(ref(db, 'escudo/' + tipo), null).catch(() => {});
+    }
+  }
+
+  // Limpa localmente também
+  if (tipo === 'scores')              { S = {}; }
+  if (tipo === 'scores_bonus')        { S_BONUS = {}; }
+  if (tipo === 'scores_desconto')     { S_DESC = {}; }
+  if (tipo === 'ideias_valor' || tipo === 'scores_bonus')   try { localStorage.removeItem('esc_ideias'); } catch(e) {}
+  if (tipo === 'descontos' || tipo === 'scores_desconto')   try { localStorage.removeItem('esc_desc'); } catch(e) {}
+  if (tipo === 'scores')              try { const d = JSON.parse(localStorage.getItem('esc2')||'{}'); d.scores={}; localStorage.setItem('esc2',JSON.stringify(d)); } catch(e) {}
+
+  save();
+  refreshAll();
+  toast(`✓ ${labels[tipo] || tipo} limpos com sucesso.`);
+}
+
+function delTudo() {
+  if (!confirm('⚠️ ATENÇÃO: Isso irá excluir TODAS as avaliações, ideias, descontos e feedbacks do sistema.\n\nAs equipes e membros NÃO serão afetados.\n\nConfirmar?')) return;
+  if (!confirm('Tem certeza? Esta ação NÃO pode ser desfeita.')) return;
+
+  const tipos = ['scores','scores_bonus','scores_desconto','ideias_valor','descontos','feedback_atividades'];
+  if (window.$FB) {
+    const { db, ref, remove } = window.$FB;
+    tipos.forEach(t => remove(ref(db, 'escudo/' + t)).catch(() => {}));
+  }
+
+  S = {}; S_BONUS = {}; S_DESC = {};
+  ['esc_ideias','esc_desc'].forEach(k => { try { localStorage.removeItem(k); } catch(e) {} });
+  try {
+    const d = JSON.parse(localStorage.getItem('esc2') || '{}');
+    d.scores = {};
+    localStorage.setItem('esc2', JSON.stringify(d));
+  } catch(e) {}
+
+  save();
+  refreshAll();
+  toast('✓ Todos os dados de avaliação foram limpos.');
+}
+
+/* Populate del selects when admin tab opens */
+function populateDelSelects() {
+  ['del-eq','del-eq-all'].forEach(id => {
+    const el = document.getElementById(id); if (!el) return;
+    const cur = el.value;
+    el.innerHTML = '<option value="">Selecione a equipe…</option>' +
+      Object.entries(T).map(([key,t]) => `<option value="${key}">${t.label}</option>`).join('');
+    if (cur) el.value = cur;
+  });
+  // Reseta profissional quando equipes mudam
+  const mb = document.getElementById('del-mb');
+  if (mb) mb.innerHTML = '<option value="">Selecione a equipe…</option>';
+}
+
+
+</script>
+
+<!-- Firebase SDK — carregado após o script principal para evitar race condition -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, set, get, onValue, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  const cfg = {
+    apiKey:"AIzaSyDP74FugIertZsbbi-LjUeNowEfWPqnmHo",
+    authDomain:"escudo-in-haus.firebaseapp.com",
+    databaseURL:"https://escudo-in-haus-default-rtdb.firebaseio.com",
+    projectId:"escudo-in-haus",
+    storageBucket:"escudo-in-haus.firebasestorage.app",
+    messagingSenderId:"961467182857",
+    appId:"1:961467182857:web:1458526eca1e78fddf6dd8"
+  };
+  try {
+    const app = initializeApp(cfg);
+    const db  = getDatabase(app);
+    window.$FB = { db, ref, set, get, onValue, remove };
+    // _onFbReady já está definido pelo script principal acima
+    if (typeof window._onFbReady === 'function') {
+      window._onFbReady();
+    }
+  } catch(e) {
+    console.error('Firebase init error:', e);
+  }
+
+</script>
+</body>
+</html>
