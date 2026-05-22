@@ -82,7 +82,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .mfpill.on.has{background:var(--navy);border-color:var(--navy);color:#fff;}
 
 /* ── STATS ── */
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:.85rem;}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:.85rem;}
 .stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
   padding:.7rem .6rem;text-align:center;box-shadow:var(--sh);}
 .stat-n{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--navy);line-height:1;}
@@ -218,10 +218,11 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   <div class="month-filter" id="month-filter"></div>
 
   <!-- STATS -->
-  <div class="stats">
-    <div class="stat"><div class="stat-n" id="st-av">0</div><div class="stat-l">Avaliações</div></div>
-    <div class="stat"><div class="stat-n" id="st-md">—</div><div class="stat-l">Média</div></div>
-    <div class="stat"><div class="stat-n" id="st-eq">0</div><div class="stat-l">Equipes</div></div>
+  <div class="stats" style="grid-template-columns:repeat(4,1fr); gap:.4rem;">
+    <div class="stat"><div class="stat-n" id="st-av">0</div><div class="stat-l">Inspeções</div></div>
+    <div class="stat"><div class="stat-n" id="st-id">0</div><div class="stat-l" style="color:#22C55E;">💡 Ideias</div></div>
+    <div class="stat"><div class="stat-n" id="st-dc">0</div><div class="stat-l" style="color:#EF4444;">⚠️ Descontos</div></div>
+    <div class="stat"><div class="stat-n" id="st-md">—</div><div class="stat-l">Média Geral</div></div>
   </div>
 
   <!-- PÓDIO -->
@@ -351,7 +352,13 @@ function setSP(st, msg) {
   if (dot) {
     dot.className = 'ldot' + (st==='ok' ? '' : ' off');
     document.getElementById('ltxt').textContent =
-      st==='ok' ? (isDemo ? 'Modo demonstração' : `${Object.keys(S).length} avaliações · ao vivo`)
+      st==='ok' ? (isDemo ? 'Modo demonstração' : (() => {
+      const insp  = Object.keys(S).length;
+      const ideias = Object.keys(S_BONUS).length;
+      const desc   = Object.keys(S_DESC).length;
+      const total  = insp + ideias + desc;
+      return `${total} lançamentos · ${insp} inspeções · ${ideias} ideias · ${desc} descontos`;
+    })())
       : st==='w' ? 'Conectando ao Firebase…' : 'Offline — dados locais';
   }
 }
@@ -521,17 +528,25 @@ function buildList(data) {
 
 /* ── Stats ── */
 function buildStats(data) {
-  // Conta todas as entradas: inspeções + ideias + descontos
-  const allKeys = new Set([
-    ...Object.keys(S),
-    ...Object.keys(S_BONUS),
-    ...Object.keys(S_DESC)
-  ]);
-  const total = curMes >= 0
-    ? [...allKeys].filter(k => k.endsWith('§'+curMes)).length
-    : allKeys.size;
-  document.getElementById('st-av').textContent = total;
-  document.getElementById('st-eq').textContent = Object.keys(T).length;
+  // Conta inspeções
+  const totalInsp = curMes >= 0
+    ? Object.keys(S).filter(k => k.endsWith('§'+curMes)).length
+    : Object.keys(S).length;
+
+  // Conta ideias lançadas (número de profissionais com ideia)
+  const totalIdeias = curMes >= 0
+    ? Object.keys(S_BONUS).filter(k => k.endsWith('§'+curMes)).length
+    : Object.keys(S_BONUS).length;
+
+  // Conta descontos lançados (número de profissionais com desconto)
+  const totalDesc = curMes >= 0
+    ? Object.keys(S_DESC).filter(k => k.endsWith('§'+curMes)).length
+    : Object.keys(S_DESC).length;
+
+  document.getElementById('st-av').textContent = totalInsp;
+  document.getElementById('st-id').textContent = totalIdeias;
+  document.getElementById('st-dc').textContent = totalDesc;
+
   if (data.length) {
     const avg = data.reduce((s,[,d]) => s+d.total/d.n, 0) / data.length;
     document.getElementById('st-md').textContent = avg.toFixed(1);
@@ -658,6 +673,17 @@ function loadLocal() {
 }
 
 /* ── Firebase ── */
+
+// Converte chaves Firebase (__ → §) para compatibilidade interna
+function normalizeFirebaseKeys(obj) {
+  if (!obj) return {};
+  const out = {};
+  Object.entries(obj).forEach(([k, v]) => {
+    out[k.replace(/__/g, '§')] = v;
+  });
+  return out;
+}
+
 window._onFbReady = async () => {
   const { db, ref, get, onValue } = window.$FB;
   setSP('w', '⏳');
@@ -671,9 +697,9 @@ window._onFbReady = async () => {
     if (s2.exists()) { S = s2.val(); isDemo = false; }
     // Carrega bônus de ideias e descontos
     const sb = await get(ref(db, 'escudo/scores_bonus'));
-    if (sb.exists()) S_BONUS = sb.val();
+    if (sb.exists()) S_BONUS = normalizeFirebaseKeys(sb.val());
     const sd = await get(ref(db, 'escudo/scores_desconto'));
-    if (sd.exists()) S_DESC = sd.val();
+    if (sd.exists()) S_DESC = normalizeFirebaseKeys(sd.val());
     setSP('ok', '● Ao vivo');
     render();
     if (curTab === 'historico') renderHistorico();
@@ -693,11 +719,11 @@ window._onFbReady = async () => {
     });
     // Bônus ideias em tempo real
     onValue(ref(db, 'escudo/scores_bonus'), snap => {
-      if (snap.exists()) { S_BONUS = snap.val(); render(); }
+      if (snap.exists()) { S_BONUS = normalizeFirebaseKeys(snap.val()); render(); }
     });
     // Descontos em tempo real
     onValue(ref(db, 'escudo/scores_desconto'), snap => {
-      if (snap.exists()) { S_DESC = snap.val(); render(); }
+      if (snap.exists()) { S_DESC = normalizeFirebaseKeys(snap.val()); render(); }
     });
   } catch(e) {
     setSP('e', '⚠️');
