@@ -533,14 +533,32 @@ function goS(n){
 
 function saveAv(){goS(4);}
 
+function sanitizeFbKey(name, mes) {
+  const safe = (name||'').replace(/[ .#$§\[\]]/g,'_');
+  return safe + '__' + mes;
+}
+
 function saveToFirebase(){
-  // localStorage backup
   try{localStorage.setItem('esc2',JSON.stringify({teams:T,scores:S}));}catch(e){}
-  // Firebase
   if(window.$FB){
-    const{db,ref,set}=window.$FB;
-    set(ref(db,'escudo/scores'),S).catch(()=>{});
-    setSyncBar('ok','Avaliação enviada ao Firebase ✓');
+    const{db,ref,set,get}=window.$FB;
+    async function mergeAndSave(){
+      try{
+        const snap = await get(ref(db,'escudo/scores'));
+        const existing = snap.exists() ? snap.val() : {};
+        const merged = { ...existing };
+        Object.entries(S).forEach(([key, vals]) => {
+          const parts = key.split('§');
+          const fbKey = sanitizeFbKey(parts[0], parts[1]);
+          merged[fbKey] = vals;
+        });
+        await set(ref(db,'escudo/scores'), merged);
+        setSyncBar('ok','Avaliação enviada ao Firebase ✓');
+      }catch(e){
+        setSyncBar('err','Erro ao sincronizar: '+e.message);
+      }
+    }
+    mergeAndSave();
   }
 }
 
@@ -573,7 +591,10 @@ window._onFbReady=async()=>{
       if(Object.values(c).some(t=>t.members&&t.members.length>0)){T=c;}}
     else{ await set(ref(db,'escudo/teams'),T); }
     const s2=await get(ref(db,'escudo/scores'));
-    if(s2.exists()) S=s2.val();
+    if(s2.exists()){
+      const rawS=s2.val(); S={};
+      Object.entries(rawS).forEach(([k,v])=>{ S[k.replace(/__([^_]*)$/, '§$1')]=v; });
+    }
     setSyncBar('ok','Firebase conectado · dados sincronizados');
     populateEqSel();
     // Escuta equipes em tempo real
@@ -583,7 +604,10 @@ window._onFbReady=async()=>{
       if(Object.values(c).some(t=>t.members&&t.members.length>0)){T=c;populateEqSel();}
     });
     onValue(ref(db,'escudo/scores'),snap=>{
-      if(snap.exists()) S=snap.val();
+      if(snap.exists()){
+        const rawS=snap.val(); S={};
+        Object.entries(rawS).forEach(([k,v])=>{ S[k.replace(/__([^_]*)$/, '§$1')]=v; });
+      }
     });
   }catch(e){
     setSyncBar('e','Firebase offline — dados locais');
@@ -602,18 +626,4 @@ buildMeses();
 updateProgress();
 </script>
 
-<!-- Firebase — carregado após script principal -->
-<script type="module">
-  import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import{getDatabase,ref,set,get,onValue}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-  const cfg={apiKey:"AIzaSyDP74FugIertZsbbi-LjUeNowEfWPqnmHo",authDomain:"escudo-in-haus.firebaseapp.com",
-    databaseURL:"https://escudo-in-haus-default-rtdb.firebaseio.com",projectId:"escudo-in-haus",
-    storageBucket:"escudo-in-haus.firebasestorage.app",messagingSenderId:"961467182857",
-    appId:"1:961467182857:web:1458526eca1e78fddf6dd8"};
-  try{const app=initializeApp(cfg);const db=getDatabase(app);
-    window.$FB={db,ref,set,get,onValue};
-    if(typeof window._onFbReady==='function')window._onFbReady();
-  }catch(e){console.error('Firebase:',e);}
-</script>
-</body>
-</html>
+<!-- Firebase — carregado
