@@ -842,10 +842,47 @@ function saveAv(){
 function saveToFirebase(){
   try{localStorage.setItem('esc_desc',JSON.stringify(FB_DESC));}catch(e){}
   if(window.$FB){
-    const{db,ref,set}=window.$FB;
-    set(ref(db,'escudo/descontos'),FB_DESC).catch(()=>{});
-    setSB('ok','Desconto registrado · Firebase sincronizado ✓');
+    const{db,ref,set,get}=window.$FB;
+    // Mescla com dados existentes antes de salvar (preserva outros usuários)
+    async function mergeAndSave() {
+      try {
+        const snapD = await get(ref(db,'escudo/descontos'));
+        const existing_d = snapD.exists() ? snapD.val() : {};
+        const snapS = await get(ref(db,'escudo/scores_desconto'));
+        const existing_s = snapS.exists() ? snapS.val() : {};
+        const mergedDesc   = { ...existing_d };
+        const mergedScores = { ...existing_s };
+        Object.entries(FB_DESC).forEach(([key, d]) => {
+          const parts = key.split('§'); const fbKey = parts[0].replace(/[ .#$§\[\]]/g,'_') + '__' + parts[1];
+          mergedDesc[fbKey]   = d;
+          mergedScores[fbKey] = {
+            total: -((d.ptsFaltas||0)+(d.ptsNC||0)),
+            faltas: d.faltas||0, ptsFaltas: d.ptsFaltas||0,
+            numNC: d.numNC||0, ptsNC: d.ptsNC||0
+          };
+        });
+        await set(ref(db,'escudo/descontos'), mergedDesc);
+        await set(ref(db,'escudo/scores_desconto'), mergedScores);
+        setSB('ok','Desconto registrado · Firebase sincronizado ✓');
+      } catch(e) {
+        setSB('err','Erro ao sincronizar: ' + e.message);
+      }
+    }
+    mergeAndSave();
   }
+}
+
+function buildDescontoScores(){
+  // { "NOME§mes": { total: -n, faltas: n, ptsFaltas: n, numNC: n, ptsNC: n } }
+  const desc = {};
+  Object.entries(FB_DESC).forEach(([key, d]) => {
+    desc[key] = {
+      total: -((d.ptsFaltas||0)+(d.ptsNC||0)),
+      faltas: d.faltas||0, ptsFaltas: d.ptsFaltas||0,
+      numNC: d.numNC||0, ptsNC: d.ptsNC||0
+    };
+  });
+  return desc;
 }
 
 function resetAv(){
