@@ -391,16 +391,17 @@ function getRankData(eqFilter, mesFilter) {
         keys = Object.keys(S).filter(k => k.startsWith(m.n + '§'));
       }
 
-      // Bônus de ideias de valor
+      // Bônus de ideias de valor — busca por chave sanitizada
+      const safeN = (m.n||'').replace(/[ .#$§\[\]]/g,'_');
       const bonusKeys = mesFilter >= 0
-        ? [m.n + '§' + mesFilter].filter(k => S_BONUS[k])
-        : Object.keys(S_BONUS).filter(k => k.startsWith(m.n + '§'));
+        ? [safeN + '__' + mesFilter].filter(k => S_BONUS[k])
+        : Object.keys(S_BONUS).filter(k => k.startsWith(safeN + '__'));
       const totalBonus = bonusKeys.reduce((s,k) => s + (S_BONUS[k]?.ideias || 0), 0);
 
-      // Descontos (absenteísmo + não conformidades)
+      // Descontos — busca por chave sanitizada
       const descKeys = mesFilter >= 0
-        ? [m.n + '§' + mesFilter].filter(k => S_DESC[k])
-        : Object.keys(S_DESC).filter(k => k.startsWith(m.n + '§'));
+        ? [safeN + '__' + mesFilter].filter(k => S_DESC[k])
+        : Object.keys(S_DESC).filter(k => k.startsWith(safeN + '__'));
       const totalDesc = descKeys.reduce((s,k) => s + Math.abs(S_DESC[k]?.total || 0), 0);
 
       // Ignora só se absolutamente nada registrado
@@ -533,14 +534,14 @@ function buildStats(data) {
     ? Object.keys(S).filter(k => k.endsWith('§'+curMes)).length
     : Object.keys(S).length;
 
-  // Conta ideias lançadas (número de profissionais com ideia)
+  // Ideias — chaves sanitizadas usam __ como separador
   const totalIdeias = curMes >= 0
-    ? Object.keys(S_BONUS).filter(k => k.endsWith('§'+curMes)).length
+    ? Object.keys(S_BONUS).filter(k => k.endsWith('__'+curMes)).length
     : Object.keys(S_BONUS).length;
 
-  // Conta descontos lançados (número de profissionais com desconto)
+  // Descontos — chaves sanitizadas usam __ como separador
   const totalDesc = curMes >= 0
-    ? Object.keys(S_DESC).filter(k => k.endsWith('§'+curMes)).length
+    ? Object.keys(S_DESC).filter(k => k.endsWith('__'+curMes)).length
     : Object.keys(S_DESC).length;
 
   document.getElementById('st-av').textContent = totalInsp;
@@ -675,13 +676,15 @@ function loadLocal() {
 /* ── Firebase ── */
 
 // Converte chaves Firebase (__ → §) para compatibilidade interna
+function sanitizeFbKey(name, mes) {
+  const safe = (name||'').replace(/[ .#$§\[\]]/g,'_');
+  return safe + '__' + mes;
+}
+
 function normalizeFirebaseKeys(obj) {
+  // Mantém as chaves com __ (já sanitizadas) para busca por sanitizeFbKey
   if (!obj) return {};
-  const out = {};
-  Object.entries(obj).forEach(([k, v]) => {
-    out[k.replace(/__/g, '§')] = v;
-  });
-  return out;
+  return obj;
 }
 
 window._onFbReady = async () => {
@@ -694,7 +697,13 @@ window._onFbReady = async () => {
       if (Object.keys(c).length >= 4) { T = c; isDemo = false; }
     }
     const s2 = await get(ref(db, 'escudo/scores'));
-    if (s2.exists()) { S = s2.val(); isDemo = false; }
+    if (s2.exists()) {
+      // Normaliza chaves: __ → § para compatibilidade interna
+      const rawS = s2.val();
+      S = {};
+      Object.entries(rawS).forEach(([k,v]) => { S[k.replace(/__([^_]*)$/, '§$1')] = v; });
+      isDemo = false;
+    }
     // Carrega bônus de ideias e descontos
     const sb = await get(ref(db, 'escudo/scores_bonus'));
     if (sb.exists()) S_BONUS = normalizeFirebaseKeys(sb.val());
@@ -712,7 +721,10 @@ window._onFbReady = async () => {
     });
     onValue(ref(db, 'escudo/scores'), snap => {
       if (!snap.exists()) return;
-      S = snap.val(); isDemo = false;
+      const rawS = snap.val();
+      S = {};
+      Object.entries(rawS).forEach(([k,v]) => { S[k.replace(/__([^_]*)$/, '§$1')] = v; });
+      isDemo = false;
       setSP('ok', '● Ao vivo');
       render();
       if (curTab === 'historico') renderHistorico();
