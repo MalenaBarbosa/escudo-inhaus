@@ -755,10 +755,42 @@ function saveAv(){
 function saveToFirebase(){
   try{localStorage.setItem('esc_ideias',JSON.stringify(FB_IDEIAS));}catch(e){}
   if(window.$FB){
-    const{db,ref,set}=window.$FB;
-    set(ref(db,'escudo/ideias_valor'),FB_IDEIAS).catch(()=>{});
-    setSB('ok','Ideias registradas · Firebase sincronizado ✓');
+    const{db,ref,set,get}=window.$FB;
+    // Mescla com dados existentes antes de salvar (preserva outros usuários)
+    async function mergeAndSave() {
+      try {
+        // Busca dados atuais do Firebase
+        const snapB = await get(ref(db,'escudo/scores_bonus'));
+        const existing_b = snapB.exists() ? snapB.val() : {};
+        const snapI = await get(ref(db,'escudo/ideias_valor'));
+        const existing_i = snapI.exists() ? snapI.val() : {};
+        // Mescla com dados locais
+        const mergedBonus = { ...existing_b };
+        const mergedIdeias = { ...existing_i };
+        Object.entries(FB_IDEIAS).forEach(([key, d]) => {
+          const parts = key.split('§'); const fbKey = parts[0].replace(/[ .#$§\[\]]/g,'_') + '__' + parts[1];
+          mergedBonus[fbKey]  = { ideias:(d.sst||0)+(d.ma||0), sst:d.sst||0, ma:d.ma||0 };
+          mergedIdeias[fbKey] = d;
+        });
+        await set(ref(db,'escudo/ideias_valor'), mergedIdeias);
+        await set(ref(db,'escudo/scores_bonus'), mergedBonus);
+        setSB('ok','Ideias registradas · Firebase sincronizado ✓');
+      } catch(e) {
+        setSB('err','Erro ao sincronizar: ' + e.message);
+      }
+    }
+    mergeAndSave();
   }
+}
+
+function buildBonusScores(){
+  // Converte ideias em formato compatível com scores
+  // { "NOME§mes": { ideias: totalPts, sst: n, ma: n } }
+  const bonus = {};
+  Object.entries(FB_IDEIAS).forEach(([key, d]) => {
+    bonus[key] = { ideias: (d.sst||0)+(d.ma||0), sst: d.sst||0, ma: d.ma||0 };
+  });
+  return bonus;
 }
 
 function resetAv(){
