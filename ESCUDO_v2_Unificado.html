@@ -658,6 +658,17 @@ function setSyncPill(st,msg){
 
 /* ── FIREBASE ── */
 // Callback chamado pelo módulo Firebase quando ele estiver pronto
+
+// Converte chaves Firebase (__ → §) para compatibilidade interna
+function normalizeFirebaseKeys(obj) {
+  if (!obj) return {};
+  const out = {};
+  Object.entries(obj).forEach(([k, v]) => {
+    out[k.replace(/__/g, '§')] = v;
+  });
+  return out;
+}
+
 window._onFbReady = async () => {
   const {db,ref,set,get,onValue} = window.$FB;
   setSyncPill('w','⏳ Conectando…');
@@ -678,7 +689,17 @@ window._onFbReady = async () => {
     }
     // Carrega scores
     const s2 = await get(ref(db,'escudo/scores'));
-    if(s2.exists()) S = s2.val();
+    if(s2.exists()) {
+      const rawS = s2.val();
+      S = {};
+      Object.entries(rawS).forEach(([k,v]) => { S[k.replace(/__([^_]*)$/, '§$1')] = v; });
+    }
+
+    // Carrega bônus de ideias e descontos no início
+    const sb = await get(ref(db,'escudo/scores_bonus'));
+    if(sb.exists()) S_BONUS = normalizeFirebaseKeys(sb.val());
+    const sd = await get(ref(db,'escudo/scores_desconto'));
+    if(sd.exists()) S_DESC = normalizeFirebaseKeys(sd.val());
 
     setSyncPill('ok','● Sincronizado');
     refreshAll();
@@ -690,13 +711,17 @@ window._onFbReady = async () => {
       if(Object.values(c).some(t=>t.members&&t.members.length>0)){ T=c; refreshAll(); }
     });
     onValue(ref(db,'escudo/scores'), snap => {
-      if(snap.exists()){ S=snap.val(); refreshAll(); }
+      if(snap.exists()){
+        const rawS=snap.val(); S={};
+        Object.entries(rawS).forEach(([k,v])=>{ S[k.replace(/__([^_]*)$/, '§$1')]=v; });
+        refreshAll();
+      }
     });
     onValue(ref(db,'escudo/scores_bonus'),snap=>{
-      if(snap.exists()){S_BONUS=snap.val();refreshAll();}
+      if(snap.exists()){S_BONUS=normalizeFirebaseKeys(snap.val());refreshAll();}
     });
     onValue(ref(db,'escudo/scores_desconto'),snap=>{
-      if(snap.exists()){S_DESC=snap.val();refreshAll();}
+      if(snap.exists()){S_DESC=normalizeFirebaseKeys(snap.val());refreshAll();}
     });
 
   } catch(e) {
@@ -1034,8 +1059,9 @@ function resetAv(){
 /* ── SCORES ── */
 function empAvg(name){
   const keys=Object.keys(S).filter(k=>k.startsWith(name+'§'));
-  const bonusKeys=Object.keys(S_BONUS).filter(k=>k.startsWith(name+'§'));
-  const descKeys=Object.keys(S_DESC).filter(k=>k.startsWith(name+'§'));
+  const safeNm=(name||'').replace(/[ .#$§\[\]]/g,'_');
+  const bonusKeys=Object.keys(S_BONUS).filter(k=>k.startsWith(safeNm+'__'));
+  const descKeys=Object.keys(S_DESC).filter(k=>k.startsWith(safeNm+'__'));
   // Nada registrado — não aparece no ranking
   if(!keys.length && !bonusKeys.length && !descKeys.length) return null;
   // Média base das inspeções
@@ -1057,10 +1083,11 @@ function getRankData(filter){
       // Scores de inspeção
       const keys=Object.keys(S).filter(k=>k.startsWith(m.n+'§'));
       // Bônus ideias de valor
-      const bonusKeys=Object.keys(S_BONUS).filter(k=>k.startsWith(m.n+'§'));
+      const safeN=(m.n||'').replace(/[ .#$§\[\]]/g,'_');
+      const bonusKeys=Object.keys(S_BONUS).filter(k=>k.startsWith(safeN+'__'));
       const totalBonus=bonusKeys.reduce((s,k)=>s+(S_BONUS[k]?.ideias||0),0);
       // Descontos
-      const descKeys=Object.keys(S_DESC).filter(k=>k.startsWith(m.n+'§'));
+      const descKeys=Object.keys(S_DESC).filter(k=>k.startsWith(safeN+'__'));
       const totalDesc=descKeys.reduce((s,k)=>s+Math.abs(S_DESC[k]?.total||0),0);
 
       // Nada registrado — ignora
