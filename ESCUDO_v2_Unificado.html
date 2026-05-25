@@ -756,9 +756,23 @@ function loadLocal(){
 }
 function save(){
   if(window.$FB){
-    const {db,ref,set}=window.$FB;
+    const {db,ref,set,get}=window.$FB;
     set(ref(db,'escudo/teams'),T).catch(()=>{});
-    set(ref(db,'escudo/scores'),S).catch(()=>{});
+    // Sanitiza chaves de S antes de salvar (remove espaços e § inválidos)
+    async function saveScores(){
+      try{
+        const snap=await get(ref(db,'escudo/scores'));
+        const existing=snap.exists()?snap.val():{};
+        const merged={...existing};
+        Object.entries(S).forEach(([key,vals])=>{
+          const parts=key.split('§');
+          const fbKey=(parts[0]||'').replace(/[ .#$§\[\]]/g,'_')+'__'+(parts[1]||'');
+          merged[fbKey]=vals;
+        });
+        set(ref(db,'escudo/scores'),merged).catch(()=>{});
+      }catch(e){ set(ref(db,'escudo/scores'),S).catch(()=>{}); }
+    }
+    saveScores();
   }
   try{localStorage.setItem('esc2',JSON.stringify({teams:T,scores:S}));}catch(e){}
   setSyncPill('ok','● Sincronizado');
@@ -1071,7 +1085,7 @@ function empAvg(name){
   const bonus=bonusKeys.reduce((s,k)=>s+(S_BONUS[k]?.ideias||0),0);
   // Descontos
   const desc=descKeys.reduce((s,k)=>s+Math.abs(S_DESC[k]?.total||0),0);
-  return Math.max(0, base+bonus-desc);
+  return base+bonus-desc; // permite negativo
 }
 function getRankData(filter){
   const by={};
@@ -1098,7 +1112,7 @@ function getRankData(filter){
       const base=inspNums.length?inspNums.reduce((a,b)=>a+b,0)/inspNums.length:0;
 
       // Pontuação final
-      const tot=Math.max(0, base+totalBonus-totalDesc);
+      const tot= base+totalBonus-totalDesc; // permite negativo
 
       by[m.n]={total:tot,n:Math.max(keys.length,1),tid:t.id,color:t.color,label:t.label,cargo:m.c||t.enc.c};
     });
@@ -1418,6 +1432,16 @@ function delTipo(tipo) {
     ideias_valor:        'dados detalhados de ideias',
     descontos:           'dados detalhados de descontos',
   };
+  // Limpa localStorage correspondente
+  const localMap = {
+    scores:              'esc2',
+    ideias_valor:        'esc_ideias',
+    scores_bonus:        'esc_ideias',
+    descontos:           'esc_desc',
+    scores_desconto:     'esc_desc',
+    feedback_atividades: 'esc_fb_ativ',
+  };
+  if (localMap[tipo]) try { localStorage.removeItem(localMap[tipo]); } catch(e) {}
   if (!confirm(`Excluir TODOS os ${labels[tipo] || tipo}?\nEsta ação não pode ser desfeita.`)) return;
 
   if (window.$FB) {
@@ -1455,12 +1479,9 @@ function delTudo() {
   }
 
   S = {}; S_BONUS = {}; S_DESC = {};
-  ['esc_ideias','esc_desc'].forEach(k => { try { localStorage.removeItem(k); } catch(e) {} });
-  try {
-    const d = JSON.parse(localStorage.getItem('esc2') || '{}');
-    d.scores = {};
-    localStorage.setItem('esc2', JSON.stringify(d));
-  } catch(e) {}
+  ['esc_ideias','esc_desc','esc_fb_ativ','esc2'].forEach(k => {
+    try { localStorage.removeItem(k); } catch(e) {}
+  });
 
   save();
   refreshAll();
