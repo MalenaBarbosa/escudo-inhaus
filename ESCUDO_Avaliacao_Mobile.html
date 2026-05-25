@@ -626,4 +626,18 @@ buildMeses();
 updateProgress();
 </script>
 
-<!-- Firebase — carregado
+<!-- Firebase — carregado após script principal -->
+<script type="module">
+  import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import{getDatabase,ref,set,get,onValue}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  const cfg={apiKey:"AIzaSyDP74FugIertZsbbi-LjUeNowEfWPqnmHo",authDomain:"escudo-in-haus.firebaseapp.com",
+    databaseURL:"https://escudo-in-haus-default-rtdb.firebaseio.com",projectId:"escudo-in-haus",
+    storageBucket:"escudo-in-haus.firebasestorage.app",messagingSenderId:"961467182857",
+    appId:"1:961467182857:web:1458526eca1e78fddf6dd8"};
+  try{const app=initializeApp(cfg);const db=getDatabase(app);
+    window.$FB={db,ref,set,get,onValue};
+    if(typeof window._onFbReady==='function')window._onFbReady();
+  }catch(e){console.error('Firebase:',e);}
+</script>
+</body>
+</html>
