@@ -382,13 +382,14 @@ function getRankData(eqFilter, mesFilter) {
       if (!m || !m.n) return;
       if (eqFilter !== 'all' && t.id !== eqFilter) return;
 
-      // Busca scores de inspeção (filtra por mês se necessário)
+      // Busca scores de inspeção — usa nome sanitizado para compatibilidade com Firebase
+      const safeNInsp = (m.n||'').replace(/[ .#$§\[\]]/g,'_');
       let keys;
       if (mesFilter >= 0) {
-        const k = m.n + '§' + mesFilter;
+        const k = safeNInsp + '§' + mesFilter;
         keys = S[k] ? [k] : [];
       } else {
-        keys = Object.keys(S).filter(k => k.startsWith(m.n + '§'));
+        keys = Object.keys(S).filter(k => k.startsWith(safeNInsp + '§'));
       }
 
       // Bônus de ideias de valor — busca por chave sanitizada
@@ -426,7 +427,7 @@ function getRankData(eqFilter, mesFilter) {
   });
 
   return Object.entries(by)
-    .sort((a, b) => (b[1].total/b[1].n) - (a[1].total/a[1].n));
+    .sort((a, b) => b[1].total - a[1].total);
 }
 
 /* ── Meses que têm avaliações ── */
