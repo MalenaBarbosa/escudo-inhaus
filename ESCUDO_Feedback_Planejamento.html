@@ -910,6 +910,7 @@ function saveAv() {
 
   // Salva no caminho próprio (histórico detalhado)
   FB_DATA[key] = {
+    name: selMb.name,
     scores: vals,
     avaliador,
     codEquip, codLocal, descAtiv,
@@ -1036,7 +1037,7 @@ function renderHist() {
   }
 
   el.innerHTML = entries.map(([key, d]) => {
-    const name = key.split('§')[0];
+    const name = d.name || key.split('§')[0].replace(/__.*$/, '').replace(/_/g, ' ');
     const t = ALL_TEAMS[d.teamId];
     const color = t ? t.color : '#1e3a5f';
     const critRows = CRITS.map((k, ci) => {
