@@ -412,7 +412,7 @@ function getRankData(eqFilter, mesFilter) {
       const baseAvg  = inspNums.length ? inspNums.reduce((a,b) => a+b,0) / inspNums.length : 0;
 
       // Pontuação final = média inspeções + bônus ideias − descontos
-      const totFinal = Math.max(0, baseAvg + totalBonus - totalDesc);
+      const totFinal = baseAvg + totalBonus - totalDesc; // permite negativo
 
       by[m.n] = {
         total: totFinal,
