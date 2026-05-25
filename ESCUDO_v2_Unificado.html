@@ -1094,8 +1094,9 @@ function getRankData(filter){
       if(!m||!m.n)return;
       if(filter!=='all'&&t.id!==filter)return;
 
-      // Scores de inspeção
-      const keys=Object.keys(S).filter(k=>k.startsWith(m.n+'§'));
+      // Scores de inspeção — busca por nome sanitizado
+      const safeNInsp=(m.n||'').replace(/[ .#$§\[\]]/g,'_');
+      const keys=Object.keys(S).filter(k=>k.startsWith(safeNInsp+'§'));
       // Bônus ideias de valor
       const safeN=(m.n||'').replace(/[ .#$§\[\]]/g,'_');
       const bonusKeys=Object.keys(S_BONUS).filter(k=>k.startsWith(safeN+'__'));
@@ -1117,7 +1118,7 @@ function getRankData(filter){
       by[m.n]={total:tot,n:Math.max(keys.length,1),tid:t.id,color:t.color,label:t.label,cargo:m.c||t.enc.c};
     });
   });
-  return Object.entries(by).sort((a,b)=>(b[1].total/b[1].n)-(a[1].total/a[1].n));
+  return Object.entries(by).sort((a,b)=>b[1].total-a[1].total);
 }
 
 /* ── RANKING ── */
