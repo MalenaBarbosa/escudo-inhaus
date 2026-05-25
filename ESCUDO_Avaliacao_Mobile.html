@@ -381,7 +381,7 @@ function buildMeses(){
     if(tid&&mb!==null){
       const t=T[tid];
       const nm=mb==='enc'?t.enc.n:t.members[parseInt(mb)].n;
-      hasDone=!!S[nm+'§'+i];
+      const safeNm=(nm||'').replace(/[ .#$§\[\]]/g,'_'); hasDone=!!S[safeNm+'§'+i];
     }
     return `<button class="mpill${i===avMonth?' on':''}${hasDone&&i!==avMonth?' done':''}"
       onclick="setMon(${i})">${m}</button>`;
