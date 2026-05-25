@@ -735,6 +735,7 @@ function saveAv(){
   if(total===0){alert('Informe pelo menos 1 ideia implementada.');return;}
   const key=selMb.name+'§'+avMonth;
   FB_IDEIAS[key]={
+    name:selMb.name,
     sst:counts.sst,ma:counts.ma,total,
     ideiasTexto:{sst:[...ideiasTexto.sst],ma:[...ideiasTexto.ma]},
     avaliador:document.getElementById('av-aval').value,
@@ -828,7 +829,7 @@ function renderHist(){
   entries=entries.sort((a,b)=>(b[1].mes||0)-(a[1].mes||0));
   if(!entries.length){el.innerHTML='<div class="no-data">💡 Nenhuma ideia registrada.</div>';return;}
   el.innerHTML=entries.map(([key,d])=>{
-    const name=key.split('§')[0];
+    const name=d.name||key.split('§')[0].replace(/_/g,' ').replace(/__.*$/,'');
     const t=T[d.teamId];const color=t?t.color:'#d97706';
     const sstRows=(d.ideiasTexto&&d.ideiasTexto.sst||[]).map((txt,i)=>`
       <div class="hist-ideia-row"><div class="hist-ideia-n">${i+1}</div>
