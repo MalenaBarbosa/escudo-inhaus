@@ -820,6 +820,7 @@ function saveAv(){
   const obsAbs=document.getElementById('obs-abs')?.value?.trim()||'';
   const obsNC=document.getElementById('obs-nc')?.value?.trim()||'';
   FB_DESC[key]={
+    name:selMb.name,
     faltas:absAtivo?numFaltas:0,ptsFaltas,
     numNC:ncAtivo?numNC:0,ptsNC,ncTipo:ncTipoSel,
     total,obsAbs,obsNC,
@@ -917,7 +918,7 @@ function renderHist(){
   entries=entries.sort((a,b)=>(b[1].mes||0)-(a[1].mes||0));
   if(!entries.length){el.innerHTML='<div class="no-data">⚠️ Nenhum desconto registrado.</div>';return;}
   el.innerHTML=entries.map(([key,d])=>{
-    const name=key.split('§')[0];
+    const name=d.name||key.split('§')[0].replace(/_/g,' ').replace(/__.*$/,'');
     const t=T[d.teamId];const color=t?t.color:'#dc2626';
     const rows=[];
     if(d.faltas>0)rows.push(`<div class="hist-row">
