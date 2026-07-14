@@ -481,6 +481,7 @@ let T = JSON.parse(JSON.stringify(DEFAULT_TEAMS));
 let FB_IDEIAS = {}; // escudo/ideias_valor
 let avMonth = new Date().getMonth();
 let selMb   = null;
+let selMbs  = []; // multi-select
 let curSeg  = 'turno';
 let curTab  = 'registrar';
 let histFilter = 'all';
@@ -549,7 +550,7 @@ function setSeg(seg,btn){
   if(btn)btn.classList.add('on');
   buildEquipeSel();
   document.getElementById('mem-grid-wrap').innerHTML='<div class="no-data" style="padding:.5rem;">Selecione a equipe acima.</div>';
-  selMb=null;
+  selMb=null; selMbs=[];
 }
 
 function buildEquipeSel(){
@@ -569,7 +570,7 @@ function buildMemGrid(){
   wrap.innerHTML=`<div class="mem-grid">${all.map((m,i)=>{
     const pts=getTotalPts(m.n,avMonth);
     const isSel=selMb&&selMb.name===m.n;
-    return `<div class="mem-btn${isSel?' on':''}" id="mb-${i}" onclick="selMember(${i},'${tid}')"
+    return `<div class="mem-btn${isSel?' on':''}" id="mb-${i}" data-name="${m.n}" onclick="selMember(${i},'${tid}')"
       style="${isSel?`border-color:${t.color};`:''}">
       <div style="position:absolute;top:0;left:0;right:0;height:3px;background:${t.color};border-radius:var(--rsm) var(--rsm) 0 0;"></div>
       <div class="mem-av" style="background:${t.color};">${ini(m.n)}</div>
@@ -590,10 +591,39 @@ function selMember(i,tid){
   const t=T[tid];
   const all=[{n:t.enc.n,c:t.enc.c+' (Encarregado)'},...t.members];
   const m=all[i];
-  selMb={name:m.n,cargo:m.c,teamId:tid,teamColor:t.color,teamLabel:t.label};
+  const mbObj={name:m.n,cargo:m.c,teamId:tid,teamColor:t.color,teamLabel:t.label};
+  const key=i+'_'+tid;
+
+  // Toggle multi-select
+  const existIdx=selMbs.findIndex(s=>s.name===m.n&&s.teamId===tid);
+  if(existIdx===-1){
+    selMbs.push(mbObj);
+  }else{
+    selMbs.splice(existIdx,1);
+  }
+  selMb=selMbs.length?selMbs[selMbs.length-1]:null;
+
+  // Atualizar visual
   document.querySelectorAll('.mem-btn').forEach(b=>{b.classList.remove('on');b.style.borderColor='';});
+  selMbs.forEach(s=>{
+    // Encontrar botão pelo nome
+    document.querySelectorAll('.mem-btn').forEach(b=>{
+      if(b.dataset&&b.dataset.name===s.name) {b.classList.add('on');b.style.borderColor=t.color;}
+    });
+  });
+  // Marcar o clicado explicitamente
   const el=document.getElementById('mb-'+i);
-  if(el){el.classList.add('on');el.style.borderColor=t.color;}
+  if(el){
+    if(existIdx===-1){el.classList.add('on');el.style.borderColor=t.color;}
+    else{el.classList.remove('on');el.style.borderColor='';}
+  }
+
+  // Contador
+  const cnt=document.getElementById('sel-count');
+  if(cnt){
+    if(selMbs.length>1){cnt.textContent=selMbs.length+' profissionais selecionados';cnt.style.display='block';}
+    else{cnt.style.display='none';}
+  }
 }
 
 /* ÁREA */
@@ -733,7 +763,11 @@ function saveAv(){
   const total=counts.sst+counts.ma;
   if(!areasSel.sst&&!areasSel.ma){alert('Selecione ao menos uma área (SST ou Meio Ambiente).');return;}
   if(total===0){alert('Informe pelo menos 1 ideia implementada.');return;}
-  const key=selMb.name+'§'+avMonth;
+  // Salvar para todos os selecionados
+  const targets_id = selMbs.length>0 ? selMbs : (selMb?[selMb]:[]);
+  if(!targets_id.length){alert('Selecione pelo menos um profissional.');return;}
+  targets_id.forEach(mb=>{
+  const key=mb.name+'§'+avMonth;
   FB_IDEIAS[key]={
     name:selMb.name,
     sst:counts.sst,ma:counts.ma,total,
@@ -742,6 +776,7 @@ function saveAv(){
     team:selMb.teamLabel,teamId:selMb.teamId,cargo:selMb.cargo,
     mes:avMonth,ts:new Date().toISOString()
   };
+  }); // end targets_id.forEach
   saveToFirebase();
   document.getElementById('succ-pts').textContent='+'+total;
   document.getElementById('succ-nm').textContent=selMb.name;

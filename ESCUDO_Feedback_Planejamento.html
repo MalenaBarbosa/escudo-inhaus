@@ -635,7 +635,8 @@ let ALL_TEAMS = JSON.parse(JSON.stringify(DEFAULT_TEAMS)); // começa com dados 
 let FB_DATA    = {};       // { "NOME§mes": { scores, obs, cod_equip, cod_local, desc, avaliador } }
 let ESCUDO_S   = {};       // scores do sistema geral (escudo/scores)
 let avMonth    = new Date().getMonth();
-let selMb      = null;     // { name, cargo, teamId, teamColor, teamLabel }
+let selMb      = null;
+let selMbs     = []; // multi-select     // { name, cargo, teamId, teamColor, teamLabel }
 let avS        = {};       // scores em curso
 let curSeg     = 'turno';
 let curTab     = 'avaliar';
@@ -785,7 +786,7 @@ function buildMemGrid() {
   wrap.innerHTML = `<div class="mem-grid">${all.map((m, i) => {
     const hasDone = !!FB_DATA[m.n + '§' + avMonth];
     const isSel = selMb && selMb.name === m.n;
-    return `<div class="mem-btn${isSel?' on':''}" id="mb-${i}" onclick="selMember(${i},'${tid}')"
+    return `<div class="mem-btn${isSel?' on':''}" id="mb-${i}" data-name="${m.n}" onclick="selMember(${i},'${tid}')"
       style="${isSel?`border-color:${t.color};`:''}">
       <div class="mem-btn" style="position:absolute;top:0;left:0;right:0;height:3px;background:${t.color};border-radius:var(--rsm) var(--rsm) 0 0;"></div>
       <div class="mem-av" style="background:${t.color};">${ini(m.n)}</div>
@@ -796,19 +797,43 @@ function buildMemGrid() {
   }).join('')}</div>`;
 }
 
-function selMember(i, tid) {
-  const t = ALL_TEAMS[tid];
-  const all = [
-    { n: t.enc.n, c: t.enc.c + ' (Encarregado)' },
-    ...t.members
-  ];
-  const m = all[i];
-  selMb = { name: m.n, cargo: m.c, teamId: tid, teamColor: t.color, teamLabel: t.label };
-  document.querySelectorAll('.mem-btn').forEach(b => {
-    b.classList.remove('on'); b.style.borderColor = '';
+function selMember(i,tid){
+  const t=ALL_TEAMS[tid];
+  const all=[{n:t.enc.n,c:t.enc.c+' (Encarregado)'},...t.members];
+  const m=all[i];
+  const mbObj={name:m.n,cargo:m.c,teamId:tid,teamColor:t.color,teamLabel:t.label};
+  const key=i+'_'+tid;
+
+  // Toggle multi-select
+  const existIdx=selMbs.findIndex(s=>s.name===m.n&&s.teamId===tid);
+  if(existIdx===-1){
+    selMbs.push(mbObj);
+  }else{
+    selMbs.splice(existIdx,1);
+  }
+  selMb=selMbs.length?selMbs[selMbs.length-1]:null;
+
+  // Atualizar visual
+  document.querySelectorAll('.mem-btn').forEach(b=>{b.classList.remove('on');b.style.borderColor='';});
+  selMbs.forEach(s=>{
+    // Encontrar botão pelo nome
+    document.querySelectorAll('.mem-btn').forEach(b=>{
+      if(b.dataset&&b.dataset.name===s.name) {b.classList.add('on');b.style.borderColor=t.color;}
+    });
   });
-  const el = document.getElementById('mb-'+i);
-  if (el) { el.classList.add('on'); el.style.borderColor = t.color; }
+  // Marcar o clicado explicitamente
+  const el=document.getElementById('mb-'+i);
+  if(el){
+    if(existIdx===-1){el.classList.add('on');el.style.borderColor=t.color;}
+    else{el.classList.remove('on');el.style.borderColor='';}
+  }
+
+  // Contador
+  const cnt=document.getElementById('sel-count');
+  if(cnt){
+    if(selMbs.length>1){cnt.textContent=selMbs.length+' profissionais selecionados';cnt.style.display='block';}
+    else{cnt.style.display='none';}
+  }
 }
 
 /* ── Eval head (passos 3 e 4) ── */
@@ -894,7 +919,9 @@ function saveAv() {
   if (!nums.length) { alert('Avalie pelo menos um critério.'); return; }
 
   const avg = nums.reduce((a,b) => a+b,0) / nums.length;
-  const key = selMb.name + '§' + avMonth;
+  // Salvar para todos os selecionados
+  const targets_fb = selMbs.length>0 ? selMbs : (selMb?[selMb]:[]);
+  if(!targets_fb.length){alert('Selecione pelo menos um profissional.');return;}
   const avaliador = document.getElementById('av-planejador').value;
   const codEquip = document.getElementById('cod-equip').value.trim().toUpperCase();
   const codLocal = document.getElementById('cod-local').value.trim().toUpperCase();
@@ -908,9 +935,12 @@ function saveAv() {
     if (v) obsCrits[k] = v;
   });
 
+  // Salvar para todos os targets selecionados
+  targets_fb.forEach(mb => {
+  const key = mb.name + '§' + avMonth;
   // Salva no caminho próprio (histórico detalhado)
   FB_DATA[key] = {
-    name: selMb.name,
+    name: mb.name,
     scores: vals,
     avaliador,
     codEquip, codLocal, descAtiv,
@@ -926,12 +956,13 @@ function saveAv() {
 
   // Também salva no escudo/scores para aparecer no ranking geral
   ESCUDO_S[key] = vals;
+  }); // end targets_fb.forEach
 
   saveToFirebase();
 
   document.getElementById('succ-score').textContent = avg.toFixed(1);
   document.getElementById('succ-sub').textContent = `/ 5.0 · ${MESES_F[avMonth]} · Feedback de Atividade`;
-  document.getElementById('succ-nm').textContent = selMb.name;
+  document.getElementById('succ-nm').textContent = targets_fb.length>1 ? targets_fb.length+' profissionais avaliados' : targets_fb[0].name;
   document.getElementById('succ-team').textContent = `${selMb.teamLabel} · Avaliado por: ${f2(avaliador)}`;
 
   goS('ok');
