@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0D1B2A">
+<title>ESCUDO — Ranking de Equipes</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#EEF1F5;--surface:#fff;--surface2:#F4F6F9;--border:#DDE1E8;
+  --ink:#0D1117;--ink2:#3A4152;--ink3:#6B7385;
+  --navy:#1E3A5F;--navy-lt:#DBEAFE;
+  --gold:#D97706;--gold-lt:#FEF3C7;--gold-md:#FBBF24;
+  --green:#065F46;--green-lt:#D1FAE5;--green-md:#10B981;
+  --red:#991B1B;--red-lt:#FEE2E2;
+  --r:12px;--rsm:8px;--sh:0 1px 3px rgba(0,0,0,.08),0 2px 8px rgba(0,0,0,.06);--sh2:0 4px 12px rgba(0,0,0,.10),0 2px 4px rgba(0,0,0,.06);
+}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;-webkit-tap-highlight-color:transparent;}
+
+/* TOPBAR */
+.topbar{background:var(--navy);padding:.7rem 1.2rem;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.25);}
+.logo{display:flex;align-items:center;gap:9px;}
+.logo svg{width:28px;height:28px;filter:drop-shadow(0 0 6px rgba(251,191,36,.4));}
+.logo-name{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#FBBF24;letter-spacing:3px;}
+.logo-sub{font-size:9px;color:rgba(255,255,255,.4);letter-spacing:1.5px;text-transform:uppercase;}
+.topbar-r{margin-left:auto;display:flex;align-items:center;gap:6px;}
+.pill{font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;padding:4px 10px;border-radius:20px;}
+.pill-sync{background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.3);color:#10B981;transition:all .3s;}
+.pill-sync.w{background:rgba(217,119,6,.12);border-color:rgba(217,119,6,.3);color:#D97706;}
+.ldot{width:6px;height:6px;border-radius:50%;background:#10B981;display:inline-block;margin-right:4px;}
+.ldot.off{background:#D97706;}
+.pill-site{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.8);font-size:10px;padding:5px 12px;border-radius:20px;font-weight:600;cursor:default;}
+
+/* HEADER */
+.hdr{padding:1.2rem 1rem .6rem;text-align:center;}
+.hdr-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--navy);margin-bottom:4px;}
+.hdr-sub{font-size:12px;color:var(--ink3);}
+
+/* FILTROS */
+.filters{padding:.5rem 1rem 1rem;display:flex;gap:8px;flex-wrap:wrap;}
+.filter-label{font-size:10px;font-weight:700;color:var(--ink3);letter-spacing:1px;text-transform:uppercase;width:100%;margin-bottom:2px;}
+.fmes{display:flex;flex-wrap:wrap;gap:6px;width:100%;}
+.fmes button{background:var(--surface);border:1.5px solid var(--border);border-radius:20px;padding:5px 14px;font-size:12px;font-weight:600;color:var(--ink2);cursor:pointer;transition:all .15s;font-family:inherit;}
+.fmes button.on{background:var(--navy);border-color:var(--navy);color:#fff;}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:0 1rem .8rem;}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--rsm);padding:.7rem .5rem;text-align:center;box-shadow:var(--sh);}
+.stat-n{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--navy);}
+.stat-l{font-size:10px;color:var(--ink3);letter-spacing:.5px;margin-top:2px;text-transform:uppercase;}
+
+/* RANKING EQUIPES */
+.section-title{font-size:11px;font-weight:700;color:var(--ink3);letter-spacing:2px;text-transform:uppercase;padding:.5rem 1rem .4rem;}
+
+.team-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin:.5rem 1rem;overflow:hidden;box-shadow:var(--sh);transition:box-shadow .2s;}
+.team-card:hover{box-shadow:var(--sh2);}
+
+/* Posição no ranking */
+.team-hd{display:flex;align-items:center;gap:12px;padding:.85rem 1rem;border-bottom:1px solid var(--border);}
+.team-pos{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;min-width:32px;text-align:center;}
+.pos-1{color:#D97706;}
+.pos-2{color:#6B7385;}
+.pos-3{color:#92400E;}
+.team-avatar{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:#fff;flex-shrink:0;}
+.team-info{flex:1;min-width:0;}
+.team-nm{font-size:15px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.team-sub{font-size:11px;color:var(--ink3);margin-top:1px;}
+.team-score{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--navy);}
+.team-score.neg{color:#DC2626;}
+
+/* Barra de média */
+.team-bar-wrap{padding:.6rem 1rem .5rem;}
+.team-bar-label{display:flex;justify-content:space-between;font-size:10px;color:var(--ink3);margin-bottom:5px;}
+.team-bar-bg{height:8px;background:var(--border);border-radius:4px;overflow:hidden;}
+.team-bar-fill{height:100%;border-radius:4px;transition:width .8s cubic-bezier(.23,1,.32,1);}
+
+/* Detalhes da equipe */
+.team-details{padding:.5rem 1rem .8rem;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+.td-item{text-align:center;background:var(--surface2);border-radius:6px;padding:.5rem .3rem;}
+.td-n{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--navy);}
+.td-l{font-size:9px;color:var(--ink3);text-transform:uppercase;letter-spacing:.5px;margin-top:1px;}
+
+/* MEDALHAS */
+.medal{display:inline-block;margin-right:4px;}
+
+/* EMPTY */
+.empty{text-align:center;padding:3rem 1rem;color:var(--ink3);}
+.empty-icon{font-size:40px;margin-bottom:.8rem;}
+
+/* FOOTER */
+.footer{text-align:center;padding:1.5rem 1rem;font-size:10px;color:var(--ink3);letter-spacing:1px;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">
+    <svg viewBox="0 0 340 400" xmlns="http://www.w3.org/2000/svg">
+      <path d="M170 10L320 65L320 195C320 295 255 345 170 375C85 345 20 295 20 195L20 65Z" fill="#1E3560" stroke="#D97706" stroke-width="18"/>
+      <path d="M170 28L302 78L302 195C302 283 243 328 170 356C97 328 38 283 38 195L38 78Z" fill="none" stroke="#FBBF24" stroke-width="8"/>
+      <text x="170" y="230" text-anchor="middle" font-family="Arial" font-size="120" font-weight="900" fill="#FBBF24">E</text>
+    </svg>
+    <div><div class="logo-name">ESCUDO</div><div class="logo-sub">Ranking de Equipes</div></div>
+  </div>
+  <div class="topbar-r">
+    <div class="pill pill-sync" id="sync-pill"><span class="ldot" id="ldot"></span><span id="sync-txt">Conectando…</span></div>
+    <div class="pill pill-site">SAMARCO</div>
+  </div>
+</div>
+
+<div class="hdr">
+  <div class="hdr-title">🏆 Ranking de Equipes</div>
+  <div class="hdr-sub">Classificação por média de avaliações — sem influência do volume de inspeções</div>
+</div>
+
+<!-- FILTRO DE MÊS -->
+<div class="filters">
+  <div class="filter-label">Filtrar por mês</div>
+  <div class="fmes" id="fmes"></div>
+</div>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stat"><div class="stat-n" id="st-eq">—</div><div class="stat-l">Equipes</div></div>
+  <div class="stat"><div class="stat-n" id="st-insp">—</div><div class="stat-l">Inspeções</div></div>
+  <div class="stat"><div class="stat-n" id="st-med">—</div><div class="stat-l">Média geral</div></div>
+</div>
+
+<!-- RANKING -->
+<div class="section-title">CLASSIFICAÇÃO POR MÉDIA</div>
+<div id="ranking-list"></div>
+
+<div class="footer">IN-HAUS INDUSTRIAL · SAMARCO MINERAÇÃO<br>PROGRAMA ESCUDO · RANKING DE EQUIPES</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getDatabase, ref, onValue, get } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+
+const cfg = {
+  apiKey:"AIzaSyDP74FugIertZsbbi-LjUeNowEfWPqnmHo",
+  authDomain:"escudo-in-haus.firebaseapp.com",
+  databaseURL:"https://escudo-in-haus-default-rtdb.firebaseio.com",
+  projectId:"escudo-in-haus",
+  storageBucket:"escudo-in-haus.firebasestorage.app",
+  messagingSenderId:"961467182857",
+  appId:"1:961467182857:web:1458526eca1e78fddf6dd8"
+};
+
+const app  = initializeApp(cfg);
+const db   = getDatabase(app);
+
+const MESES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+let T = {}, S = {}, S_BONUS = {}, S_DESC = {};
+let curMes = new Date().getMonth(); // mês atual por padrão
+let allMeses = [];
+
+// Normaliza chaves Firebase (__ → §, _ → espaço para nomes)
+function normKeys(obj){
+  if(!obj) return {};
+  const out={};
+  Object.entries(obj).forEach(([k,v])=>{ out[k.replace(/__([^_]*)$/,'§$1')]=v; });
+  return out;
+}
+
+function setSP(st, msg){
+  const p=document.getElementById('sync-pill');
+  const d=document.getElementById('ldot');
+  const t=document.getElementById('sync-txt');
+  if(p){ p.className='pill pill-sync'+(st==='ok'?'':' w'); }
+  if(d){ d.className='ldot'+(st!=='ok'?' off':''); }
+  if(t){ t.textContent=msg; }
+}
+
+// ── CÁLCULO DO RANKING DE EQUIPES ──
+function buildTeamRanking(){
+  if(!Object.keys(T).length) return [];
+
+  const teams = {};
+
+  Object.entries(T).forEach(([tid, team])=>{
+    const members = [];
+    // Encarregado
+    if(team.enc && team.enc.n) members.push(team.enc.n);
+    // Membros
+    if(team.members) team.members.forEach(m=>{ if(m&&m.n) members.push(m.n); });
+
+    let totalPts = 0;
+    let countInsp = 0;
+    let totalBonus = 0;
+    let totalDesc = 0;
+
+    members.forEach(name=>{
+      const safeN = (name||'').replace(/[ .#$§\[\]]/g,'_');
+
+      // Inspeções deste mês (ou todos)
+      const inspKeys = curMes >= 0
+        ? Object.keys(S).filter(k=>k.startsWith(safeN+'§') && k.endsWith('§'+curMes))
+        : Object.keys(S).filter(k=>k.startsWith(safeN+'§'));
+
+      inspKeys.forEach(k=>{
+        const vals = S[k];
+        if(!vals) return;
+        const nums = vals.filter(v=>v!=null);
+        if(!nums.length) return;
+        const avg = nums.reduce((a,b)=>a+b,0)/nums.length;
+        totalPts += avg;
+        countInsp++;
+      });
+
+      // Bônus ideias
+      const bonusKeys = curMes >= 0
+        ? Object.keys(S_BONUS).filter(k=>k.startsWith(safeN+'§') && k.endsWith('§'+curMes))
+        : Object.keys(S_BONUS).filter(k=>k.startsWith(safeN+'§'));
+      bonusKeys.forEach(k=>{ totalBonus += (S_BONUS[k]?.ideias||0); });
+
+      // Descontos
+      const descKeys = curMes >= 0
+        ? Object.keys(S_DESC).filter(k=>k.startsWith(safeN+'§') && k.endsWith('§'+curMes))
+        : Object.keys(S_DESC).filter(k=>k.startsWith(safeN+'§'));
+      descKeys.forEach(k=>{ totalDesc += Math.abs(S_DESC[k]?.total||0); });
+    });
+
+    // MÉDIA DA EQUIPE = total pontos / número de inspeções realizadas
+    const mediaInsp = countInsp > 0 ? totalPts / countInsp : 0;
+    const mediaFinal = mediaInsp + totalBonus - totalDesc;
+
+    teams[tid] = {
+      tid,
+      label: team.label || tid,
+      color: team.color || '#1E3A5F',
+      members: members.length,
+      inspTotal: countInsp,
+      mediaInsp: mediaInsp,
+      mediaFinal: mediaFinal,
+      bonus: totalBonus,
+      desc: totalDesc,
+    };
+  });
+
+  // Ordenar por média final (maior → menor)
+  return Object.values(teams)
+    .filter(t=>t.inspTotal > 0) // só equipes com pelo menos 1 inspeção
+    .sort((a,b)=>b.mediaFinal - a.mediaFinal);
+}
+
+function buildMesesFilter(){
+  // Descobrir meses com dados
+  const mesesSet = new Set();
+  Object.keys(S).forEach(k=>{
+    const m = k.split('§')[1];
+    if(m !== undefined) mesesSet.add(parseInt(m));
+  });
+  allMeses = [...mesesSet].sort((a,b)=>a-b);
+
+  const el = document.getElementById('fmes');
+  if(!el) return;
+
+  // Botão "Todos"
+  const btnTodos = document.createElement('button');
+  btnTodos.textContent = 'Todos';
+  btnTodos.className = curMes === -1 ? 'on' : '';
+  btnTodos.onclick = ()=>{ curMes=-1; render(); };
+  el.appendChild(btnTodos);
+
+  allMeses.forEach(m=>{
+    const btn = document.createElement('button');
+    btn.textContent = MESES[m];
+    btn.className = curMes === m ? 'on' : '';
+    btn.onclick = ()=>{ curMes=m; render(); };
+    el.appendChild(btn);
+  });
+}
+
+const MEDALS = ['🥇','🥈','🥉'];
+
+function render(){
+  // Atualizar botões de mês
+  document.querySelectorAll('.fmes button').forEach((btn,i)=>{
+    const targetMes = i===0 ? -1 : allMeses[i-1];
+    btn.className = curMes === targetMes ? 'on' : '';
+  });
+
+  const ranking = buildTeamRanking();
+  const list = document.getElementById('ranking-list');
+  if(!list) return;
+
+  // Stats
+  const totalInsp = ranking.reduce((s,t)=>s+t.inspTotal,0);
+  const mediaGeral = ranking.length
+    ? ranking.reduce((s,t)=>s+t.mediaFinal,0)/ranking.length
+    : 0;
+  document.getElementById('st-eq').textContent   = ranking.length;
+  document.getElementById('st-insp').textContent = totalInsp;
+  document.getElementById('st-med').textContent  = ranking.length ? mediaGeral.toFixed(1) : '—';
+
+  if(!ranking.length){
+    list.innerHTML = '<div class="empty"><div class="empty-icon">📊</div><div>Nenhuma avaliação registrada para este período.</div></div>';
+    return;
+  }
+
+  const maxMedia = ranking[0].mediaFinal || 1;
+
+  list.innerHTML = ranking.map((t,i)=>{
+    const pos = i+1;
+    const posClass = pos<=3 ? 'pos-'+pos : '';
+    const barColor = pos===1?'#D97706':pos===2?'#6B7385':pos===3?'#92400E':'#1E3A5F';
+    const barW = Math.max(0, (t.mediaFinal/maxMedia)*100);
+    const scoreClass = t.mediaFinal < 0 ? 'team-score neg' : 'team-score';
+    const medal = MEDALS[i] || '';
+
+    return `
+      <div class="team-card">
+        <div class="team-hd">
+          <div class="team-pos ${posClass}">${medal||pos}</div>
+          <div class="team-avatar" style="background:${t.color}">${t.label.substring(0,2).toUpperCase()}</div>
+          <div class="team-info">
+            <div class="team-nm">${t.label}</div>
+            <div class="team-sub">${t.members} profissionais · ${t.inspTotal} inspeção${t.inspTotal!==1?'ões':''}</div>
+          </div>
+          <div class="${scoreClass}">${t.mediaFinal>=0?'':''}${t.mediaFinal.toFixed(2)}</div>
+        </div>
+        <div class="team-bar-wrap">
+          <div class="team-bar-label">
+            <span>Média da equipe</span>
+            <span>${t.mediaFinal.toFixed(2)} pts</span>
+          </div>
+          <div class="team-bar-bg">
+            <div class="team-bar-fill" style="width:${barW}%;background:${barColor};"></div>
+          </div>
+        </div>
+        <div class="team-details">
+          <div class="td-item">
+            <div class="td-n">${t.mediaInsp.toFixed(1)}</div>
+            <div class="td-l">Média inspeções</div>
+          </div>
+          <div class="td-item">
+            <div class="td-n" style="color:#059669;">+${t.bonus.toFixed(1)}</div>
+            <div class="td-l">Bônus ideias</div>
+          </div>
+          <div class="td-item">
+            <div class="td-n" style="color:#DC2626;">-${t.desc.toFixed(1)}</div>
+            <div class="td-l">Descontos</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ── FIREBASE ──
+window._onFbReady = async()=>{
+  setSP('w','Conectando…');
+  try{
+    const [st, ss, sb, sd] = await Promise.all([
+      get(ref(db,'escudo/teams')),
+      get(ref(db,'escudo/scores')),
+      get(ref(db,'escudo/scores_bonus')),
+      get(ref(db,'escudo/scores_desconto')),
+    ]);
+    if(st.exists()) T = st.val();
+    if(ss.exists()){ const raw=ss.val(); S={}; Object.entries(raw).forEach(([k,v])=>{ S[k.replace(/__([^_]*)$/,'§$1')]=v; }); }
+    if(sb.exists()) S_BONUS = normKeys(sb.val());
+    if(sd.exists()) S_DESC  = normKeys(sd.val());
+
+    setSP('ok','● Ao vivo');
+    buildMesesFilter();
+    render();
+
+    // Listeners tempo real
+    onValue(ref(db,'escudo/scores'),snap=>{
+      if(snap.exists()){ const raw=snap.val(); S={}; Object.entries(raw).forEach(([k,v])=>{ S[k.replace(/__([^_]*)$/,'§$1')]=v; }); render(); }
+    });
+    onValue(ref(db,'escudo/scores_bonus'),snap=>{
+      if(snap.exists()){ S_BONUS=normKeys(snap.val()); render(); }
+    });
+    onValue(ref(db,'escudo/scores_desconto'),snap=>{
+      if(snap.exists()){ S_DESC=normKeys(snap.val()); render(); }
+    });
+    onValue(ref(db,'escudo/teams'),snap=>{
+      if(snap.exists()){ T=snap.val(); render(); }
+    });
+  }catch(e){
+    setSP('w','Offline');
+    console.error(e);
+  }
+};
+
+setTimeout(window._onFbReady, 500);
+</script>
+</body>
+</html>
