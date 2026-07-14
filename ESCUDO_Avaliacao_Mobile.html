@@ -334,7 +334,8 @@ const DEFAULT_TEAMS = {
 let T  = JSON.parse(JSON.stringify(DEFAULT_TEAMS));
 let S  = {};
 let avMonth = new Date().getMonth();
-let selMb   = null;   // { key:'enc'|'0'..'N' }
+let selMb   = null;
+let selMbs  = []; // multi-select   // { key:'enc'|'0'..'N' }
 let avS     = {};     // scores em curso
 let curStep = 1;
 
@@ -390,9 +391,10 @@ function buildMeses(){
 function setMon(i){avMonth=i;buildMeses();}
 
 function onEqChange(){
-  selMb=null; avS={};
+  selMb=null; selMbs=[]; avS={};
   buildMeses();
-  // Ao mudar equipe no passo 1, limpa seleção de membro
+  // Ao mudar equipe, limpa seleção de membros
+  const cnt=document.getElementById('sel-count'); if(cnt) cnt.style.display='none';
 }
 
 function buildMemGrid(){
@@ -401,7 +403,8 @@ function buildMemGrid(){
   if(!tid||!T[tid]){wrap.innerHTML='<p style="color:var(--ink3);font-size:12px;">Selecione uma equipe no passo anterior.</p>';return;}
   const t=T[tid];
   const all=[{key:'enc',n:t.enc.n,c:t.enc.c+' (Encarregado)'},...t.members.map((m,i)=>({key:String(i),n:m.n,c:m.c}))];
-  wrap.innerHTML=`<div class="mem-grid">${all.map(m=>`
+  wrap.innerHTML=`<div id="sel-count" style="display:none;background:var(--navy);color:#FBBF24;font-size:11px;font-weight:700;letter-spacing:1px;text-align:center;padding:6px 10px;border-radius:6px;margin-bottom:8px;">0 profissionais selecionados</div>
+<div class="mem-grid">${all.map(m=>`
     <div class="mem-btn${selMb===m.key?' on':''}" id="mb-${m.key}" onclick="selMember('${m.key}')">
       <div class="mem-av" style="background:${t.color};">${ini(m.n)}</div>
       <div class="mem-nm">${f2(m.n)}</div>
@@ -410,11 +413,32 @@ function buildMemGrid(){
 }
 
 function selMember(key){
-  selMb=key;
+  // Toggle na lista de selecionados
+  const idx = selMbs.indexOf(key);
+  if(idx === -1){
+    selMbs.push(key);
+  } else {
+    selMbs.splice(idx,1);
+  }
+  // Atualiza visual dos botões
   document.querySelectorAll('.mem-btn').forEach(b=>b.classList.remove('on'));
-  const el=document.getElementById('mb-'+key);
-  if(el) el.classList.add('on');
+  selMbs.forEach(k=>{
+    const el=document.getElementById('mb-'+k);
+    if(el) el.classList.add('on');
+  });
+  // selMb mantém o último selecionado para compatibilidade
+  selMb = selMbs.length ? selMbs[selMbs.length-1] : null;
   buildMeses();
+  // Mostrar contador de selecionados
+  const cnt = document.getElementById('sel-count');
+  if(cnt){
+    if(selMbs.length > 1){
+      cnt.textContent = selMbs.length+' profissionais selecionados';
+      cnt.style.display='block';
+    } else {
+      cnt.style.display='none';
+    }
+  }
 }
 
 function getMemberInfo(){
@@ -514,16 +538,31 @@ function goS(n){
     const vals=crits.map(cr=>avS[cr.k]!==undefined?(avS[cr.k]==='na'?null:avS[cr.k]):null);
     const nums=vals.filter(v=>v!=null);
     if(!nums.length){alert('Avalie pelo menos um critério antes de registrar.');return;}
-    // Salva
-    const info=getMemberInfo();
-    S[info.n+'§'+avMonth]=vals;
+    // Salva para TODOS os selecionados (multi-select)
+    const targets = selMbs.length > 0 ? selMbs : (selMb ? [selMb] : []);
+    if(!targets.length){ alert('Selecione pelo menos um profissional.'); return; }
+    const t=T[tid];
+    targets.forEach(key=>{
+      let info;
+      if(key==='enc'){
+        info={n:t.enc.n, c:t.enc.c, color:t.color, label:t.label};
+      } else {
+        const m=t.members[parseInt(key)];
+        info={n:m.n, c:m.c, color:t.color, label:t.label};
+      }
+      const safeNInsp=(info.n||'').replace(/[ .#$§\[\]]/g,'_');
+      const fbKey=safeNInsp+'__'+avMonth;
+      S[safeNInsp+'§'+avMonth]=vals;
+    });
     saveToFirebase();
     const avg=nums.reduce((a,b)=>a+b,0)/nums.length;
     const naCount=crits.filter(cr=>avS[cr.k]==='na').length;
+    const mainInfo=getMemberInfo();
     document.getElementById('succ-score').textContent=avg.toFixed(1);
-    document.getElementById('succ-sub').textContent=`/ 5.0 — ${MESES_F[avMonth]}${naCount>0?` (${naCount} N/A)`:''}`;
-    document.getElementById('succ-nm').textContent=info.n;
-    document.getElementById('succ-team').textContent=info.label+' · '+info.c;
+    const plural=targets.length>1?` · ${targets.length} profissionais`:''
+    document.getElementById('succ-sub').textContent=`/ 5.0 — ${MESES_F[avMonth]}${naCount>0?` (${naCount} N/A)`:''}${plural}`;
+    document.getElementById('succ-nm').textContent=targets.length>1?`${targets.length} profissionais avaliados`:mainInfo.n;
+    document.getElementById('succ-team').textContent=mainInfo.label+' · '+(targets.length>1?'Avaliação em grupo':mainInfo.c);
   }
   [1,2,3,4].forEach(i=>document.getElementById('sc-'+i).classList.remove('on'));
   document.getElementById('sc-'+n).classList.add('on');
