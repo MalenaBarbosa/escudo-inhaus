@@ -410,22 +410,45 @@ function getRankData(eqFilter, mesFilter) {
       // Ignora só se absolutamente nada registrado
       if (!keys.length && totalBonus === 0 && totalDesc === 0) return;
 
-      // Média das inspeções (0 se não houver)
+      // Média bruta das inspeções (0 se não houver)
       const inspNums = keys.flatMap(k => (S[k]||[]).filter(v => v != null && v > 0));
       const baseAvg  = inspNums.length ? inspNums.reduce((a,b) => a+b,0) / inspNums.length : 0;
-
-      // Pontuação final = média inspeções + bônus ideias − descontos
-      const totFinal = baseAvg + totalBonus - totalDesc; // permite negativo
+      const nInsp    = keys.length; // número de inspeções
 
       by[m.n] = {
-        total: totFinal,
-        n: Math.max(keys.length, 1),
-        tid: t.id,
-        color: t.color,
-        label: t.label,
-        cargo: m.c || t.enc.c || ''
+        baseAvg:    baseAvg,
+        nInsp:      nInsp,
+        bonus:      totalBonus,
+        desc:       totalDesc,
+        total:      baseAvg, // será recalculado com Bayesian abaixo
+        n:          Math.max(nInsp, 1),
+        tid:        t.id,
+        color:      t.color,
+        label:      t.label,
+        cargo:      m.c || t.enc.c || ''
       };
     });
+  });
+
+  // ── FÓRMULA BAYESIANA INDIVIDUAL ──
+  const allEntries = Object.values(by).filter(v => v.nInsp > 0 || v.bonus > 0 || v.desc > 0);
+
+  // Calcular prior = média global de todos os indivíduos com inspeções
+  const withInsp = allEntries.filter(v => v.nInsp > 0);
+  const totalPtsGlobal  = withInsp.reduce((s,v) => s + v.baseAvg * v.nInsp, 0);
+  const totalInspGlobal = withInsp.reduce((s,v) => s + v.nInsp, 0);
+  const prior = totalInspGlobal > 0 ? totalPtsGlobal / totalInspGlobal : 3.5;
+  const C = 3; // constante de confiança individual (menor que equipes)
+
+  Object.keys(by).forEach(name => {
+    const v = by[name];
+    // Score bayesiano: puxa para prior quando inspeções são poucas
+    const bayScore = v.nInsp > 0
+      ? (v.nInsp * v.baseAvg + C * prior) / (v.nInsp + C)
+      : 0;
+    // Pontuação final = score bayesiano + bônus − descontos
+    v.total    = bayScore + v.bonus - v.desc;
+    v.bayScore = bayScore;
   });
 
   return Object.entries(by)
