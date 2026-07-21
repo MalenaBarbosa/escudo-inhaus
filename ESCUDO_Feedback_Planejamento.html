@@ -1101,6 +1101,16 @@ function renderHist() {
   const el = document.getElementById('hist-content'); if (!el) return;
   let entries = Object.entries(FB_DATA);
   if (histFilter !== 'all') entries = entries.filter(([,d]) => d.teamId === histFilter);
+  // Deduplicar por nome+mês — mantém a entrada mais recente (maior ts)
+  const seen = new Map();
+  entries.forEach(([key, d]) => {
+    const dedup_key = (d.name||key) + '_' + (d.mes||'');
+    const existing = seen.get(dedup_key);
+    if (!existing || (d.ts||'') > (existing[1].ts||'')) {
+      seen.set(dedup_key, [key, d]);
+    }
+  });
+  entries = Array.from(seen.values());
   entries = entries.sort((a,b) => (b[1].mes||0) - (a[1].mes||0));
 
   if (!entries.length) {
