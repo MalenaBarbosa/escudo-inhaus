@@ -1195,13 +1195,7 @@ window._onFbReady = async () => {
       if (Object.keys(teams).length >= 4) ALL_TEAMS = teams;
       else ALL_TEAMS = JSON.parse(JSON.stringify(DEFAULT_TEAMS)); // mantém padrão se Firebase vazio
       // Atualiza membros do Planejamento se existir no Firebase
-      if (teams.plan) {
-        const t = teams.plan;
-        const all = [];
-        if (t.enc && t.enc.n) all.push({n:t.enc.n,c:t.enc.c});
-        if (Array.isArray(t.members)) t.members.filter(m=>m&&m.n).forEach(m=>all.push({n:m.n,c:m.c||''}));
-        if (all.length > 0) PLAN_MEMBERS = all;
-      }
+      // Avaliadores do Planejamento controlados pelo HTML — não sobrescrever do Firebase
     }
     // Scores gerais
     const ss = await get(ref(db,'escudo/scores'));
@@ -1220,13 +1214,7 @@ window._onFbReady = async () => {
       if (Object.keys(teams).length >= 4) {
         ALL_TEAMS = teams;
         buildEquipeSel(); // atualiza select quando Firebase mudar
-        if (teams.plan) {
-          const t = teams.plan; const all = [];
-          if (t.enc && t.enc.n) all.push({n:t.enc.n,c:t.enc.c});
-          if (Array.isArray(t.members)) t.members.filter(m=>m&&m.n).forEach(m=>all.push({n:m.n,c:m.c||''}));
-          if (all.length > 0) PLAN_MEMBERS = all;
-          buildPlanejadorSel();
-        }
+        buildPlanejadorSel(); // Avaliadores controlados pelo HTML
         buildEquipeSel();
       }
     });
