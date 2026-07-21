@@ -112,7 +112,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 
 <div class="hdr">
   <div class="hdr-title">🏆 Ranking de Equipes</div>
-  <div class="hdr-sub">Classificação por média de avaliações — sem influência do volume de inspeções</div>
+  <div class="hdr-sub">Classificação por Score Bayesiano — pondera nota e volume de inspeções</div>
 </div>
 
 <!-- FILTRO DE MÊS -->
@@ -125,11 +125,11 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 <div class="stats">
   <div class="stat"><div class="stat-n" id="st-eq">—</div><div class="stat-l">Equipes</div></div>
   <div class="stat"><div class="stat-n" id="st-insp">—</div><div class="stat-l">Inspeções</div></div>
-  <div class="stat"><div class="stat-n" id="st-med">—</div><div class="stat-l">Média geral</div></div>
+  <div class="stat"><div class="stat-n" id="st-med">—</div><div class="stat-l">Prior global</div></div>
 </div>
 
 <!-- RANKING -->
-<div class="section-title">CLASSIFICAÇÃO POR MÉDIA</div>
+<div class="section-title">CLASSIFICAÇÃO POR SCORE BAYESIANO</div>
 <div id="ranking-list"></div>
 
 <div class="footer">IN-HAUS INDUSTRIAL · SAMARCO MINERAÇÃO<br>PROGRAMA ESCUDO · RANKING DE EQUIPES</div>
@@ -223,9 +223,8 @@ function buildTeamRanking(){
       descKeys.forEach(k=>{ totalDesc += Math.abs(S_DESC[k]?.total||0); });
     });
 
-    // MÉDIA DA EQUIPE = total pontos / número de inspeções realizadas
+    // Média bruta das inspeções
     const mediaInsp = countInsp > 0 ? totalPts / countInsp : 0;
-    const mediaFinal = mediaInsp + totalBonus - totalDesc;
 
     teams[tid] = {
       tid,
@@ -234,16 +233,31 @@ function buildTeamRanking(){
       members: members.length,
       inspTotal: countInsp,
       mediaInsp: mediaInsp,
-      mediaFinal: mediaFinal,
       bonus: totalBonus,
       desc: totalDesc,
+      // mediaFinal calculada após — precisa da média global
     };
   });
 
-  // Ordenar por média final (maior → menor)
-  return Object.values(teams)
-    .filter(t=>t.inspTotal > 0) // só equipes com pelo menos 1 inspeção
-    .sort((a,b)=>b.mediaFinal - a.mediaFinal);
+  // ── FÓRMULA BAYESIANA ──
+  // Calcula a média global de todas as equipes (prior)
+  const allTeams = Object.values(teams).filter(t=>t.inspTotal > 0);
+  const totalInspGlobal = allTeams.reduce((s,t)=>s+t.inspTotal, 0);
+  const totalPtsGlobal  = allTeams.reduce((s,t)=>s+t.mediaInsp*t.inspTotal, 0);
+  const prior = totalInspGlobal > 0 ? totalPtsGlobal / totalInspGlobal : 3.5;
+  const C = 5; // constante de confiança (mín de inspeções para confiar na nota)
+
+  allTeams.forEach(t => {
+    // Score bayesiano: puxa nota para prior quando insp é baixo
+    const bayScore = (t.inspTotal * t.mediaInsp + C * prior) / (t.inspTotal + C);
+    // Aplica bônus e descontos sobre o score bayesiano
+    t.mediaFinal = bayScore + t.bonus - t.desc;
+    t.bayScore   = bayScore; // para exibir no card
+    t.prior      = prior;
+  });
+
+  // Ordenar por score bayesiano final (maior → menor)
+  return allTeams.sort((a,b)=>b.mediaFinal - a.mediaFinal);
 }
 
 function buildMesesFilter(){
@@ -324,7 +338,7 @@ function render(){
         </div>
         <div class="team-bar-wrap">
           <div class="team-bar-label">
-            <span>Média da equipe</span>
+            <span>Score Bayesiano</span>
             <span>${t.mediaFinal.toFixed(2)} pts</span>
           </div>
           <div class="team-bar-bg">
@@ -333,16 +347,16 @@ function render(){
         </div>
         <div class="team-details">
           <div class="td-item">
-            <div class="td-n">${t.mediaInsp.toFixed(1)}</div>
-            <div class="td-l">Média inspeções</div>
+            <div class="td-n">${t.mediaInsp.toFixed(2)}</div>
+            <div class="td-l">Média bruta</div>
+          </div>
+          <div class="td-item">
+            <div class="td-n">${t.inspTotal}</div>
+            <div class="td-l">Inspeções</div>
           </div>
           <div class="td-item">
             <div class="td-n" style="color:#059669;">+${t.bonus.toFixed(1)}</div>
             <div class="td-l">Bônus ideias</div>
-          </div>
-          <div class="td-item">
-            <div class="td-n" style="color:#DC2626;">-${t.desc.toFixed(1)}</div>
-            <div class="td-l">Descontos</div>
           </div>
         </div>
       </div>
