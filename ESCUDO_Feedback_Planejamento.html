@@ -816,7 +816,7 @@ function buildMemGrid() {
   ];
   wrap.innerHTML = `<div class="mem-grid">${all.map((m, i) => {
     const hasDone = !!FB_DATA[m.n + '§' + avMonth];
-    const isSel = selMb && selMb.name === m.n;
+    const isSel = Array.isArray(selMbs)&&selMbs.some(s=>s.name===m.n);
     return `<div class="mem-btn${isSel?' on':''}" id="mb-${i}" data-name="${m.n}" onclick="selMember(${i},'${tid}')"
       style="${isSel?`border-color:${t.color};`:''}">
       <div class="mem-btn" style="position:absolute;top:0;left:0;right:0;height:3px;background:${t.color};border-radius:var(--rsm) var(--rsm) 0 0;"></div>
@@ -830,7 +830,8 @@ function buildMemGrid() {
 
 function selMember(i,tid){
   const t=ALL_TEAMS[tid];
-  const all=[{n:t.enc.n,c:t.enc.c+' (Encarregado)'},...t.members];
+  const membSorted=[...t.members].sort((a,b)=>(a.n||'').localeCompare(b.n||'','pt'));
+  const all=[{n:t.enc.n,c:t.enc.c+' (Encarregado)'},...membSorted];
   const m=all[i];
   const mbObj={name:m.n,cargo:m.c,teamId:tid,teamColor:t.color,teamLabel:t.label};
   const key=i+'_'+tid;
@@ -1290,6 +1291,14 @@ function selectFromSearch(name, teamId){
   selMb = selMbs.length ? selMbs[selMbs.length-1] : null;
   const cnt = document.getElementById('sel-count');
   if(cnt){ if(selMbs.length>1){ cnt.textContent=selMbs.length+' profissionais selecionados'; cnt.style.display='block'; } else { cnt.style.display='none'; } }
+  // Também atualizar o select de equipe para mostrar os membros da equipe
+  const eqSel = document.getElementById('av-equipe') || document.getElementById('av-eq');
+  if(eqSel && teamId && eqSel.value !== teamId){
+    eqSel.value = teamId;
+  }
+  // Atualizar select de equipe
+  const eqSel2 = document.getElementById('av-equipe');
+  if(eqSel2 && teamId) eqSel2.value = teamId;
   renderSearch();
   buildMemGrid();
 }
