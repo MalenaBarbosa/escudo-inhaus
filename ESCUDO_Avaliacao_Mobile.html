@@ -751,29 +751,16 @@ function selectFromSearch(name, teamId, key){
   const team = T[teamId];
   if(!team) return;
 
-  // 1. Atualizar a equipe no select do passo 1
+  // 1. Atualizar equipe no select
   const eqSel = document.getElementById('av-eq');
-  if(eqSel && teamId && eqSel.value !== teamId){
-    eqSel.value = teamId;
-    if(typeof buildMeses === 'function') buildMeses();
-  }
+  if(eqSel && teamId) eqSel.value = teamId;
 
-  // 2. Renderizar o grid da equipe
-  buildMemGrid();
+  // 2. Selecionar o membro via selMember (passa a key)
+  //    selMember já resolve info do membro pela key + equipe ativa
+  selMember(key);
 
-  // 3. Simular clique no botão do membro — usa o mesmo fluxo do selMember
-  // Dar um tempo para o grid renderizar
-  setTimeout(()=>{
-    // Verificar se o botão existe
-    const btn = document.querySelector('[data-name="'+name+'"]');
-    if(btn){
-      btn.click(); // dispara selMember com a key correta
-    } else {
-      // Fallback: selecionar via selMember com a key
-      selMember(key);
-    }
-  }, 50);
-
+  // 3. Atualizar meses e busca
+  if(typeof buildMeses === 'function') buildMeses();
   renderSearch();
 }
 
