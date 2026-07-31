@@ -421,9 +421,7 @@ function buildMemGrid(){
   const wrap=document.getElementById('mem-grid-wrap'); if(!wrap)return;
   if(!tid||!T[tid]){wrap.innerHTML='<p style="color:var(--ink3);font-size:12px;">Selecione uma equipe no passo anterior.</p>';return;}
   const t=T[tid];
-  const membSorted=[...t.members].sort((a,b)=>(a.n||'').localeCompare(b.n||'','pt'));
-  const all=[{key:'enc',n:t.enc.n,c:t.enc.c+' (Encarregado)'},...membSorted.map((m,i)=>({key:String(t.members.indexOf(m)),n:m.n,c:m.c}))];
-  
+  const all=[{key:'enc',n:t.enc.n,c:t.enc.c+' (Encarregado)'},...t.members.map((m,i)=>({key:String(i),n:m.n,c:m.c}))];
   wrap.innerHTML=`<div id="sel-count" style="display:none;background:var(--navy);color:#FBBF24;font-size:11px;font-weight:700;letter-spacing:1px;text-align:center;padding:6px 10px;border-radius:6px;margin-bottom:8px;">0 profissionais selecionados</div>
 <div class="mem-grid">${all.map(m=>`
     <div class="mem-btn${selMb===m.key?' on':''}" id="mb-${m.key}" onclick="selMember('${m.key}')">
@@ -755,11 +753,6 @@ function selectFromSearch(name, teamId, key){
   if(cnt){
     if(selMbs.length>1){ cnt.textContent=selMbs.length+' profissionais selecionados'; cnt.style.display='block'; }
     else { cnt.style.display='none'; }
-  }
-  // Atualizar select de equipe para a equipe do membro selecionado
-  const eqSel = document.getElementById('av-eq');
-  if(eqSel && teamId && eqSel.value !== teamId){
-    eqSel.value = teamId;
   }
   renderSearch();
   buildMemGrid();
