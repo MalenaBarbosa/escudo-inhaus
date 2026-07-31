@@ -419,19 +419,27 @@ function onEqChange(){
 function buildMemGrid(){
   const tid=document.getElementById('av-eq').value;
   const wrap=document.getElementById('mem-grid-wrap'); if(!wrap)return;
-  if(!tid||!T[tid]){wrap.innerHTML='<p style="color:var(--ink3);font-size:12px;">Selecione uma equipe no passo anterior.</p>';return;}
+  if(!tid||!T[tid]){
+    wrap.innerHTML='<p style="color:var(--ink3);font-size:12px;padding:.5rem;">Selecione uma equipe no passo anterior.</p>';
+    return;
+  }
   const t=T[tid];
   const membSorted=[...t.members].sort((a,b)=>(a.n||'').localeCompare(b.n||'','pt'));
-  const all=[{key:'enc',n:t.enc.n,c:t.enc.c+' (Encarregado)'},...membSorted.map((m)=>({key:String(t.members.indexOf(m)),n:m.n,c:m.c}))];
-  // Verificar selecionados pelo NOME (não pela key)
-  const isSelected=(n)=>Array.isArray(selMbs)&&selMbs.some(s=>s.name===n);
-  const cnt=selMbs&&selMbs.length>1?selMbs.length+' profissionais selecionados':'';
-  wrap.innerHTML='<div id="sel-count" style="display:'+(cnt?'block':'none')+';background:var(--navy);color:#FBBF24;font-size:11px;font-weight:700;letter-spacing:1px;text-align:center;padding:6px 10px;border-radius:6px;margin-bottom:8px;">'+cnt+'</div>'
-    +'<div class="mem-grid">'+all.map(m=>'<div class="mem-btn'+(isSelected(m.n)?' on':'')+'" id="mb-'+m.key+'" data-name="'+m.n+'" onclick="selMember(''+m.key+'')">'
-      +'<div class="mem-av" style="background:'+t.color+';">'+ini(m.n)+'</div>'
-      +'<div class="mem-nm">'+f2(m.n)+'</div>'
-      +'<div class="mem-role">'+m.c+'</div>'
-      +'</div>').join('')+'</div>';
+  const all=[{key:'enc',n:t.enc.n,c:t.enc.c+' (Encarregado)'},...membSorted.map(m=>({key:String(t.members.indexOf(m)),n:m.n,c:m.c}))];
+  const isSelected=n=>Array.isArray(selMbs)&&selMbs.some(s=>s.name===n);
+  const cnt=Array.isArray(selMbs)&&selMbs.length>1?selMbs.length+' profissionais selecionados':'';
+  let html='<div id="sel-count" style="display:'+(cnt?'block':'none')+';background:var(--navy);color:#FBBF24;font-size:11px;font-weight:700;letter-spacing:1px;text-align:center;padding:6px 10px;border-radius:6px;margin-bottom:8px;">'+cnt+'</div>';
+  html+='<div class="mem-grid">';
+  all.forEach(m=>{
+    const on=isSelected(m.n)?' on':'';
+    html+='<div class="mem-btn'+on+'" id="mb-'+m.key+'" data-name="'+m.n+'" onclick="selMember(\'' +m.key+ '\')">';
+    html+='<div class="mem-av" style="background:'+t.color+';">'+ini(m.n)+'</div>';
+    html+='<div class="mem-nm">'+f2(m.n)+'</div>';
+    html+='<div class="mem-role">'+m.c+'</div>';
+    html+='</div>';
+  });
+  html+='</div>';
+  wrap.innerHTML=html;
 }
 
 function selMember(key){
@@ -742,30 +750,31 @@ function renderSearch(){
 function selectFromSearch(name, teamId, key){
   const team = T[teamId];
   if(!team) return;
-  const cargo = key==='enc' ? team.enc.c : ((team.members||[])[parseInt(key)]||{}).c||'';
-  const mbObj = {name:name, cargo:cargo, teamId:teamId, teamLabel:team.label, teamColor:team.color};
 
-  if(!Array.isArray(selMbs)) selMbs=[];
-  const existIdx = selMbs.findIndex(s=>s.name===name);
-  if(existIdx===-1){ selMbs.push(mbObj); }
-  else { selMbs.splice(existIdx,1); }
-  selMb = selMbs.length ? selMbs[selMbs.length-1] : null;
-
-  // Atualizar contador
-  const cnt = document.getElementById('sel-count');
-  if(cnt){
-    if(selMbs.length>1){ cnt.textContent=selMbs.length+' profissionais selecionados'; cnt.style.display='block'; }
-    else { cnt.style.display='none'; }
-  }
-  // Atualizar select de equipe para mostrar a equipe do membro
+  // 1. Atualizar a equipe no select do passo 1
   const eqSel = document.getElementById('av-eq');
-  if(eqSel && teamId){
+  if(eqSel && teamId && eqSel.value !== teamId){
     eqSel.value = teamId;
-    // Atualizar também o mês disponível
     if(typeof buildMeses === 'function') buildMeses();
   }
-  renderSearch();
+
+  // 2. Renderizar o grid da equipe
   buildMemGrid();
+
+  // 3. Simular clique no botão do membro — usa o mesmo fluxo do selMember
+  // Dar um tempo para o grid renderizar
+  setTimeout(()=>{
+    // Verificar se o botão existe
+    const btn = document.querySelector('[data-name="'+name+'"]');
+    if(btn){
+      btn.click(); // dispara selMember com a key correta
+    } else {
+      // Fallback: selecionar via selMember com a key
+      selMember(key);
+    }
+  }, 50);
+
+  renderSearch();
 }
 
 </script>
