@@ -443,35 +443,40 @@ function buildMemGrid(){
 }
 
 function selMember(key){
-  // Toggle na lista de selecionados
-  const idx = selMbs.indexOf(key);
-  if(idx === -1){
-    selMbs.push(key);
+  const tid = document.getElementById('av-eq').value;
+  const t = T[tid]; if(!t) return;
+  // Obter info do membro pela key
+  let info;
+  if(key==='enc'){
+    info = {name:t.enc.n, cargo:t.enc.c, teamId:tid, teamLabel:t.label, teamColor:t.color};
   } else {
-    selMbs.splice(idx,1);
+    const m = t.members[parseInt(key)];
+    if(!m) return;
+    info = {name:m.n, cargo:m.c, teamId:tid, teamLabel:t.label, teamColor:t.color};
   }
-  // Atualiza visual dos botões
-  document.querySelectorAll('.mem-btn').forEach(b=>b.classList.remove('on'));
-  selMbs.forEach(k=>{
-    const el=document.getElementById('mb-'+k);
-    if(el) el.classList.add('on');
-  });
-  // selMb mantém o último selecionado para compatibilidade
+  // Toggle pelo nome
+  const existIdx = selMbs.findIndex(s=>s.name===info.name);
+  if(existIdx===-1){ selMbs.push(info); }
+  else { selMbs.splice(existIdx,1); }
   selMb = selMbs.length ? selMbs[selMbs.length-1] : null;
+  // Atualiza visual
+  buildMemGrid();
   buildMeses();
-  // Mostrar contador de selecionados
+  // Contador
   const cnt = document.getElementById('sel-count');
   if(cnt){
-    if(selMbs.length > 1){
-      cnt.textContent = selMbs.length+' profissionais selecionados';
-      cnt.style.display='block';
-    } else {
-      cnt.style.display='none';
-    }
+    if(selMbs.length>1){ cnt.textContent=selMbs.length+' profissionais selecionados'; cnt.style.display='block'; }
+    else { cnt.style.display='none'; }
   }
 }
 
 function getMemberInfo(){
+  // selMb agora é objeto {name, cargo, teamId, teamLabel, teamColor}
+  if(!selMb) return {n:'', c:'', color:'#1E3A5F', label:''};
+  if(typeof selMb === 'object'){
+    return {n:selMb.name, c:selMb.cargo, color:selMb.teamColor||'#1E3A5F', label:selMb.teamLabel};
+  }
+  // Fallback para string (compatibilidade)
   const tid=document.getElementById('av-eq').value;
   const t=T[tid];
   if(selMb==='enc') return {n:t.enc.n, c:t.enc.c, color:t.color, label:t.label};
@@ -572,16 +577,11 @@ function goS(n){
     const targets = selMbs.length > 0 ? selMbs : (selMb ? [selMb] : []);
     if(!targets.length){ alert('Selecione pelo menos um profissional.'); return; }
     const t=T[tid];
-    targets.forEach(key=>{
-      let info;
-      if(key==='enc'){
-        info={n:t.enc.n, c:t.enc.c, color:t.color, label:t.label};
-      } else {
-        const m=t.members[parseInt(key)];
-        info={n:m.n, c:m.c, color:t.color, label:t.label};
-      }
-      const safeNInsp=(info.n||'').replace(/[ .#$§\[\]]/g,'_');
-      const fbKey=safeNInsp+'__'+avMonth;
+    targets.forEach(mb=>{
+      // mb é objeto {name, cargo, teamId, teamLabel, teamColor}
+      const nome = mb.name || (typeof mb === 'string' ? mb : '');
+      if(!nome) return;
+      const safeNInsp=(nome).replace(/[ .#$§\[\]]/g,'_');
       S[safeNInsp+'§'+avMonth]=vals;
     });
     saveToFirebase();
