@@ -1277,30 +1277,30 @@ function renderSearch(){
   }).join('');
 }
 
-function selectFromSearch(name, teamId){
-  const team = ALL_TEAMS[teamId];
+function selectFromSearch(name, teamId, key){
+  const team = T[teamId] || (typeof ALL_TEAMS !== 'undefined' ? ALL_TEAMS[teamId] : null);
   if(!team) return;
-  // Encontrar o membro
-  let cargo = '';
-  if(team.enc.n === name) cargo = team.enc.c;
-  else { const m = (team.members||[]).find(m=>m.n===name); if(m) cargo = m.c; }
-  const mbObj = {name:name, cargo:cargo, teamId:teamId, teamLabel:team.label, teamColor:team.color};
-  if(!selMbs) selMbs = [];
-  const existIdx = selMbs.findIndex(s=>s.name===name);
-  if(existIdx===-1){ selMbs.push(mbObj); } else { selMbs.splice(existIdx,1); }
-  selMb = selMbs.length ? selMbs[selMbs.length-1] : null;
-  const cnt = document.getElementById('sel-count');
-  if(cnt){ if(selMbs.length>1){ cnt.textContent=selMbs.length+' profissionais selecionados'; cnt.style.display='block'; } else { cnt.style.display='none'; } }
-  // Também atualizar o select de equipe para mostrar os membros da equipe
-  const eqSel = document.getElementById('av-equipe') || document.getElementById('av-eq');
+
+  // 1. Atualizar select de equipe
+  const eqSel = document.getElementById('av-equipe');
   if(eqSel && teamId && eqSel.value !== teamId){
     eqSel.value = teamId;
   }
-  // Atualizar select de equipe
-  const eqSel2 = document.getElementById('av-equipe');
-  if(eqSel2 && teamId) eqSel2.value = teamId;
-  renderSearch();
+
+  // 2. Renderizar grid da equipe
   buildMemGrid();
+
+  // 3. Simular clique no botão do membro após grid renderizar
+  setTimeout(()=>{
+    const btn = document.querySelector('[data-name="'+name+'"]');
+    if(btn){
+      btn.click();
+    } else {
+      selMember(key);
+    }
+  }, 50);
+
+  renderSearch();
 }
 
 </script>
