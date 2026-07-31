@@ -289,7 +289,7 @@ let S_BONUS = {};   // bônus ideias de valor
 let S_DESC  = {};   // descontos (absenteísmo / NC)
 let isDemo  = true;
 let curEq   = 'all';   // filtro equipe
-let curMes  = -1;      // -1 = todos os meses
+let curMes  = new Date().getMonth(); // inicia no mês atual
 let curTab  = 'ranking';
 
 /* ── Utils ── */
