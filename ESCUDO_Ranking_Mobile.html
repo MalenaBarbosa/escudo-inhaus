@@ -720,7 +720,11 @@ window._onFbReady = async () => {
     const s = await get(ref(db, 'escudo/teams'));
     if (s.exists()) {
       const c = normTeams(s.val());
-      if (Object.keys(c).length >= 4) { T = c; isDemo = false; }
+      if (Object.keys(c).length >= 4) {
+        // Merge: Firebase + equipes do DEFAULT que não estão no Firebase
+        T = {...DEFAULT_TEAMS, ...c};
+        isDemo = false;
+      }
     }
     const s2 = await get(ref(db, 'escudo/scores'));
     if (s2.exists()) {
@@ -743,7 +747,7 @@ window._onFbReady = async () => {
     onValue(ref(db, 'escudo/teams'), snap => {
       if (!snap.exists()) return;
       const c = normTeams(snap.val());
-      if (Object.keys(c).length >= 4) { T = c; isDemo = false; render(); }
+      if (Object.keys(c).length >= 4) { T = {...DEFAULT_TEAMS, ...c}; isDemo = false; render(); }
     });
     onValue(ref(db, 'escudo/scores'), snap => {
       if (!snap.exists()) return;
