@@ -445,14 +445,22 @@ function buildMemGrid(){
 function selMember(key){
   const tid = document.getElementById('av-eq').value;
   const t = T[tid]; if(!t) return;
-  // Obter info do membro pela key
+  // Obter info do membro pela key (índice ou 'enc')
   let info;
   if(key==='enc'){
     info = {name:t.enc.n, cargo:t.enc.c, teamId:tid, teamLabel:t.label, teamColor:t.color};
-  } else {
+  } else if(!isNaN(parseInt(key))) {
     const m = t.members[parseInt(key)];
     if(!m) return;
     info = {name:m.n, cargo:m.c, teamId:tid, teamLabel:t.label, teamColor:t.color};
+  } else {
+    // key é um NOME — buscar nos members
+    const mByName = key===t.enc.n
+      ? {n:t.enc.n, c:t.enc.c}
+      : (t.members||[]).find(m=>m.n===key);
+    if(!mByName) return;
+    const isEnc = key===t.enc.n;
+    info = {name:mByName.n, cargo:mByName.c, teamId:tid, teamLabel:t.label, teamColor:t.color};
   }
   // Toggle pelo nome
   const existIdx = selMbs.findIndex(s=>s.name===info.name);
@@ -755,9 +763,8 @@ function selectFromSearch(name, teamId, key){
   const eqSel = document.getElementById('av-eq');
   if(eqSel && teamId) eqSel.value = teamId;
 
-  // 2. Selecionar o membro via selMember (passa a key)
-  //    selMember já resolve info do membro pela key + equipe ativa
-  selMember(key);
+  // 2. Selecionar pelo NOME — não pelo índice (que pode ter mudado após sort)
+  selMember(name);
 
   // 3. Atualizar meses e busca
   if(typeof buildMeses === 'function') buildMeses();
