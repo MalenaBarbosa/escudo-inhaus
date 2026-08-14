@@ -1091,28 +1091,16 @@ function renderSearch(){
 }
 
 function selectFromSearch(name, teamId, key){
-  const team = T[teamId] || (typeof ALL_TEAMS !== 'undefined' ? ALL_TEAMS[teamId] : null);
+  const team = (typeof ALL_TEAMS!=='undefined'?ALL_TEAMS:T)[teamId];
   if(!team) return;
-
-  // 1. Atualizar select de equipe
   const eqSel = document.getElementById('av-equipe');
-  if(eqSel && teamId && eqSel.value !== teamId){
-    eqSel.value = teamId;
-  }
-
-  // 2. Renderizar grid da equipe
-  buildMemGrid();
-
-  // 3. Simular clique no botão do membro após grid renderizar
-  setTimeout(()=>{
-    const btn = document.querySelector('[data-name="'+name+'"]');
-    if(btn){
-      btn.click();
-    } else {
-      selMember(key);
-    }
-  }, 50);
-
+  if(eqSel && teamId) eqSel.value = teamId;
+  // Encontrar índice na lista ORDENADA igual ao buildMemGrid
+  const membSorted=[...team.members].sort((a,b)=>(a.n||'').localeCompare(b.n||'','pt'));
+  const all=[{n:team.enc.n,c:team.enc.c+' (Encarregado)'},...membSorted];
+  const idx_found = all.findIndex(m=>m.n===name);
+  if(idx_found === -1) return;
+  selMember(idx_found, teamId);
   renderSearch();
 }
 
