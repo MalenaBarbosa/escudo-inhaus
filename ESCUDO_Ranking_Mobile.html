@@ -298,10 +298,11 @@ const f2  = n => (n||'?').split(' ').slice(0,2).join(' ');
 
 /* ── Normaliza times do Firebase — rejeita equipes inválidas ── */
 // Lista de IDs e nomes válidos — rejeita qualquer dado fora disso
-const VALID_TEAM_IDS = new Set(['A','B','C','D','prod','manut','plan','sesmt','windfense']);
+const VALID_TEAM_IDS = new Set(['A','B','C','D','prod','manut','plan','sesmt','windfense','cond_insegura','sem_equipe']);
 const VALID_TEAM_LABELS = new Set([
   'Turno A','Turno B','Turno C','Turno D',
-  'Prod. Pátio/Porto','Manutenção','Planejamento','SESMT','Wind Fense'
+  'Prod. Pátio/Porto','Manutenção','Planejamento','SESMT','Wind Fence','Wind Fense',
+  'Condição Insegura','Sem Equipe Definida','ETEI','Precipitador'
 ]);
 
 function normTeams(raw) {
@@ -319,7 +320,7 @@ function normTeams(raw) {
     // Rejeita labels que parecem incidentes ou dados inválidos
     // (ex: "Condição Insegura", "Acidente", etc.)
     const labelUpper = t.label.toUpperCase();
-    const REJECT_WORDS = ['CONDIÇÃO','INSEGURA','ACIDENTE','INCIDENTE','TESTE','TEST','UNDEFINED','NULL'];
+    const REJECT_WORDS = ['ACIDENTE','INCIDENTE','TESTE','TEST','UNDEFINED','NULL'];
     if (REJECT_WORDS.some(w => labelUpper.includes(w))) return;
 
     // Normaliza encarregado
