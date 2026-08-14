@@ -480,15 +480,30 @@ function goTab(name, btn) {
 /* ── Filtros ── */
 function buildEqFilters() {
   const wrap = document.getElementById('eq-filters'); if (!wrap) return;
-  // Monta todos os botões de equipe (sem o "Todas" no início)
-  const teams = Object.values(T);
+
+  // Descobrir quais equipes têm pelo menos 1 membro com inspeção registrada
+  const teamsWithData = new Set();
+  Object.values(T).forEach(t => {
+    const allNames = [];
+    if(t.enc && t.enc.n) allNames.push(t.enc.n);
+    (t.members||[]).forEach(m=>{ if(m&&m.n) allNames.push(m.n); });
+    const hasInsp = allNames.some(name => {
+      const safeN = (name||'').replace(/[ .#$§\[\]]/g,'_');
+      return Object.keys(S).some(k => k.startsWith(safeN+'§'));
+    });
+    if(hasInsp) teamsWithData.add(t.id);
+  });
+
+  // Mostrar apenas equipes com dados — elimina duplicatas e equipes vazias
+  const teams = Object.values(T).filter(t => teamsWithData.has(t.id));
+
   const teamBtns = teams.map(t => {
     const act = curEq === t.id;
     return `<button class="ftab${act?' on':''}"
       style="${act?`background:${t.color};border-color:${t.color};`:''}"
       onclick="setEq('${t.id}',this)">${t.label}</button>`;
   }).join('');
-  // Botão "Todas" ocupa linha inteira embaixo
+
   const todasBtn = `<button class="ftab ftab-all${curEq==='all'?' on':''}"
     style="${curEq==='all'?'background:var(--navy);border-color:var(--navy);':''}"
     onclick="setEq('all',this)">✦ Todas as equipes</button>`;
