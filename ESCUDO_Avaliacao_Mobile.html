@@ -395,13 +395,12 @@ function populateEqSel(){
 function buildMeses(){
   const el=document.getElementById('av-meses'); if(!el)return;
   const tid=document.getElementById('av-eq').value;
-  const mb=selMb;
   el.innerHTML=MESES.map((m,i)=>{
     let hasDone=false;
-    if(tid&&mb!==null){
-      const t=T[tid];
-      const nm=mb==='enc'?t.enc.n:t.members[parseInt(mb)].n;
-      const safeNm=(nm||'').replace(/[ .#$§\[\]]/g,'_'); hasDone=!!S[safeNm+'§'+i];
+    // selMb agora é objeto {name, cargo, teamId...}
+    if(tid && selMb && typeof selMb==='object' && selMb.name){
+      const safeNm=(selMb.name||'').replace(/[ .#$§\[\]]/g,'_');
+      hasDone=!!S[safeNm+'§'+i];
     }
     return `<button class="mpill${i===avMonth?' on':''}${hasDone&&i!==avMonth?' done':''}"
       onclick="setMon(${i})">${m}</button>`;
@@ -432,7 +431,9 @@ function buildMemGrid(){
   html+='<div class="mem-grid">';
   all.forEach(m=>{
     const on=isSelected(m.n)?' on':'';
-    html+='<div class="mem-btn'+on+'" id="mb-'+m.key+'" data-name="'+m.n+'" onclick="selMemberByName(\'' +m.n.replace(/\'/g,\'\\\'\')+  '\',\'' +tid+ '\')">';
+    const safeName = JSON.stringify(m.n);
+    const safeTid  = JSON.stringify(tid);
+    html+='<div class="mem-btn'+on+'" id="mb-'+m.key+'" data-name="'+m.n+'" onclick="selMemberByName('+safeName+','+safeTid+')">';
     html+='<div class="mem-av" style="background:'+t.color+';">'+ini(m.n)+'</div>';
     html+='<div class="mem-nm">'+f2(m.n)+'</div>';
     html+='<div class="mem-role">'+m.c+'</div>';
