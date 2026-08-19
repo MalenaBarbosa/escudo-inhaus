@@ -432,7 +432,7 @@ function buildMemGrid(){
   html+='<div class="mem-grid">';
   all.forEach(m=>{
     const on=isSelected(m.n)?' on':'';
-    html+='<div class="mem-btn'+on+'" id="mb-'+m.key+'" data-name="'+m.n+'" onclick="selMember(\'' +m.key+ '\')">';
+    html+='<div class="mem-btn'+on+'" id="mb-'+m.key+'" data-name="'+m.n+'" onclick="selMemberByName(\'' +m.n.replace(/\'/g,\'\\\'\')+  '\',\'' +tid+ '\')">';
     html+='<div class="mem-av" style="background:'+t.color+';">'+ini(m.n)+'</div>';
     html+='<div class="mem-nm">'+f2(m.n)+'</div>';
     html+='<div class="mem-role">'+m.c+'</div>';
@@ -440,6 +440,26 @@ function buildMemGrid(){
   });
   html+='</div>';
   wrap.innerHTML=html;
+}
+
+
+function selMemberByName(name, tid){
+  const t = T[tid]; if(!t) return;
+  let cargo = '';
+  if(t.enc.n === name) cargo = t.enc.c;
+  else { const m = (t.members||[]).find(m=>m.n===name); if(m) cargo = m.c; }
+  const mbObj = {name:name, cargo:cargo, teamId:tid, teamLabel:t.label, teamColor:t.color};
+  const existIdx = selMbs.findIndex(s=>s.name===name);
+  if(existIdx===-1){ selMbs.push(mbObj); }
+  else { selMbs.splice(existIdx,1); }
+  selMb = selMbs.length ? selMbs[selMbs.length-1] : null;
+  buildMemGrid();
+  buildMeses();
+  const cnt = document.getElementById('sel-count');
+  if(cnt){
+    if(selMbs.length>1){ cnt.textContent=selMbs.length+' profissionais selecionados'; cnt.style.display='block'; }
+    else { cnt.style.display='none'; }
+  }
 }
 
 function selMember(key){
@@ -764,7 +784,7 @@ function selectFromSearch(name, teamId, key){
   if(eqSel && teamId) eqSel.value = teamId;
 
   // 2. Selecionar pelo NOME — não pelo índice (que pode ter mudado após sort)
-  selMember(name);
+  selMemberByName(name, teamId);
 
   // 3. Atualizar meses e busca
   if(typeof buildMeses === 'function') buildMeses();
