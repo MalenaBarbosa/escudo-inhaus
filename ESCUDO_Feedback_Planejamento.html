@@ -823,7 +823,7 @@ function buildMemGrid() {
   all.forEach((m, i) => {
     const hasDone = !!FB_DATA[m.n + '§' + avMonth];
     const on = isSelected(m.n);
-    html += '<div class="mem-btn'+(on?' on':'')+'" id="mb-'+i+'" data-name="'+m.n+'" onclick="selMember('+i+',''+tid+'')" style="'+(on?'border-color:'+t.color+';':'')+'">';
+    html += '<div class="mem-btn'+(on?' on':'')+'" id="mb-'+i+'" data-name="'+m.n+'" onclick="selMemberByName(''+m.n.replace(/'/g,\'\\\'\')+'',''+tid+'')" style="'+(on?'border-color:'+t.color+';':'')+'">';
     html += '<div style="position:absolute;top:0;left:0;right:0;height:3px;background:'+t.color+';border-radius:var(--rsm) var(--rsm) 0 0;"></div>';
     html += '<div class="mem-av" style="background:'+t.color+';">'+ini(m.n)+'</div>';
     html += '<div class="mem-nm">'+f2(m.n)+'</div>';
@@ -833,6 +833,32 @@ function buildMemGrid() {
   });
   html += '</div>';
   wrap.innerHTML = html;
+}
+
+
+function selMemberByName(name, tid){
+  const t = ALL_TEAMS[tid]; if(!t) return;
+  // Buscar membro pelo nome
+  let cargo = '';
+  if(t.enc.n === name) cargo = t.enc.c;
+  else {
+    const m = (t.members||[]).find(m=>m.n===name);
+    if(m) cargo = m.c;
+  }
+  const mbObj = {name:name, cargo:cargo, teamId:tid, teamColor:t.color, teamLabel:t.label};
+  // Toggle
+  const existIdx = selMbs.findIndex(s=>s.name===name && s.teamId===tid);
+  if(existIdx===-1){ selMbs.push(mbObj); }
+  else { selMbs.splice(existIdx,1); }
+  selMb = selMbs.length ? selMbs[selMbs.length-1] : null;
+  // Atualizar visual
+  buildMemGrid();
+  // Contador
+  const cnt = document.getElementById('sel-count');
+  if(cnt){
+    if(selMbs.length>1){ cnt.textContent=selMbs.length+' profissionais selecionados'; cnt.style.display='block'; }
+    else { cnt.style.display='none'; }
+  }
 }
 
 function selMember(i,tid){
@@ -1294,7 +1320,7 @@ function selectFromSearch(name, teamId, key){
   const all=[{n:team.enc.n,c:team.enc.c+' (Encarregado)'},...membSorted];
   const idx_found = all.findIndex(m=>m.n===name);
   if(idx_found === -1) return;
-  selMember(idx_found, teamId);
+  selMemberByName(name, teamId);
   renderSearch();
 }
 
