@@ -788,7 +788,7 @@ function buildMemGrid() {
     const isSel = selMb && selMb.name === m.n;
     return `<div class="mem-btn${isSel?' on':''}" id="mb-${i}" data-name="${m.n}" onclick="selMember(${i},'${tid}')"
       style="${isSel?`border-color:${t.color};`:''}">
-      <div class="mem-btn" style="position:absolute;top:0;left:0;right:0;height:3px;background:${t.color};border-radius:var(--rsm) var(--rsm) 0 0;"></div>
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:${t.color};border-radius:var(--rsm) var(--rsm) 0 0;"></div>
       <div class="mem-av" style="background:${t.color};">${ini(m.n)}</div>
       <div class="mem-nm">${f2(m.n)}</div>
       <div class="mem-role">${m.c}</div>
