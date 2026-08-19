@@ -424,16 +424,15 @@ function buildMemGrid(){
   }
   const t=T[tid];
   const membSorted=[...t.members].sort((a,b)=>(a.n||'').localeCompare(b.n||'','pt'));
-  const all=[{key:'enc',n:t.enc.n,c:t.enc.c+' (Encarregado)'},...membSorted.map(m=>({key:String(t.members.indexOf(m)),n:m.n,c:m.c}))];
+  const all=[{n:t.enc.n,c:t.enc.c+' (Encarregado)'},...membSorted];
   const isSelected=n=>Array.isArray(selMbs)&&selMbs.some(s=>s.name===n);
   const cnt=Array.isArray(selMbs)&&selMbs.length>1?selMbs.length+' profissionais selecionados':'';
   let html='<div id="sel-count" style="display:'+(cnt?'block':'none')+';background:var(--navy);color:#FBBF24;font-size:11px;font-weight:700;letter-spacing:1px;text-align:center;padding:6px 10px;border-radius:6px;margin-bottom:8px;">'+cnt+'</div>';
-  html+='<div class="mem-grid">';
-  all.forEach(m=>{
+  html+='<div class="mem-grid" id="mem-grid-inner">';
+  all.forEach((m,i)=>{
     const on=isSelected(m.n)?' on':'';
-    const safeName = JSON.stringify(m.n);
-    const safeTid  = JSON.stringify(tid);
-    html+='<div class="mem-btn'+on+'" id="mb-'+m.key+'" data-name="'+m.n+'" onclick="selMemberByName('+safeName+','+safeTid+')">';
+    // Usar data-mname e data-mtid para evitar problemas com aspas no onclick
+    html+='<div class="mem-btn'+on+'" data-mname="'+encodeURIComponent(m.n)+'" data-mtid="'+tid+'">';
     html+='<div class="mem-av" style="background:'+t.color+';">'+ini(m.n)+'</div>';
     html+='<div class="mem-nm">'+f2(m.n)+'</div>';
     html+='<div class="mem-role">'+m.c+'</div>';
@@ -441,6 +440,17 @@ function buildMemGrid(){
   });
   html+='</div>';
   wrap.innerHTML=html;
+  // Adicionar event listener ao grid (event delegation — SEM onclick inline)
+  const grid=document.getElementById('mem-grid-inner');
+  if(grid){
+    grid.addEventListener('click',function(e){
+      const btn=e.target.closest('[data-mname]');
+      if(!btn) return;
+      const name=decodeURIComponent(btn.dataset.mname);
+      const tid2=btn.dataset.mtid;
+      selMemberByName(name, tid2);
+    });
+  }
 }
 
 
