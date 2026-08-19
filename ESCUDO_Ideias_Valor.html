@@ -591,7 +591,7 @@ function buildMemGrid(){
   wrap.innerHTML=`<div class="mem-grid">${all.map((m,i)=>{
     const pts=getTotalPts(m.n,avMonth);
     const isSel = Array.isArray(selMbs)&&selMbs.some(s=>s.name===m.n);
-    return `<div class="mem-btn${isSel?' on':''}" id="mb-${i}" data-name="${m.n}" onclick="selMember(${i},'${tid}')"
+    return `<div class="mem-btn${isSel?' on':''}" id="mb-${i}" data-name="${m.n}" onclick="selMemberByName('${m.n}','${tid}')"
       style="${isSel?`border-color:${t.color};`:''}">
       <div style="position:absolute;top:0;left:0;right:0;height:3px;background:${t.color};border-radius:var(--rsm) var(--rsm) 0 0;"></div>
       <div class="mem-av" style="background:${t.color};">${ini(m.n)}</div>
@@ -606,6 +606,25 @@ function getTotalPts(name,mes){
   const d=FB_IDEIAS[key];
   if(!d)return 0;
   return (d.sst||0)+(d.ma||0);
+}
+
+
+function selMemberByName(name, tid){
+  const t = T[tid]; if(!t) return;
+  let cargo = '';
+  if(t.enc.n === name) cargo = t.enc.c;
+  else { const m = (t.members||[]).find(m=>m.n===name); if(m) cargo = m.c; }
+  const mbObj = {name:name, cargo:cargo, teamId:tid, teamColor:t.color, teamLabel:t.label};
+  const existIdx = selMbs.findIndex(s=>s.name===name && s.teamId===tid);
+  if(existIdx===-1){ selMbs.push(mbObj); }
+  else { selMbs.splice(existIdx,1); }
+  selMb = selMbs.length ? selMbs[selMbs.length-1] : null;
+  buildMemGrid();
+  const cnt = document.getElementById('sel-count');
+  if(cnt){
+    if(selMbs.length>1){ cnt.textContent=selMbs.length+' profissionais selecionados'; cnt.style.display='block'; }
+    else { cnt.style.display='none'; }
+  }
 }
 
 function selMember(i,tid){
@@ -1008,7 +1027,7 @@ function selectFromSearch(name, teamId, key){
   const all=[{n:team.enc.n,c:team.enc.c+' (Encarregado)'},...membSorted];
   const idx_found = all.findIndex(m=>m.n===name);
   if(idx_found === -1) return;
-  selMember(idx_found, teamId);
+  selMemberByName(name, teamId);
   renderSearch();
 }
 
