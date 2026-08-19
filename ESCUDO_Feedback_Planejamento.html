@@ -802,37 +802,32 @@ function buildEquipeSel() {
   if (cur && ALL_TEAMS[cur] && ALL_TEAMS[cur].seg === curSeg) sel.value = cur;
 }
 
-function buildMemGrid() {
-  const tid = document.getElementById('av-equipe').value;
-  const wrap = document.getElementById('mem-grid-wrap'); if (!wrap) return;
-  if (!tid || !ALL_TEAMS[tid]) {
-    wrap.innerHTML = '<div class="no-data" style="padding:.5rem;">Selecione a equipe acima.</div>';
-    selMb = null; return;
+function buildMemGrid(){
+  const tid=document.getElementById('av-equipe').value;
+  const wrap=document.getElementById('mem-grid-wrap'); if(!wrap)return;
+  if(!tid||!ALL_TEAMS[tid]){
+    wrap.innerHTML='<div class="no-data" style="padding:.5rem;">Selecione a equipe acima.</div>';
+    selMb=null; return;
   }
-  const t = ALL_TEAMS[tid];
-  // ORDENAR igual ao selMember — encarregado primeiro, depois alfabético
-  const membSorted = [...t.members].sort((a,b)=>(a.n||'').localeCompare(b.n||'','pt'));
-  const all = [
-    { n: t.enc.n, c: t.enc.c + ' (Encarregado)', isEnc: true },
-    ...membSorted.map(m => ({ n: m.n, c: m.c, isEnc: false }))
-  ];
-  const isSelected = n => Array.isArray(selMbs) && selMbs.some(s=>s.name===n);
-  const cnt = Array.isArray(selMbs) && selMbs.length > 1 ? selMbs.length+' profissionais selecionados' : '';
-  let html = '<div id="sel-count" style="display:'+(cnt?'block':'none')+';background:var(--navy);color:#FBBF24;font-size:11px;font-weight:700;letter-spacing:1px;text-align:center;padding:6px 10px;border-radius:6px;margin-bottom:8px;">'+cnt+'</div>';
-  html += '<div class="mem-grid">';
-  all.forEach((m, i) => {
-    const hasDone = !!FB_DATA[m.n + '§' + avMonth];
-    const on = isSelected(m.n);
-    html += '<div class="mem-btn'+(on?' on':'')+'" id="mb-'+i+'" data-name="'+m.n+'" onclick="selMemberByName(''+m.n.replace(/'/g,\'\\\'\')+'',''+tid+'')" style="'+(on?'border-color:'+t.color+';':'')+'">';
-    html += '<div style="position:absolute;top:0;left:0;right:0;height:3px;background:'+t.color+';border-radius:var(--rsm) var(--rsm) 0 0;"></div>';
-    html += '<div class="mem-av" style="background:'+t.color+';">'+ini(m.n)+'</div>';
-    html += '<div class="mem-nm">'+f2(m.n)+'</div>';
-    html += '<div class="mem-role">'+m.c+'</div>';
-    if(hasDone) html += '<div class="mem-done">✓ avaliado</div>';
-    html += '</div>';
+  const t=ALL_TEAMS[tid];
+  const membSorted=[...t.members].sort((a,b)=>(a.n||'').localeCompare(b.n||'','pt'));
+  const all=[{n:t.enc.n,c:t.enc.c+' (Encarregado)'},...membSorted];
+  const isSelected=n=>Array.isArray(selMbs)&&selMbs.some(s=>s.name===n);
+  const cnt=Array.isArray(selMbs)&&selMbs.length>1?selMbs.length+' profissionais selecionados':'';
+  let html='<div id="sel-count" style="display:'+(cnt?'block':'none')+';background:var(--navy);color:#FBBF24;font-size:11px;font-weight:700;letter-spacing:1px;text-align:center;padding:6px 10px;border-radius:6px;margin-bottom:8px;">'+cnt+'</div>';
+  html+='<div class="mem-grid">';
+  all.forEach((m,i)=>{
+    const on=isSelected(m.n)?' on':'';
+    const safeName=JSON.stringify(m.n);
+    const safeTid=JSON.stringify(tid);
+    html+='<div class="mem-btn'+on+'" id="mb-'+i+'" data-name="'+m.n+'" onclick="selMemberByName('+safeName+','+safeTid+')">';
+    html+='<div class="mem-av" style="background:'+t.color+';">'+ini(m.n)+'</div>';
+    html+='<div class="mem-nm">'+f2(m.n)+'</div>';
+    html+='<div class="mem-role">'+m.c+'</div>';
+    html+='</div>';
   });
-  html += '</div>';
-  wrap.innerHTML = html;
+  html+='</div>';
+  wrap.innerHTML=html;
 }
 
 
