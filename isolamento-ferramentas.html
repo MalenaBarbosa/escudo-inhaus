@@ -1,0 +1,1927 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Central Escudo</title>
+<meta name="description" content="Gestão de isolamento/sinalização e conferência de ferramentas do Programa Escudo">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+  :root{
+    --bg: #eef1f5;
+    --bg-deep: #e3e9ee;
+    --surface: #ffffff;
+    --surface-sunken: #f4f6f8;
+    --border: #d3dbe2;
+    --border-strong: #b7c2cc;
+    --ink: #142433;
+    --ink-muted: #55677a;
+    --ink-faint: #8797a6;
+    --brand: #1c4d7c;
+    --brand-ink: #0f3257;
+    --brand-soft: #e2ecf5;
+    --accent: #e8a512;
+    --accent-ink: #7a5205;
+    --accent-soft: #fbecc7;
+    --ok: #2f9e58;
+    --ok-ink: #2f9e58;
+    --ok-soft: #e2f5e9;
+    --warn: #d97706;
+    --warn-ink: #d97706;
+    --warn-soft: #fdedd6;
+    --danger: #c1352b;
+    --danger-ink: #c1352b;
+    --danger-soft: #fbe3e1;
+    --neutral-chart: #8797a6;
+    --shadow: 0 1px 2px rgba(20,36,51,.06), 0 8px 24px -12px rgba(20,36,51,.18);
+    --radius: 10px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg: #0f1720;
+      --bg-deep: #0a1119;
+      --surface: #161f2a;
+      --surface-sunken: #101822;
+      --border: #263340;
+      --border-strong: #33424f;
+      --ink: #e7edf3;
+      --ink-muted: #9db0c0;
+      --ink-faint: #6a7c8c;
+      --brand: #5b9bd8;
+      --brand-ink: #bcdcfb;
+      --brand-soft: #16283b;
+      --accent: #f2b93b;
+      --accent-ink: #ffe6a8;
+      --accent-soft: #3a2d0f;
+      --ok: #44ac70;
+      --ok-ink: #5fc088;
+      --ok-soft: #133021;
+      --warn: #a67f17;
+      --warn-ink: #d9a53a;
+      --warn-soft: #3a2610;
+      --danger: #d5658c;
+      --danger-ink: #e37fa0;
+      --danger-soft: #3a1815;
+      --neutral-chart: #6a7c8c;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg: #0f1720;
+    --bg-deep: #0a1119;
+    --surface: #161f2a;
+    --surface-sunken: #101822;
+    --border: #263340;
+    --border-strong: #33424f;
+    --ink: #e7edf3;
+    --ink-muted: #9db0c0;
+    --ink-faint: #6a7c8c;
+    --brand: #5b9bd8;
+    --brand-ink: #bcdcfb;
+    --brand-soft: #16283b;
+    --accent: #f2b93b;
+    --accent-ink: #ffe6a8;
+    --accent-soft: #3a2d0f;
+    --ok: #44ac70;
+    --ok-ink: #5fc088;
+    --ok-soft: #133021;
+    --warn: #a67f17;
+    --warn-ink: #d9a53a;
+    --warn-soft: #3a2610;
+    --danger: #d5658c;
+    --danger-ink: #e37fa0;
+    --danger-soft: #3a1815;
+    --neutral-chart: #6a7c8c;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  }
+
+  *{ box-sizing: border-box; }
+  body{
+    margin:0; background: var(--bg); color: var(--ink);
+    font-family: 'Public Sans', system-ui, -apple-system, sans-serif;
+    font-size: 14.5px; line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1,h2,h3,h4{ font-family:'Barlow Condensed', system-ui, sans-serif; font-weight:600; letter-spacing:.01em; text-wrap: balance; margin:0; color: var(--ink); }
+  .mono{ font-family:'IBM Plex Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+  a{ color: var(--brand); }
+  button{ font-family: inherit; }
+  ::selection{ background: var(--accent-soft); }
+
+  .eyebrow{ font-family:'Barlow Condensed', sans-serif; font-weight:600; font-size:12px; letter-spacing:.12em; text-transform:uppercase; color: var(--ink-faint); }
+
+  /* ---------- App shell ---------- */
+  .topbar{
+    position: sticky; top:0; z-index:40;
+    background: var(--brand); color:#fff;
+    box-shadow: var(--shadow);
+  }
+  .topbar-inner{
+    max-width: 1080px; margin:0 auto; padding: 12px 20px;
+    display:flex; align-items:center; gap:14px;
+  }
+  .shield{
+    width:34px; height:34px; flex:none; display:grid; place-items:center;
+    background: var(--accent); color: var(--accent-ink); border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,.25);
+  }
+  .brand-name{ font-family:'Barlow Condensed', sans-serif; font-size: 21px; font-weight:700; letter-spacing:.02em; line-height:1; }
+  .brand-sub{ font-size:11.5px; color: rgba(255,255,255,.72); letter-spacing:.03em; }
+  .topbar-status{ margin-left:auto; display:flex; align-items:center; gap:8px; font-size:12.5px; color:rgba(255,255,255,.85); }
+  .dot{ width:7px; height:7px; border-radius:50%; background:#7fd99a; box-shadow:0 0 0 3px rgba(127,217,154,.25); }
+  .dot.off{ background:#e2685e; box-shadow:0 0 0 3px rgba(226,104,94,.25); }
+  .dot.pending{ background:#f2b93b; box-shadow:0 0 0 3px rgba(242,185,59,.25); }
+
+  .tabs{
+    max-width:1080px; margin:0 auto; padding: 0 20px; display:flex; gap:4px;
+    border-bottom:1px solid var(--border); background: var(--surface);
+  }
+  .tab{
+    appearance:none; border:none; background:none; cursor:pointer;
+    font-family:'Barlow Condensed', sans-serif; font-weight:600; font-size:16px; letter-spacing:.01em;
+    color: var(--ink-muted); padding: 13px 16px 11px; border-bottom: 2.5px solid transparent;
+    display:flex; align-items:center; gap:7px;
+  }
+  .tab:hover{ color: var(--ink); }
+  .tab.active{ color: var(--brand-ink); border-bottom-color: var(--accent); }
+  .tab svg{ width:16px; height:16px; flex:none; }
+
+  main{ max-width:1080px; margin:0 auto; padding: 22px 20px 64px; }
+  .view{ display:none; }
+  .view.active{ display:block; }
+
+  .banner{
+    display:flex; gap:10px; align-items:flex-start; padding:11px 14px; border-radius: var(--radius);
+    background: var(--warn-soft); border:1px solid color-mix(in srgb, var(--warn) 35%, transparent);
+    color: var(--ink); font-size:13px; margin-bottom:16px;
+  }
+  .banner b{ font-weight:600; }
+  .banner svg{ flex:none; width:16px; height:16px; margin-top:1px; color: var(--warn); }
+
+  /* ---------- Cards / panels ---------- */
+  .panel{
+    background: var(--surface); border:1px solid var(--border); border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+  .panel + .panel{ margin-top:16px; }
+  .panel-head{
+    padding: 16px 18px 14px; border-bottom:1px solid var(--border);
+    display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap;
+  }
+  .panel-head h2{ font-size:21px; }
+  .panel-head p{ margin:2px 0 0; color: var(--ink-muted); font-size:12.8px; }
+  .panel-body{ padding: 18px; }
+
+  .section-intro{ margin-bottom:18px; }
+  .section-intro h1{ font-size:28px; }
+  .section-intro p{ color: var(--ink-muted); margin:5px 0 0; max-width:62ch; font-size:13.5px; }
+
+  /* ---------- Forms ---------- */
+  .grid{ display:grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .grid .span-2{ grid-column: 1 / -1; }
+  @media (max-width: 620px){ .grid{ grid-template-columns: 1fr; } }
+
+  .field label{ display:block; font-size:12.5px; font-weight:600; color: var(--ink-muted); margin-bottom:5px; }
+  .field label .req{ color: var(--danger); margin-left:2px; }
+  .field input[type=text], .field input[type=date], .field textarea, .field select{
+    width:100%; padding: 9px 11px; border-radius:7px; border:1px solid var(--border-strong);
+    background: var(--surface-sunken); color: var(--ink); font-size:13.8px; font-family:inherit;
+  }
+  .field input:focus, .field textarea:focus, .field select:focus{
+    outline: 2px solid var(--brand); outline-offset:1px; background: var(--surface);
+  }
+  .field textarea{ resize: vertical; min-height:64px; }
+  .hint{ font-size:11.5px; color: var(--ink-faint); margin-top:4px; }
+
+  .segmented{ display:flex; border:1px solid var(--border-strong); border-radius:7px; overflow:hidden; }
+  .segmented button{
+    flex:1; border:none; background: var(--surface-sunken); color: var(--ink-muted); cursor:pointer;
+    padding: 9px 10px; font-size:13.4px; font-weight:600; border-right:1px solid var(--border-strong);
+  }
+  .segmented button:last-child{ border-right:none; }
+  .segmented button.on{ background: var(--brand); color:#fff; }
+  .segmented button.on.danger-on{ background: var(--danger); }
+
+  .photo-field{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  .photo-btn{
+    display:inline-flex; align-items:center; gap:7px; cursor:pointer; border:1.5px dashed var(--border-strong);
+    background: var(--surface-sunken); color: var(--brand-ink); border-radius:8px; padding:9px 13px;
+    font-size:13px; font-weight:600;
+  }
+  .photo-btn:hover{ border-color: var(--brand); }
+  .photo-btn input{ display:none; }
+  .photo-thumb{ position:relative; width:56px; height:56px; border-radius:7px; overflow:hidden; border:1px solid var(--border); flex:none; }
+  .photo-thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .photo-thumb .rm{
+    position:absolute; top:1px; right:1px; width:17px; height:17px; border-radius:50%; border:none;
+    background: rgba(20,20,20,.65); color:#fff; font-size:11px; line-height:1; cursor:pointer; display:grid; place-items:center;
+  }
+
+  .btn{
+    appearance:none; border:none; border-radius:7px; padding:10px 18px; font-weight:700; font-size:13.6px;
+    cursor:pointer; display:inline-flex; align-items:center; gap:7px; font-family:'Barlow Condensed',sans-serif; letter-spacing:.02em;
+  }
+  .btn-primary{ background: var(--accent); color: var(--accent-ink); box-shadow: var(--shadow); }
+  .btn-primary:disabled{ opacity:.45; cursor:not-allowed; box-shadow:none; }
+  .btn-ghost{ background: transparent; color: var(--brand-ink); border:1px solid var(--border-strong); }
+  .btn-ghost:hover{ background: var(--brand-soft); }
+  .btn-danger{ background: var(--danger-soft); color: var(--danger-ink); border:1px solid color-mix(in srgb, var(--danger) 35%, transparent); }
+  .btn-sm{ padding:6px 11px; font-size:12px; }
+
+  .form-foot{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:18px; padding-top:14px; border-top:1px dashed var(--border); flex-wrap:wrap; }
+  .progress-note{ font-size:12.3px; color: var(--ink-muted); }
+  .progress-note b{ color: var(--ink); }
+
+  /* ---------- Isolamento list ---------- */
+  .filter-row{ display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap; align-items:center; }
+  .filter-row input[type=text]{ flex:1; min-width:180px; }
+  .count-chip{ font-size:11.8px; background: var(--surface-sunken); border:1px solid var(--border); padding:4px 10px; border-radius:20px; color: var(--ink-muted); font-weight:600; }
+
+  .iso-card{ display:flex; gap:13px; padding:14px; border:1px solid var(--border); border-radius:9px; background: var(--surface); }
+  .iso-card + .iso-card{ margin-top:10px; }
+  .iso-photo{ width:76px; height:76px; border-radius:7px; overflow:hidden; flex:none; border:1px solid var(--border); background: var(--surface-sunken); }
+  .iso-photo img{ width:100%; height:100%; object-fit:cover; display:block; cursor:zoom-in; }
+  .iso-body{ flex:1; min-width:0; }
+  .iso-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+  .iso-local{ font-weight:700; font-size:15px; }
+  .iso-meta{ color: var(--ink-muted); font-size:12.4px; margin-top:2px; }
+  .iso-meta span + span::before{ content:"·"; margin:0 6px; color: var(--ink-faint); }
+  .iso-tags{ display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; }
+
+  .pill{ display:inline-flex; align-items:center; gap:5px; font-size:11.3px; font-weight:700; padding:3px 9px; border-radius:20px; letter-spacing:.01em; }
+  .pill-ok{ background: var(--ok-soft); color: var(--ok-ink); }
+  .pill-warn{ background: var(--warn-soft); color: var(--warn-ink); }
+  .pill-danger{ background: var(--danger-soft); color: var(--danger-ink); }
+  .pill-neutral{ background: var(--surface-sunken); color: var(--ink-muted); border:1px solid var(--border); }
+  .pill-brand{ background: var(--brand-soft); color: var(--brand-ink); }
+
+  .iso-actions{ margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; }
+
+  .empty{ text-align:center; padding: 34px 16px; color: var(--ink-faint); }
+  .empty svg{ width:30px; height:30px; margin-bottom:8px; opacity:.6; }
+
+  /* ---------- Role switch (ferramentas) ---------- */
+  .role-switch{ display:flex; gap:10px; margin-bottom:18px; flex-wrap:wrap; }
+  .role-card{
+    flex:1; min-width:190px; border:1.5px solid var(--border); border-radius:9px; padding:13px 15px; cursor:pointer;
+    background: var(--surface); display:flex; align-items:center; gap:11px;
+  }
+  .role-card svg{ width:22px; height:22px; flex:none; color: var(--brand); }
+  .role-card b{ display:block; font-size:14.5px; }
+  .role-card span{ font-size:11.8px; color: var(--ink-muted); }
+  .role-card.on{ border-color: var(--brand); background: var(--brand-soft); box-shadow: 0 0 0 1px var(--brand) inset; }
+
+  .checklist-row{ display:grid; grid-template-columns: 56px 1fr auto; gap:12px; align-items:center; padding:11px 4px; border-bottom:1px solid var(--border); }
+  .checklist-row:last-child{ border-bottom:none; }
+  .checklist-ico{ width:38px; height:38px; border-radius:8px; background: var(--surface-sunken); display:grid; place-items:center; color: var(--brand); }
+  .checklist-name{ font-weight:600; font-size:13.8px; }
+  .checklist-controls{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
+  @media (max-width: 640px){
+    .checklist-row{ grid-template-columns: 1fr; }
+    .checklist-controls{ justify-content:flex-start; }
+  }
+
+  .status-seg{ display:flex; border-radius:7px; overflow:hidden; border:1px solid var(--border-strong); }
+  .status-seg button{ border:none; padding:7px 10px; font-size:12px; font-weight:700; cursor:pointer; background: var(--surface-sunken); color: var(--ink-muted); border-right:1px solid var(--border-strong); }
+  .status-seg button:last-child{ border-right:none; }
+  .status-seg button.on-conforme{ background: var(--ok-soft); color: var(--ok-ink); box-shadow: inset 0 0 0 1.5px var(--ok); }
+  .status-seg button.on-faltando{ background: var(--warn-soft); color: var(--warn-ink); box-shadow: inset 0 0 0 1.5px var(--warn); }
+  .status-seg button.on-danificada{ background: var(--danger-soft); color: var(--danger-ink); box-shadow: inset 0 0 0 1.5px var(--danger); }
+  .status-seg button.on-tem, .segmented button.on-tem{ background: var(--ok-soft); color: var(--ok-ink); box-shadow: inset 0 0 0 1.5px var(--ok); }
+  .status-seg button.on-naotem, .segmented button.on-naotem{ background: var(--warn-soft); color: var(--warn-ink); box-shadow: inset 0 0 0 1.5px var(--warn); }
+
+  .session-card{ border:1px solid var(--border); border-radius:9px; background: var(--surface); }
+  .session-card + .session-card{ margin-top:10px; }
+  .session-head{ display:flex; align-items:center; gap:12px; padding:13px 15px; cursor:pointer; }
+  .session-head .chev{ margin-left:auto; width:16px; height:16px; color: var(--ink-faint); transition: transform .15s; flex:none; }
+  .session-head.open .chev{ transform: rotate(90deg); }
+  .session-title{ font-weight:700; font-size:14px; }
+  .session-sub{ font-size:12px; color: var(--ink-muted); }
+  .session-items{ display:none; padding: 0 15px 15px; border-top:1px dashed var(--border); }
+  .session-items.open{ display:block; }
+  .item-row{ display:flex; align-items:center; gap:11px; padding:10px 0; border-bottom:1px solid var(--border); }
+  .item-row:last-child{ border-bottom:none; }
+  .item-row img{ width:44px; height:44px; border-radius:6px; object-fit:cover; border:1px solid var(--border); cursor:zoom-in; }
+  .item-row .nm{ flex:1; font-size:13.2px; font-weight:600; }
+
+  .tools-summary{ display:flex; gap:14px; padding: 10px 15px; background: var(--surface-sunken); border-radius:8px; margin-bottom:14px; flex-wrap:wrap; }
+  .tools-summary .stat{ font-size:12px; color: var(--ink-muted); }
+  .tools-summary .stat b{ font-size:15px; display:block; color: var(--ink); font-family:'Barlow Condensed',sans-serif; }
+
+  .admin-toggle{ display:flex; align-items:center; gap:8px; font-size:12.5px; color: var(--brand-ink); cursor:pointer; margin: 4px 0 18px; user-select:none; }
+  .admin-toggle svg{ width:14px; height:14px; }
+
+  /* ---------- Item builder (almoxarife ad-hoc) ---------- */
+  .item-add-row{
+    display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap; padding:14px; background: var(--surface-sunken);
+    border:1px dashed var(--border-strong); border-radius:9px;
+  }
+  .item-add-row .field{ flex:1; min-width:200px; margin:0; }
+  .added-items{ margin-top:14px; }
+  .added-item-row{ display:flex; align-items:center; gap:11px; padding:9px 4px; border-bottom:1px solid var(--border); }
+  .added-item-row:last-child{ border-bottom:none; }
+  .added-item-row img{ width:40px; height:40px; border-radius:6px; object-fit:cover; border:1px solid var(--border); cursor:zoom-in; flex:none; }
+  .added-item-row .nm{ flex:1; font-size:13.4px; font-weight:600; }
+  .added-item-row .rm-item{ border:none; background: var(--surface-sunken); color: var(--ink-faint); width:24px; height:24px; border-radius:6px; cursor:pointer; font-size:12px; flex:none; }
+
+  /* ---------- Painel / charts ---------- */
+  .kpi-row{ display:grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap:12px; margin-bottom:18px; }
+  .kpi-tile{ background: var(--surface); border:1px solid var(--border); border-radius:9px; padding:14px 16px; }
+  .kpi-tile .kpi-label{ font-size:11.8px; color: var(--ink-muted); font-weight:600; }
+  .kpi-tile .kpi-value{ font-family:'Barlow Condensed',sans-serif; font-size:32px; font-weight:700; line-height:1.15; margin-top:2px; }
+  .kpi-tile.t-ok .kpi-value{ color: var(--ok-ink); }
+  .kpi-tile.t-warn .kpi-value{ color: var(--warn-ink); }
+  .kpi-tile.t-danger .kpi-value{ color: var(--danger-ink); }
+  .kpi-tile.t-neutral .kpi-value{ color: var(--ink); }
+
+  .chart-legend{ display:flex; gap:16px; flex-wrap:wrap; margin: 10px 0 4px; font-size:12.3px; color: var(--ink-muted); }
+  .chart-legend .lg-item{ display:flex; align-items:center; gap:6px; }
+  .chart-legend .lg-dot{ width:9px; height:9px; border-radius:2px; flex:none; }
+  .chart-legend b{ color: var(--ink); font-weight:700; }
+
+  .stacked-bar{ display:flex; gap:2px; height:22px; border-radius:5px; overflow:hidden; background: var(--surface-sunken); width:100%; }
+  .stacked-bar .seg{ height:100%; cursor:default; min-width:2px; }
+  .stacked-bar .seg:focus-visible{ outline:2px solid var(--brand); outline-offset:1px; }
+
+  .group-bar-row{ padding:12px 0; border-bottom:1px solid var(--border); }
+  .group-bar-row:last-child{ border-bottom:none; }
+  .group-bar-head{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:7px; }
+  .group-bar-name{ font-weight:700; font-size:13.6px; }
+  .group-bar-total{ font-size:11.8px; color: var(--ink-muted); }
+
+  .chart-tooltip{
+    position:fixed; z-index:300; pointer-events:none; background: var(--ink); color: var(--bg); font-size:12px;
+    padding:6px 10px; border-radius:6px; box-shadow: var(--shadow); opacity:0; transform: translateY(4px);
+    transition: opacity .1s, transform .1s; white-space:nowrap; font-weight:600;
+  }
+  .chart-tooltip.show{ opacity:1; transform: translateY(0); }
+
+  .toggle-row{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:16px; }
+  .toggle-row .hint{ margin:0; }
+
+  .taglist{ display:flex; flex-wrap:wrap; gap:7px; }
+  .tag-del{ display:inline-flex; align-items:center; gap:6px; background: var(--surface-sunken); border:1px solid var(--border); border-radius:20px; padding:5px 6px 5px 12px; font-size:12.4px; }
+  .tag-del button{ border:none; background: var(--border); color: var(--ink-muted); width:17px; height:17px; border-radius:50%; cursor:pointer; font-size:10px; line-height:1; }
+
+  .lightbox{ position:fixed; inset:0; background: rgba(10,15,20,.82); display:none; align-items:center; justify-content:center; z-index:100; padding:30px; }
+  .lightbox.open{ display:flex; }
+  .lightbox img{ max-width:100%; max-height:100%; border-radius:8px; box-shadow: 0 20px 60px rgba(0,0,0,.5); }
+
+  .toast{
+    position:fixed; bottom:20px; left:50%; transform: translateX(-50%) translateY(8px); opacity:0; pointer-events:none;
+    background: var(--ink); color: var(--bg); padding:11px 18px; border-radius:8px; font-size:13px; font-weight:600;
+    box-shadow: 0 10px 30px rgba(0,0,0,.3); transition: all .2s; z-index:200; display:flex; align-items:center; gap:8px;
+  }
+  .toast.show{ opacity:1; transform: translateX(-50%) translateY(0); pointer-events:auto; }
+  .toast svg{ width:15px; height:15px; flex:none; }
+
+  @media (prefers-reduced-motion: reduce){ *{ transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="shield">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M12 2 4 5v6c0 5.2 3.4 9.4 8 11 4.6-1.6 8-5.8 8-11V5l-8-3Z" fill="currentColor"/></svg>
+    </div>
+    <div>
+      <div class="brand-name">PROGRAMA ESCUDO</div>
+      <div class="brand-sub">Isolamento &amp; Sinalização · Gestão de Ferramentas</div>
+    </div>
+    <div class="topbar-status">
+      <span class="dot pending" id="conn-dot"></span>
+      <span id="conn-label">Conectando…</span>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" data-view="iso">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s7-4.5 7-11V5l-7-3-7 3v6c0 6.5 7 11 7 11Z"/></svg>
+      Isolamento &amp; Sinalização
+    </button>
+    <button class="tab" data-view="ferr">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m14.7 6.3 3 3M4 20l7.5-7.5m-3-7a4 4 0 0 0 5.4 5.4L21 18l-3 3-7.1-7.1A4 4 0 0 0 5.5 8.5Z"/></svg>
+      Gestão de Ferramentas
+    </button>
+    <button class="tab" data-view="painel">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10m6.5 10V4m6.5 16v-7"/></svg>
+      Painel
+    </button>
+  </div>
+</div>
+
+<main>
+
+  <!-- ======================= VIEW: ISOLAMENTO ======================= -->
+  <section class="view active" id="view-iso">
+    <div class="section-intro">
+      <h1>Isolamento &amp; sinalização</h1>
+      <p>Toda colocação de isolamento ou sinalização em campo deve ser fotografada e registrada aqui pelo encarregado responsável.</p>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div><h2>Novo registro</h2><p>Todos os campos são obrigatórios, incluindo a foto.</p></div>
+      </div>
+      <div class="panel-body">
+        <form id="form-iso" novalidate>
+          <div class="grid">
+            <div class="field">
+              <label>Responsável pelo isolamento<span class="req">*</span></label>
+              <input type="text" id="iso-responsavel" placeholder="Nome do encarregado" required>
+            </div>
+            <div class="field">
+              <label>Local<span class="req">*</span></label>
+              <input type="text" id="iso-local" placeholder="Ex.: Painel 12B — Área de Turbinas" required>
+            </div>
+            <div class="field">
+              <label>Data<span class="req">*</span></label>
+              <input type="date" id="iso-data" required>
+            </div>
+            <div class="field">
+              <label>Previsão de retirada<span class="req">*</span></label>
+              <input type="date" id="iso-previsao" required>
+            </div>
+            <div class="field span-2">
+              <label>Atividade e/ou material<span class="req">*</span></label>
+              <textarea id="iso-atividade" placeholder="Descreva a atividade e/ou o material isolado" required></textarea>
+            </div>
+            <div class="field">
+              <label>Precisa de recurso para retirada do material?<span class="req">*</span></label>
+              <div class="segmented" data-field="iso-recurso">
+                <button type="button" data-value="sim">Sim</button>
+                <button type="button" data-value="nao">Não</button>
+              </div>
+            </div>
+            <div class="field">
+              <label>É para descarte?<span class="req">*</span></label>
+              <div class="segmented" data-field="iso-descarte">
+                <button type="button" data-value="sim">Sim</button>
+                <button type="button" data-value="nao">Não</button>
+              </div>
+            </div>
+            <div class="field span-2">
+              <label>Foto do isolamento / sinalização<span class="req">*</span></label>
+              <div class="photo-field" id="iso-photo-field">
+                <label class="photo-btn">
+                  <input type="file" accept="image/*" capture="environment" id="iso-photo-input">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h3l1.5-2h7L17 8h3v11H4V8Z"/><circle cx="12" cy="13.5" r="3.2"/></svg>
+                  Adicionar foto
+                </label>
+                <div id="iso-photo-preview"></div>
+              </div>
+            </div>
+          </div>
+          <div class="form-foot">
+            <div class="progress-note" id="iso-progress">0 de 7 campos preenchidos</div>
+            <button type="submit" class="btn btn-primary" id="iso-submit" disabled>Registrar isolamento</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================= VIEW: FERRAMENTAS ======================= -->
+  <section class="view" id="view-ferr">
+    <div class="section-intro">
+      <h1>Gestão de ferramentas</h1>
+      <p>Encarregados conferem as ferramentas de seus liderados por função. O almoxarifado registra a conferência geral da ferramentaria e das ferramentas recebidas para a Parada de Usina, item a item. Foto obrigatória em todos os itens.</p>
+    </div>
+
+    <div class="role-switch">
+      <div class="role-card on" data-role="encarregado">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.9 3.1-6.5 7-6.5s7 2.6 7 6.5"/></svg>
+        <div><b>Sou encarregado</b><span>Conferência por função da equipe</span></div>
+      </div>
+      <div class="role-card" data-role="almoxarife">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9.5 12 4l9 5.5V19a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5Z"/><path d="M9 20v-7h6v7"/></svg>
+        <div><b>Sou almoxarife</b><span>Conferência geral (ferramentaria e Parada de Usina)</span></div>
+      </div>
+    </div>
+
+    <div class="admin-toggle" id="admin-toggle">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 13.5a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V20a2 2 0 1 1-4 0v-.2a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H4a2 2 0 1 1 0-4h.2a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H10a1.7 1.7 0 0 0 1-1.6V4a2 2 0 1 1 4 0v.2a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V10a1.7 1.7 0 0 0 1.6 1H20a2 2 0 1 1 0 4h-.2a1.7 1.7 0 0 0-1.6 1Z" opacity="0"/><path d="M4 6h16M4 12h16M4 18h16" stroke-width="0"/></svg>
+      Gerenciar listas de ferramentas (recebimento / cadastro)
+    </div>
+
+    <div id="admin-panel" style="display:none">
+      <div class="panel">
+        <div class="panel-head"><div><h2>Listas de ferramentas</h2><p>Inclua uma ferramenta assim que ela for recebida — ela passa a valer na próxima conferência.</p></div></div>
+        <div class="panel-body">
+          <div class="grid">
+            <div class="field">
+              <label>Adicionar ferramenta a uma função</label>
+              <select id="admin-funcao-select"></select>
+            </div>
+            <div class="field">
+              <label>Nome da ferramenta</label>
+              <div style="display:flex; gap:8px">
+                <input type="text" id="admin-ferramenta-nome" placeholder="Ex.: Torquímetro 1/2&quot;">
+                <button class="btn btn-ghost" id="admin-add-ferramenta" style="flex:none">Adicionar</button>
+              </div>
+            </div>
+          </div>
+          <div id="admin-funcao-tags" style="margin-top:14px"></div>
+
+          <div class="grid" style="margin-top:20px; padding-top:18px; border-top:1px dashed var(--border)">
+            <div class="field">
+              <label>Nova função</label>
+              <div style="display:flex; gap:8px">
+                <input type="text" id="admin-nova-funcao" placeholder="Ex.: Encanador Industrial">
+                <button class="btn btn-ghost" id="admin-add-funcao" style="flex:none">Criar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Encarregado flow -->
+    <div id="flow-encarregado">
+      <div class="panel">
+        <div class="panel-head"><div><h2>Conferência por função</h2><p>Selecione a função para carregar a lista de ferramentas correspondente.</p></div></div>
+        <div class="panel-body">
+          <div class="grid">
+            <div class="field">
+              <label>Nome do encarregado<span class="req">*</span></label>
+              <input type="text" id="enc-nome" placeholder="Seu nome">
+            </div>
+            <div class="field">
+              <label>Função da equipe<span class="req">*</span></label>
+              <select id="enc-funcao"><option value="">Selecione…</option></select>
+            </div>
+            <div class="field span-2">
+              <label>Responsável(is) pelas ferramentas<span class="req">*</span></label>
+              <input type="text" id="enc-responsaveis" placeholder="Nome dos liderados que estão com o kit de ferramentas">
+              <div class="hint">Registrado na nota do encarregado do Programa Escudo.</div>
+            </div>
+            <div class="field">
+              <label>Data<span class="req">*</span></label>
+              <input type="date" id="enc-data">
+            </div>
+            <div class="field span-2">
+              <label>Observações</label>
+              <textarea id="enc-obs" placeholder="Opcional"></textarea>
+            </div>
+          </div>
+
+          <div id="enc-checklist-wrap" style="margin-top:16px; display:none">
+            <div class="tools-summary" id="enc-summary"></div>
+            <div class="panel" style="box-shadow:none">
+              <div id="enc-checklist"></div>
+            </div>
+            <div class="form-foot">
+              <div class="progress-note" id="enc-progress"></div>
+              <button class="btn btn-primary" id="enc-submit" disabled>Enviar conferência</button>
+            </div>
+          </div>
+          <p id="enc-empty-hint" class="hint" style="margin-top:14px">Selecione uma função acima para ver a lista de ferramentas.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Almoxarife flow -->
+    <div id="flow-almoxarife" style="display:none">
+      <div class="panel">
+        <div class="panel-head"><div><h2>Conferência geral do almoxarifado</h2><p>Descreva cada ferramenta conferida, informe se tem ou não tem, e anexe a foto.</p></div></div>
+        <div class="panel-body">
+          <div class="grid">
+            <div class="field">
+              <label>Nome do almoxarife<span class="req">*</span></label>
+              <input type="text" id="alm-nome" placeholder="Seu nome">
+            </div>
+            <div class="field">
+              <label>Escopo da conferência<span class="req">*</span></label>
+              <select id="alm-escopo">
+                <option value="">Selecione…</option>
+                <option value="ferramentaria">Ferramentaria</option>
+                <option value="parada_usina">Parada de Usina</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Data<span class="req">*</span></label>
+              <input type="date" id="alm-data">
+            </div>
+            <div class="field span-2">
+              <label>Observações</label>
+              <textarea id="alm-obs" placeholder="Opcional"></textarea>
+            </div>
+          </div>
+
+          <div style="margin-top:18px">
+            <label style="display:block; font-size:12.5px; font-weight:600; color:var(--ink-muted); margin-bottom:8px">Adicionar ferramenta à conferência</label>
+            <div class="item-add-row">
+              <div class="field">
+                <label>Nome da ferramenta</label>
+                <input type="text" id="alm-item-nome" placeholder="Ex.: Furadeira elétrica">
+              </div>
+              <div class="field" style="flex:none">
+                <label>Tem?</label>
+                <div class="segmented" id="alm-item-tem" data-field="alm-item-tem" style="min-width:180px">
+                  <button type="button" data-value="tem">Tem</button>
+                  <button type="button" data-value="naotem">Não tem</button>
+                </div>
+              </div>
+              <div class="field" style="flex:none">
+                <label>Foto<span class="req">*</span></label>
+                <div class="photo-field">
+                  <label class="photo-btn">
+                    <input type="file" accept="image/*" capture="environment" id="alm-item-photo-input">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h3l1.5-2h7L17 8h3v11H4V8Z"/><circle cx="12" cy="13.5" r="3.2"/></svg>
+                    Foto
+                  </label>
+                  <div id="alm-item-photo-preview"></div>
+                </div>
+              </div>
+              <button type="button" class="btn btn-ghost" id="alm-item-add" style="flex:none">Adicionar item</button>
+            </div>
+            <div class="added-items" id="alm-items-list"></div>
+          </div>
+
+          <div id="alm-summary-wrap" style="margin-top:16px; display:none">
+            <div class="tools-summary" id="alm-summary"></div>
+          </div>
+          <div class="form-foot">
+            <div class="progress-note" id="alm-progress">Nenhum item adicionado ainda</div>
+            <button class="btn btn-primary" id="alm-submit" disabled>Enviar conferência</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================= VIEW: PAINEL ======================= -->
+  <section class="view" id="view-painel">
+    <div class="section-intro">
+      <h1>Painel de acompanhamento</h1>
+      <p>Indicadores de isolamentos ativos e do estado das ferramentas conferidas. Os lançamentos continuam sendo feitos nas abas de registro.</p>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div><h2>Isolamentos &amp; sinalização</h2><p>Encerre um isolamento assim que o material for desmobilizado.</p></div>
+        <span class="count-chip" id="piso-count">0 registros</span>
+      </div>
+      <div class="panel-body">
+        <div class="kpi-row" id="piso-kpis"></div>
+        <div id="piso-bar-wrap"></div>
+        <div class="filter-row" style="margin-top:20px">
+          <input type="text" id="piso-search" placeholder="Buscar por local, responsável ou atividade…">
+          <div class="segmented" style="max-width:280px" data-field="piso-filter">
+            <button type="button" data-value="ativos" class="on">Ativos</button>
+            <button type="button" data-value="todos">Todos</button>
+            <button type="button" data-value="retirados">Encerrados</button>
+          </div>
+        </div>
+        <div id="piso-list"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div><h2>Ferramentas — conforme / não conforme / não possuímos</h2><p>Acompanhamento por função (encarregados) e por escopo (almoxarifado).</p></div>
+      </div>
+      <div class="panel-body">
+        <div class="toggle-row">
+          <div class="segmented" style="max-width:320px" data-field="pferr-role">
+            <button type="button" data-value="todos" class="on">Todos</button>
+            <button type="button" data-value="encarregado">Encarregados</button>
+            <button type="button" data-value="almoxarife">Almoxarifado</button>
+          </div>
+          <div class="segmented" style="max-width:280px" data-field="pferr-scope">
+            <button type="button" data-value="ultima" class="on">Última conferência</button>
+            <button type="button" data-value="todas">Todo o histórico</button>
+          </div>
+        </div>
+        <div class="kpi-row" id="pferr-kpis"></div>
+        <div id="pferr-legend"></div>
+        <div id="pferr-groups" style="margin-top:6px"></div>
+
+        <div style="margin-top:22px; padding-top:16px; border-top:1px dashed var(--border)">
+          <div class="panel-head" style="padding:0 0 12px; border:none">
+            <div><h2 style="font-size:16px">Detalhe das conferências</h2></div>
+          </div>
+          <div id="pferr-list"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div class="lightbox" id="lightbox"><img id="lightbox-img" src="" alt=""></div>
+<div class="toast" id="toast"><svg id="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 13 4 4L19 7"/></svg><span id="toast-msg"></span></div>
+<div class="chart-tooltip" id="chart-tooltip"></div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  /* ======================================================================
+     0a. FIREBASE — configuração do projeto "escudo-in-haus"
+     Cole aqui os valores reais (Firebase Console > Configurações do projeto
+     > Seus apps > SDK do Firebase > Config). Enquanto os campos abaixo
+     estiverem como "COLE_AQUI", o Firebase fica desativado e o app usa o
+     modo local (ou o artefato Claude, quando publicado lá) normalmente.
+     Nota: dentro do artefato publicado no Claude, os scripts acima
+     (gstatic.com) são bloqueados pela política de segurança da própria
+     plataforma — por isso ali o Firebase nunca chega a carregar e o app
+     cai automaticamente para o modo do artefato. Isso é esperado.
+  ====================================================================== */
+  var firebaseConfig = {
+    apiKey: "COLE_AQUI",
+    authDomain: "COLE_AQUI",
+    databaseURL: "COLE_AQUI",
+    projectId: "COLE_AQUI",
+    storageBucket: "COLE_AQUI",
+    messagingSenderId: "COLE_AQUI",
+    appId: "COLE_AQUI"
+  };
+  var FIREBASE_ROOT = 'escudoIsolamento';
+
+  function tryInitFirebase(){
+    try {
+      if (typeof firebase === 'undefined') return null; // SDK não carregou (ex.: dentro do artefato Claude)
+      if (!firebaseConfig || firebaseConfig.apiKey === 'COLE_AQUI' || !firebaseConfig.databaseURL || firebaseConfig.databaseURL === 'COLE_AQUI') return null;
+      var app = (firebase.apps && firebase.apps.length) ? firebase.apps[0] : firebase.initializeApp(firebaseConfig);
+      return firebase.database(app);
+    } catch (err){
+      console.error('Firebase init falhou:', err);
+      return null;
+    }
+  }
+
+  /* ======================================================================
+     0b. TINY IN-MEMORY DB SHIM (fallback when the db capability is absent)
+     Mirrors just the subset of the real db surface this page calls.
+  ====================================================================== */
+  function makeMemDb(){
+    var store = new Map();   // path -> data
+    var order = new Map();   // path -> insertion index (fallback ordering)
+    var seq = 0;
+    var listeners = [];      // {kind:'col'|'doc', path, filters, orderBy, limitN, cb}
+
+    function segs(p){ return p.split('/').filter(Boolean); }
+    function parentColPath(docPath){ var s = segs(docPath); s.pop(); return s.join('/'); }
+    function isDirectChild(colPath, path){
+      var cs = segs(colPath), ps = segs(path);
+      if (ps.length !== cs.length + 1) return false;
+      for (var i=0;i<cs.length;i++) if (cs[i]!==ps[i]) return false;
+      return true;
+    }
+    function snapshotDoc(path){
+      var exists = store.has(path);
+      return {
+        id: segs(path).pop(),
+        exists: exists,
+        data: function(){ return exists ? store.get(path) : undefined; },
+        metadata: { fromCache:false, hasPendingWrites:false }
+      };
+    }
+    function matches(data, filters){
+      return filters.every(function(f){
+        var v = data ? data[f.field] : undefined;
+        switch(f.op){
+          case '==': return v === f.value;
+          case '!=': return v !== f.value;
+          case '<': return v < f.value;
+          case '<=': return v <= f.value;
+          case '>': return v > f.value;
+          case '>=': return v >= f.value;
+          default: return true;
+        }
+      });
+    }
+    function collectionDocs(colPath, filters, orderByField, orderDir, limitN){
+      var out = [];
+      store.forEach(function(data, path){
+        if (!isDirectChild(colPath, path)) return;
+        if (!matches(data, filters)) return;
+        out.push({ path: path, data: data, ord: order.get(path)||0 });
+      });
+      out.sort(function(a,b){
+        if (orderByField){
+          var av=a.data[orderByField], bv=b.data[orderByField];
+          if (av===undefined && bv===undefined) return a.ord-b.ord;
+          if (av===undefined) return 1;
+          if (bv===undefined) return -1;
+          if (av<bv) return orderDir==='desc'?1:-1;
+          if (av>bv) return orderDir==='desc'?-1:1;
+          return a.ord-b.ord;
+        }
+        return a.ord - b.ord;
+      });
+      if (limitN) out = out.slice(0, limitN);
+      return out.map(function(o){ return snapshotDoc(o.path); });
+    }
+    function notify(){
+      listeners.forEach(function(l){
+        if (l.kind==='doc'){ l.cb(snapshotDoc(l.path)); }
+        else {
+          var docs = collectionDocs(l.path, l.filters, l.orderByField, l.orderDir, l.limitN);
+          l.cb({ docs: docs, size: docs.length, empty: docs.length===0,
+                  docChanges: function(){ return docs.map(function(d,i){ return {type:'added', doc:d, oldIndex:-1, newIndex:i}; }); },
+                  metadata: { fromCache:false, hasPendingWrites:false } });
+        }
+      });
+    }
+    function write(path, data){ store.set(path, data); if(!order.has(path)) order.set(path, seq++); notify(); }
+
+    function docRef(path){
+      return {
+        id: segs(path).pop(), path: path,
+        get: function(){ return Promise.resolve(snapshotDoc(path)); },
+        set: function(data){ write(path, JSON.parse(JSON.stringify(data))); return Promise.resolve(); },
+        update: function(data){
+          var cur = store.get(path) || {};
+          var merged = Object.assign({}, cur, JSON.parse(JSON.stringify(data)));
+          write(path, merged); return Promise.resolve();
+        },
+        delete: function(){ store.delete(path); notify(); return Promise.resolve(); },
+        onSnapshot: function(cb){
+          var l = { kind:'doc', path: path, cb: cb };
+          listeners.push(l); cb(snapshotDoc(path));
+          return function(){ listeners = listeners.filter(function(x){return x!==l;}); };
+        },
+        collection: function(sub){ return colRef(path + '/' + sub); }
+      };
+    }
+    function colRef(path, filters, orderByField, orderDir, limitN){
+      filters = filters||[];
+      var api = {
+        path: path,
+        where: function(f,op,v){ return colRef(path, filters.concat([{field:f,op:op,value:v}]), orderByField, orderDir, limitN); },
+        orderBy: function(f,d){ return colRef(path, filters, f, d||'asc', limitN); },
+        limit: function(n){ return colRef(path, filters, orderByField, orderDir, n); },
+        get: function(){
+          var docs = collectionDocs(path, filters, orderByField, orderDir, limitN);
+          return Promise.resolve({ docs: docs, size: docs.length, empty: docs.length===0,
+            docChanges: function(){ return docs.map(function(d,i){return {type:'added',doc:d,oldIndex:-1,newIndex:i};}); },
+            metadata:{fromCache:false,hasPendingWrites:false} });
+        },
+        onSnapshot: function(cb){
+          var l = { kind:'col', path: path, filters: filters, orderByField: orderByField, orderDir: orderDir, limitN: limitN, cb: cb };
+          listeners.push(l);
+          var docs = collectionDocs(path, filters, orderByField, orderDir, limitN);
+          cb({ docs: docs, size: docs.length, empty: docs.length===0,
+               docChanges: function(){ return docs.map(function(d,i){return {type:'added',doc:d,oldIndex:-1,newIndex:i};}); },
+               metadata:{fromCache:false,hasPendingWrites:false} });
+          return function(){ listeners = listeners.filter(function(x){return x!==l;}); };
+        },
+        doc: function(id){ return docRef(path + '/' + (id || ('m'+(seq++)))); },
+        add: function(data){ var ref = api.doc(); return ref.set(data).then(function(){ return ref; }); }
+      };
+      return api;
+    }
+    return { doc: docRef, collection: function(p){ return colRef(p); } };
+  }
+
+  /* ======================================================================
+     0c. FIREBASE REALTIME DATABASE ADAPTER
+     Mirrors the same surface as makeMemDb() above, backed by a real
+     Firebase Realtime Database instance under a single root node.
+     Only orderBy()+limit() are used anywhere in this app (no where()),
+     but a lightweight client-side where() is included for safety.
+  ====================================================================== */
+  function makeFirebaseDb(rtdb, root){
+    function clean(data){ return JSON.parse(JSON.stringify(data)); }
+    function matches(data, filters){
+      return filters.every(function(f){
+        var v = data ? data[f.field] : undefined;
+        switch(f.op){
+          case '==': return v === f.value;
+          case '!=': return v !== f.value;
+          case '<': return v < f.value;
+          case '<=': return v <= f.value;
+          case '>': return v > f.value;
+          case '>=': return v >= f.value;
+          default: return true;
+        }
+      });
+    }
+    function nodeRef(path){ return rtdb.ref(root + '/' + path); }
+
+    function docRef(path){
+      var ref = nodeRef(path);
+      return {
+        id: path.split('/').filter(Boolean).pop(), path: path,
+        get: function(){
+          return ref.once('value').then(function(snap){
+            return { id: ref.key, exists: snap.exists(), data: function(){ return snap.exists() ? snap.val() : undefined; } };
+          });
+        },
+        set: function(data){ return ref.set(clean(data)); },
+        update: function(data){ return ref.update(clean(data)); },
+        delete: function(){ return ref.remove(); },
+        onSnapshot: function(cb){
+          function handler(snap){
+            cb({ id: ref.key, exists: snap.exists(), data: function(){ return snap.exists() ? snap.val() : undefined; },
+                 metadata: { fromCache:false, hasPendingWrites:false } });
+          }
+          ref.on('value', handler);
+          return function(){ ref.off('value', handler); };
+        },
+        collection: function(sub){ return colRef(path + '/' + sub); }
+      };
+    }
+    function colRef(path, filters, orderByField, orderDir, limitN){
+      filters = filters || [];
+      var api = {
+        path: path,
+        where: function(f,op,v){ return colRef(path, filters.concat([{field:f,op:op,value:v}]), orderByField, orderDir, limitN); },
+        orderBy: function(f,d){ return colRef(path, filters, f, d||'asc', limitN); },
+        limit: function(n){ return colRef(path, filters, orderByField, orderDir, n); },
+        get: function(){ return buildQuery().once('value').then(snapToCollection); },
+        onSnapshot: function(cb){
+          var q = buildQuery();
+          function handler(snap){ cb(snapToCollection(snap)); }
+          q.on('value', handler);
+          return function(){ q.off('value', handler); };
+        },
+        doc: function(id){ return docRef(path + '/' + (id || nodeRef(path).push().key)); },
+        add: function(data){ var r = api.doc(); return r.set(data).then(function(){ return r; }); }
+      };
+      function buildQuery(){
+        var q = nodeRef(path);
+        if (orderByField) q = q.orderByChild(orderByField);
+        if (limitN) q = (orderDir === 'desc') ? q.limitToLast(limitN) : q.limitToFirst(limitN);
+        return q;
+      }
+      function snapToCollection(snap){
+        var arr = [];
+        snap.forEach(function(child){ arr.push({ id: child.key, val: child.val() }); });
+        if (orderByField && orderDir === 'desc') arr.reverse(); // RTDB always returns ascending
+        if (filters.length) arr = arr.filter(function(o){ return matches(o.val, filters); });
+        var docs = arr.map(function(o){
+          return { id: o.id, path: path+'/'+o.id, exists: true, data: function(){ return o.val; } };
+        });
+        return { docs: docs, size: docs.length, empty: docs.length===0,
+          docChanges: function(){ return docs.map(function(d,i){ return {type:'added', doc:d, oldIndex:-1, newIndex:i}; }); },
+          metadata: { fromCache:false, hasPendingWrites:false } };
+      }
+      return api;
+    }
+    return { doc: docRef, collection: function(p){ return colRef(p); } };
+  }
+
+  /* ======================================================================
+     1. STATE
+  ====================================================================== */
+  var db = null;
+  var usingFallback = false;
+  var toolsByFuncao = {};       // slug -> {nome, ferramentas:[{id,nome}]}
+  var isolamentos = [];
+  var sessions = [];
+  var currentRole = 'encarregado';
+  var pisoFilter = 'ativos';
+  var pisoEncerrarEditing = {};
+  var pferrRole = 'todos';
+  var pferrScope = 'ultima';
+
+  var isoPhoto = null;
+  var encPhotos = {};   // ferramentaId -> dataURL
+  var encStatus = {};   // ferramentaId -> 'conforme'|'faltando'|'danificada'
+  var almItems = [];    // [{id,nome,status,foto}] — itens conferidos pelo almoxarife nesta sessão
+  var almPendingPhoto = null;
+
+  var STATUS_COLORS = {
+    conforme: { fill:'var(--ok)', ink:'var(--ok-ink)', soft:'var(--ok-soft)', label:'Conforme' },
+    faltando: { fill:'var(--warn)', ink:'var(--warn-ink)', soft:'var(--warn-soft)', label:'Não possuímos' },
+    danificada: { fill:'var(--danger)', ink:'var(--danger-ink)', soft:'var(--danger-soft)', label:'Não conforme' }
+  };
+
+  function slugify(s){
+    return (s||'').toString().normalize('NFD').replace(/[̀-ͯ]/g,'')
+      .toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'') || ('f'+Date.now());
+  }
+  function todayStr(){
+    var d = new Date(); var mo=(d.getMonth()+1+'').padStart(2,'0'); var da=(d.getDate()+'').padStart(2,'0');
+    return d.getFullYear()+'-'+mo+'-'+da;
+  }
+  function fmtDate(s){
+    if(!s) return '—';
+    var parts = (''+s).slice(0,10).split('-'); if(parts.length!==3) return s;
+    return parts[2]+'/'+parts[1]+'/'+parts[0];
+  }
+  function fmtDateTime(iso){
+    try{ var d=new Date(iso); return fmtDate(iso)+' às '+(''+d.getHours()).padStart(2,'0')+':'+(''+d.getMinutes()).padStart(2,'0'); }
+    catch(e){ return iso; }
+  }
+  function esc(s){ var d=document.createElement('div'); d.textContent = s==null?'':s; return d.innerHTML; }
+
+  function toast(msg, type){
+    var t = document.getElementById('toast');
+    var icon = document.getElementById('toast-icon');
+    icon.innerHTML = type==='error'
+      ? '<circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5m0 3.2h.01"/>'
+      : '<path d="m5 13 4 4L19 7"/>';
+    document.getElementById('toast-msg').textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._h); t._h = setTimeout(function(){ t.classList.remove('show'); }, 2600);
+  }
+
+  /* ======================================================================
+     2. IMAGE COMPRESSION
+  ====================================================================== */
+  function compressImage(file, maxDim, quality){
+    return new Promise(function(resolve, reject){
+      var reader = new FileReader();
+      reader.onerror = reject;
+      reader.onload = function(){
+        var img = new Image();
+        img.onerror = reject;
+        img.onload = function(){
+          var w = img.width, h = img.height;
+          var scale = Math.min(1, maxDim / Math.max(w,h));
+          var cw = Math.max(1, Math.round(w*scale)), ch = Math.max(1, Math.round(h*scale));
+          var canvas = document.createElement('canvas');
+          canvas.width = cw; canvas.height = ch;
+          var ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, cw, ch);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  /* ======================================================================
+     3. TAB / VIEW NAVIGATION
+  ====================================================================== */
+  document.querySelectorAll('.tab').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.tab').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      var view = btn.getAttribute('data-view');
+      document.getElementById('view-iso').classList.toggle('active', view==='iso');
+      document.getElementById('view-ferr').classList.toggle('active', view==='ferr');
+      document.getElementById('view-painel').classList.toggle('active', view==='painel');
+      if (view==='painel'){ renderPainelIsolamentos(); renderPainelFerramentas(); }
+    });
+  });
+
+  document.querySelectorAll('.role-card').forEach(function(card){
+    card.addEventListener('click', function(){
+      document.querySelectorAll('.role-card').forEach(function(c){ c.classList.remove('on'); });
+      card.classList.add('on');
+      currentRole = card.getAttribute('data-role');
+      document.getElementById('flow-encarregado').style.display = currentRole==='encarregado' ? '' : 'none';
+      document.getElementById('flow-almoxarife').style.display = currentRole==='almoxarife' ? '' : 'none';
+    });
+  });
+
+  document.getElementById('admin-toggle').addEventListener('click', function(){
+    var p = document.getElementById('admin-panel');
+    p.style.display = p.style.display==='none' ? '' : 'none';
+  });
+
+  var almPendingTem = null;
+
+  document.querySelectorAll('.segmented[data-field]').forEach(function(seg){
+    seg.addEventListener('click', function(e){
+      var btn = e.target.closest('button'); if(!btn) return;
+      var field = seg.getAttribute('data-field');
+      var value = btn.getAttribute('data-value');
+      seg.querySelectorAll('button').forEach(function(b){ b.className=''; });
+      if (field==='iso-recurso' || field==='iso-descarte'){
+        btn.className = value==='sim' ? 'on danger-on' : 'on';
+      } else if (field==='alm-item-tem'){
+        btn.className = value==='tem' ? 'on-tem' : 'on-naotem';
+        almPendingTem = value;
+      } else {
+        btn.className = 'on';
+      }
+      seg.dataset.value = value;
+      if (field==='piso-filter'){ pisoFilter = value; renderPainelIsolamentos(); }
+      if (field==='pferr-role'){ pferrRole = value; renderPainelFerramentas(); }
+      if (field==='pferr-scope'){ pferrScope = value; renderPainelFerramentas(); }
+      if (field==='iso-recurso' || field==='iso-descarte') updateIsoProgress();
+    });
+  });
+
+  var lb = document.getElementById('lightbox');
+  document.getElementById('lightbox').addEventListener('click', function(){ lb.classList.remove('open'); });
+  function openLightbox(src){ document.getElementById('lightbox-img').src = src; lb.classList.add('open'); }
+
+  /* ======================================================================
+     4. ISOLAMENTO FORM
+  ====================================================================== */
+  document.getElementById('iso-data').value = todayStr();
+
+  document.getElementById('iso-photo-input').addEventListener('change', function(e){
+    var file = e.target.files[0]; if(!file) return;
+    compressImage(file, 900, 0.6).then(function(dataUrl){
+      isoPhoto = dataUrl;
+      renderIsoPhotoPreview();
+      updateIsoProgress();
+    });
+    e.target.value = '';
+  });
+  function renderIsoPhotoPreview(){
+    var wrap = document.getElementById('iso-photo-preview');
+    wrap.innerHTML = '';
+    if (isoPhoto){
+      var t = document.createElement('div'); t.className='photo-thumb';
+      t.innerHTML = '<img src="'+isoPhoto+'"><button type="button" class="rm">✕</button>';
+      t.querySelector('.rm').addEventListener('click', function(){ isoPhoto=null; renderIsoPhotoPreview(); updateIsoProgress(); });
+      t.querySelector('img').addEventListener('click', function(){ openLightbox(isoPhoto); });
+      wrap.appendChild(t);
+    }
+  }
+
+  var isoFieldIds = ['iso-responsavel','iso-local','iso-data','iso-previsao','iso-atividade'];
+  isoFieldIds.forEach(function(id){ document.getElementById(id).addEventListener('input', updateIsoProgress); });
+
+  function isoFilled(){
+    var n = 0;
+    isoFieldIds.forEach(function(id){ if (document.getElementById(id).value.trim()) n++; });
+    if (document.querySelector('.segmented[data-field="iso-recurso"] .on')) n++;
+    if (document.querySelector('.segmented[data-field="iso-descarte"] .on')) n++;
+    if (isoPhoto) n++;
+    return n;
+  }
+  function updateIsoProgress(){
+    var n = isoFilled();
+    document.getElementById('iso-progress').innerHTML = '<b>'+n+' de 7</b> campos preenchidos';
+    document.getElementById('iso-submit').disabled = n < 7;
+  }
+
+  document.getElementById('form-iso').addEventListener('submit', function(e){
+    e.preventDefault();
+    if (isoFilled() < 7) return;
+    var recurso = document.querySelector('.segmented[data-field="iso-recurso"] .on').getAttribute('data-value');
+    var descarte = document.querySelector('.segmented[data-field="iso-descarte"] .on').getAttribute('data-value');
+    var record = {
+      responsavel: document.getElementById('iso-responsavel').value.trim(),
+      local: document.getElementById('iso-local').value.trim(),
+      data: document.getElementById('iso-data').value,
+      previsaoRetirada: document.getElementById('iso-previsao').value,
+      atividade: document.getElementById('iso-atividade').value.trim(),
+      precisaRecurso: recurso,
+      descarte: descarte,
+      foto: isoPhoto,
+      status: 'ativo',
+      criadoEm: new Date().toISOString()
+    };
+    var btn = document.getElementById('iso-submit'); btn.disabled = true; btn.textContent = 'Registrando…';
+    db.collection('isolamentos').add(record).then(function(){
+      toast('Isolamento registrado com sucesso');
+      document.getElementById('form-iso').reset();
+      document.getElementById('iso-data').value = todayStr();
+      document.querySelectorAll('.segmented[data-field="iso-recurso"] button, .segmented[data-field="iso-descarte"] button').forEach(function(b){ b.classList.remove('on','danger-on'); });
+      isoPhoto = null; renderIsoPhotoPreview();
+      updateIsoProgress();
+    }).catch(function(err){
+      toast('Não foi possível registrar. Tente novamente.', 'error');
+      console.error(err);
+    }).finally(function(){
+      btn.textContent = 'Registrar isolamento'; btn.disabled = isoFilled() < 7;
+    });
+  });
+
+  /* ======================================================================
+     4b. SHARED CHART HELPERS (stacked bar + legend + tooltip)
+  ====================================================================== */
+  var tooltipEl = document.getElementById('chart-tooltip');
+  function showTooltip(x, y, text){
+    tooltipEl.textContent = text;
+    tooltipEl.style.left = Math.min(x+14, window.innerWidth-220) + 'px';
+    tooltipEl.style.top = (y+16) + 'px';
+    tooltipEl.classList.add('show');
+  }
+  function hideTooltip(){ tooltipEl.classList.remove('show'); }
+
+  // segments: [{label, value, fill}]  (fill = css color/var string)
+  function renderStackedBar(container, segments){
+    container.innerHTML = '';
+    var bar = document.createElement('div');
+    bar.className = 'stacked-bar';
+    var total = segments.reduce(function(s,x){ return s+x.value; }, 0);
+    if (total <= 0){
+      var empty = document.createElement('div');
+      empty.className = 'seg';
+      empty.style.background = 'var(--border)';
+      empty.style.width = '100%';
+      bar.appendChild(empty);
+    } else {
+      segments.forEach(function(s){
+        if (s.value <= 0) return;
+        var pct = (s.value/total*100);
+        var seg = document.createElement('div');
+        seg.className = 'seg';
+        seg.style.background = s.fill;
+        seg.style.width = pct + '%';
+        seg.tabIndex = 0;
+        seg.setAttribute('aria-label', s.label+': '+s.value+' ('+Math.round(pct)+'%)');
+        var txt = s.label+': '+s.value+' ('+Math.round(pct)+'%)';
+        seg.addEventListener('mousemove', function(e){ showTooltip(e.clientX, e.clientY, txt); });
+        seg.addEventListener('mouseleave', hideTooltip);
+        seg.addEventListener('focus', function(e){ var r=seg.getBoundingClientRect(); showTooltip(r.left, r.top, txt); });
+        seg.addEventListener('blur', hideTooltip);
+        bar.appendChild(seg);
+      });
+    }
+    container.appendChild(bar);
+  }
+  function renderLegend(container, segments, totalLabel){
+    var total = segments.reduce(function(s,x){ return s+x.value; }, 0);
+    container.innerHTML = '<div class="chart-legend">' + segments.map(function(s){
+      return '<span class="lg-item"><span class="lg-dot" style="background:'+s.fill+'"></span>'+esc(s.label)+': <b>'+s.value+'</b></span>';
+    }).join('') + (totalLabel ? '<span class="lg-item">'+esc(totalLabel)+': <b>'+total+'</b></span>' : '') + '</div>';
+  }
+
+  /* ======================================================================
+     4c. PAINEL — ISOLAMENTOS
+  ====================================================================== */
+  function renderPainelIsolamentos(){
+    var today = todayStr();
+    var noPrazo=0, atrasado=0, encerrado=0;
+    isolamentos.forEach(function(r){
+      if (r.status==='retirado') encerrado++;
+      else if (r.previsaoRetirada && r.previsaoRetirada < today) atrasado++;
+      else noPrazo++;
+    });
+    var totalAtivos = noPrazo + atrasado;
+
+    document.getElementById('piso-kpis').innerHTML =
+      '<div class="kpi-tile t-ok"><div class="kpi-label">Ativos</div><div class="kpi-value">'+totalAtivos+'</div></div>' +
+      '<div class="kpi-tile t-warn"><div class="kpi-label">Atrasados</div><div class="kpi-value">'+atrasado+'</div></div>' +
+      '<div class="kpi-tile t-neutral"><div class="kpi-label">Encerrados</div><div class="kpi-value">'+encerrado+'</div></div>';
+
+    var segs = [
+      { label:'No prazo', value:noPrazo, fill:'var(--ok)' },
+      { label:'Atrasado', value:atrasado, fill:'var(--warn)' },
+      { label:'Encerrado', value:encerrado, fill:'var(--neutral-chart)' }
+    ];
+    var barWrap = document.getElementById('piso-bar-wrap');
+    barWrap.innerHTML = '';
+    var barBox = document.createElement('div');
+    barWrap.appendChild(barBox);
+    renderStackedBar(barBox, segs);
+    var legendBox = document.createElement('div');
+    barWrap.appendChild(legendBox);
+    renderLegend(legendBox, segs, 'Total');
+
+    var list = document.getElementById('piso-list');
+    var q = document.getElementById('piso-search').value.trim().toLowerCase();
+    var rows = isolamentos.filter(function(r){
+      if (pisoFilter==='ativos' && r.status!=='ativo') return false;
+      if (pisoFilter==='retirados' && r.status!=='retirado') return false;
+      if (q && !(r.local||'').toLowerCase().includes(q) && !(r.responsavel||'').toLowerCase().includes(q) && !(r.atividade||'').toLowerCase().includes(q)) return false;
+      return true;
+    });
+    document.getElementById('piso-count').textContent = rows.length + (rows.length===1?' registro':' registros');
+    if (!rows.length){
+      list.innerHTML = '<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><div>Nenhum registro encontrado.</div></div>';
+      return;
+    }
+    list.innerHTML = rows.map(function(r){
+      var isAtrasado = r.status==='ativo' && r.previsaoRetirada && r.previsaoRetirada < today;
+      return '' +
+      '<div class="iso-card">' +
+        '<div class="iso-photo">' + (r.foto ? '<img src="'+r.foto+'" data-src="'+r.foto+'">' : '') + '</div>' +
+        '<div class="iso-body">' +
+          '<div class="iso-top">' +
+            '<div><div class="iso-local">'+esc(r.local)+'</div>' +
+            '<div class="iso-meta"><span>Resp.: '+esc(r.responsavel)+'</span><span>Colocado em '+fmtDate(r.data)+'</span><span>Previsão '+fmtDate(r.previsaoRetirada)+'</span></div></div>' +
+            (r.status==='retirado' ? '<span class="pill pill-neutral">Encerrado</span>' : (isAtrasado ? '<span class="pill pill-danger">Atrasado</span>' : '<span class="pill pill-ok">Ativo</span>')) +
+          '</div>' +
+          '<div style="font-size:13px;color:var(--ink-muted);margin-top:6px;max-width:60ch">'+esc(r.atividade)+'</div>' +
+          '<div class="iso-tags">' +
+            (r.precisaRecurso==='sim' ? '<span class="pill pill-warn">Precisa de recurso p/ retirada</span>' : '<span class="pill pill-neutral">Retirada sem recurso especial</span>') +
+            (r.descarte==='sim' ? '<span class="pill pill-danger">Para descarte</span>' : '<span class="pill pill-brand">Reaproveitável</span>') +
+          '</div>' +
+          (r.status!=='retirado' ?
+            (pisoEncerrarEditing[r._id] ?
+              '<div class="iso-actions" style="width:100%; gap:8px">' +
+                '<input type="text" class="mono" data-baixa-input="'+r._id+'" placeholder="Nome de quem encerrou" style="flex:1; min-width:160px; padding:7px 10px; border-radius:6px; border:1px solid var(--border-strong); background:var(--surface-sunken); color:var(--ink); font-size:12.8px">' +
+                '<button class="btn btn-primary btn-sm" data-baixa-confirm="'+r._id+'">Confirmar</button>' +
+                '<button class="btn btn-ghost btn-sm" data-baixa-cancel="'+r._id+'">Cancelar</button>' +
+              '</div>'
+              : '<div class="iso-actions"><button class="btn btn-ghost btn-sm" data-baixa="'+r._id+'">Encerrar isolamento</button></div>')
+            : '<div class="iso-meta" style="margin-top:8px">Encerrado em '+fmtDateTime(r.retiradoEm)+' por '+esc(r.retiradoPor||'—')+'</div>') +
+        '</div>' +
+      '</div>';
+    }).join('');
+    list.querySelectorAll('img[data-src]').forEach(function(img){ img.addEventListener('click', function(){ openLightbox(img.getAttribute('data-src')); }); });
+    list.querySelectorAll('[data-baixa]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        pisoEncerrarEditing[btn.getAttribute('data-baixa')] = true;
+        renderPainelIsolamentos();
+        var input = list.querySelector('[data-baixa-input="'+btn.getAttribute('data-baixa')+'"]');
+        if (input) input.focus();
+      });
+    });
+    list.querySelectorAll('[data-baixa-cancel]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        delete pisoEncerrarEditing[btn.getAttribute('data-baixa-cancel')];
+        renderPainelIsolamentos();
+      });
+    });
+    list.querySelectorAll('[data-baixa-confirm]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var id = btn.getAttribute('data-baixa-confirm');
+        var input = list.querySelector('[data-baixa-input="'+id+'"]');
+        var nome = input ? input.value.trim() : '';
+        if (!nome){ toast('Informe o nome de quem encerrou', 'error'); if(input) input.focus(); return; }
+        btn.disabled = true; btn.textContent = 'Salvando…';
+        db.collection('isolamentos').doc(id).update({
+          status: 'retirado', retiradoEm: new Date().toISOString(), retiradoPor: nome
+        }).then(function(){
+          delete pisoEncerrarEditing[id];
+          toast('Isolamento encerrado');
+        }).catch(function(){ toast('Falha ao atualizar registro', 'error'); btn.disabled=false; btn.textContent='Confirmar'; });
+      });
+    });
+    list.querySelectorAll('[data-baixa-input]').forEach(function(input){
+      input.addEventListener('keydown', function(e){
+        if (e.key === 'Enter'){ e.preventDefault(); list.querySelector('[data-baixa-confirm="'+input.getAttribute('data-baixa-input')+'"]').click(); }
+      });
+    });
+  }
+  document.getElementById('piso-search').addEventListener('input', renderPainelIsolamentos);
+
+  /* ======================================================================
+     5. FERRAMENTAS — shared checklist rendering
+  ====================================================================== */
+  var toolIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m14.7 6.3 3 3M4 20l7.5-7.5m-3-7a4 4 0 0 0 5.4 5.4L21 18l-3 3-7.1-7.1A4 4 0 0 0 5.5 8.5Z"/></svg>';
+
+  function buildChecklist(containerId, tools, statusMap, photoMap, onChange){
+    var el = document.getElementById(containerId);
+    el.innerHTML = tools.map(function(t){
+      return '' +
+      '<div class="checklist-row" data-tool="'+t.id+'">' +
+        '<div class="checklist-ico">'+toolIcon+'</div>' +
+        '<div class="checklist-name">'+esc(t.nome)+'</div>' +
+        '<div class="checklist-controls">' +
+          '<div class="status-seg" data-tool-status="'+t.id+'">' +
+            '<button type="button" data-v="conforme">Conforme</button>' +
+            '<button type="button" data-v="faltando">Faltando</button>' +
+            '<button type="button" data-v="danificada">Danificada</button>' +
+          '</div>' +
+          '<label class="photo-btn"><input type="file" accept="image/*" capture="environment" data-tool-photo="'+t.id+'">' +
+            '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h3l1.5-2h7L17 8h3v11H4V8Z"/><circle cx="12" cy="13.5" r="3.2"/></svg>Foto</label>' +
+          '<div class="photo-thumb" data-tool-thumb="'+t.id+'" style="display:none"></div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+
+    el.querySelectorAll('[data-tool-status]').forEach(function(seg){
+      var id = seg.getAttribute('data-tool-status');
+      seg.addEventListener('click', function(e){
+        var b = e.target.closest('button'); if(!b) return;
+        var v = b.getAttribute('data-v');
+        seg.querySelectorAll('button').forEach(function(x){ x.className=''; });
+        b.className = 'on-'+v;
+        statusMap[id] = v;
+        onChange();
+      });
+    });
+    el.querySelectorAll('[data-tool-photo]').forEach(function(input){
+      var id = input.getAttribute('data-tool-photo');
+      input.addEventListener('change', function(e){
+        var file = e.target.files[0]; if(!file) return;
+        compressImage(file, 480, 0.55).then(function(dataUrl){
+          photoMap[id] = dataUrl;
+          var thumb = el.querySelector('[data-tool-thumb="'+id+'"]');
+          thumb.style.display = '';
+          thumb.innerHTML = '<img src="'+dataUrl+'"><button type="button" class="rm">✕</button>';
+          thumb.querySelector('img').addEventListener('click', function(){ openLightbox(dataUrl); });
+          thumb.querySelector('.rm').addEventListener('click', function(ev){
+            ev.stopPropagation(); delete photoMap[id]; thumb.style.display='none'; thumb.innerHTML=''; onChange();
+          });
+          onChange();
+        });
+        e.target.value = '';
+      });
+    });
+  }
+
+  function checklistSummary(tools, statusMap, photoMap){
+    var done = 0, conforme=0, faltando=0, danificada=0;
+    tools.forEach(function(t){
+      if (statusMap[t.id] && photoMap[t.id]) done++;
+      if (statusMap[t.id]==='conforme') conforme++;
+      if (statusMap[t.id]==='faltando') faltando++;
+      if (statusMap[t.id]==='danificada') danificada++;
+    });
+    return { done: done, total: tools.length, conforme: conforme, faltando: faltando, danificada: danificada };
+  }
+  function summaryHtml(s){
+    return '' +
+      '<div class="stat"><b>'+s.done+' / '+s.total+'</b>itens concluídos</div>' +
+      '<div class="stat"><b style="color:var(--ok-ink)">'+s.conforme+'</b>conformes</div>' +
+      '<div class="stat"><b style="color:var(--warn-ink)">'+s.faltando+'</b>faltando</div>' +
+      '<div class="stat"><b style="color:var(--danger-ink)">'+s.danificada+'</b>danificadas</div>';
+  }
+
+  /* ---- Encarregado ---- */
+  document.getElementById('enc-data').value = todayStr();
+  var encTools = [];
+  document.getElementById('enc-funcao').addEventListener('change', function(){
+    var slug = this.value;
+    encStatus = {}; encPhotos = {};
+    var wrap = document.getElementById('enc-checklist-wrap');
+    var hint = document.getElementById('enc-empty-hint');
+    if (!slug || !toolsByFuncao[slug]){ wrap.style.display='none'; hint.style.display=''; return; }
+    encTools = toolsByFuncao[slug].ferramentas || [];
+    hint.style.display='none'; wrap.style.display='';
+    buildChecklist('enc-checklist', encTools, encStatus, encPhotos, updateEncProgress);
+    updateEncProgress();
+  });
+  function updateEncProgress(){
+    var s = checklistSummary(encTools, encStatus, encPhotos);
+    document.getElementById('enc-summary').innerHTML = summaryHtml(s);
+    var nameOk = document.getElementById('enc-nome').value.trim().length>0;
+    var respOk = document.getElementById('enc-responsaveis').value.trim().length>0;
+    document.getElementById('enc-progress').innerHTML = '<b>'+s.done+' de '+s.total+'</b> ferramentas conferidas (status + foto)';
+    document.getElementById('enc-submit').disabled = !(nameOk && respOk && s.total>0 && s.done===s.total);
+  }
+  document.getElementById('enc-nome').addEventListener('input', updateEncProgress);
+  document.getElementById('enc-responsaveis').addEventListener('input', updateEncProgress);
+
+  document.getElementById('enc-submit').addEventListener('click', function(){
+    var slug = document.getElementById('enc-funcao').value;
+    var s = checklistSummary(encTools, encStatus, encPhotos);
+    var responsaveis = document.getElementById('enc-responsaveis').value.trim();
+    if (s.done !== s.total || !s.total || !responsaveis) return;
+    var btn = this; btn.disabled = true; btn.textContent = 'Enviando…';
+    var session = {
+      tipo: 'encarregado',
+      funcaoSlug: slug,
+      funcaoNome: (toolsByFuncao[slug]||{}).nome || slug,
+      responsavel: document.getElementById('enc-nome').value.trim(),
+      responsaveis: responsaveis,
+      data: document.getElementById('enc-data').value,
+      observacoes: document.getElementById('enc-obs').value.trim(),
+      resumo: { total: s.total, conforme: s.conforme, faltando: s.faltando, danificada: s.danificada },
+      criadoEm: new Date().toISOString()
+    };
+    db.collection('verificacoes').add(session).then(function(ref){
+      return Promise.all(encTools.map(function(t){
+        return ref.collection('itens').add({
+          ferramentaId: t.id, ferramentaNome: t.nome, status: encStatus[t.id], foto: encPhotos[t.id]
+        });
+      }));
+    }).then(function(){
+      toast('Conferência enviada — vai compor a nota do encarregado no Escudo');
+      document.getElementById('enc-obs').value='';
+      document.getElementById('enc-responsaveis').value='';
+      encStatus = {}; encPhotos = {};
+      buildChecklist('enc-checklist', encTools, encStatus, encPhotos, updateEncProgress);
+      updateEncProgress();
+    }).catch(function(err){ toast('Falha ao enviar conferência', 'error'); console.error(err); })
+    .finally(function(){ btn.textContent='Enviar conferência'; });
+  });
+
+  /* ---- Almoxarife (itens digitados livremente) ---- */
+  document.getElementById('alm-data').value = todayStr();
+
+  document.getElementById('alm-item-photo-input').addEventListener('change', function(e){
+    var file = e.target.files[0]; if(!file) return;
+    compressImage(file, 480, 0.55).then(function(dataUrl){
+      almPendingPhoto = dataUrl;
+      renderAlmPendingPhoto();
+    });
+    e.target.value = '';
+  });
+  function renderAlmPendingPhoto(){
+    var wrap = document.getElementById('alm-item-photo-preview');
+    wrap.innerHTML = '';
+    if (almPendingPhoto){
+      var t = document.createElement('div'); t.className='photo-thumb';
+      t.innerHTML = '<img src="'+almPendingPhoto+'"><button type="button" class="rm">✕</button>';
+      t.querySelector('.rm').addEventListener('click', function(e){ e.stopPropagation(); almPendingPhoto=null; renderAlmPendingPhoto(); });
+      t.querySelector('img').addEventListener('click', function(){ openLightbox(almPendingPhoto); });
+      wrap.appendChild(t);
+    }
+  }
+
+  function resetAlmItemBuilder(){
+    document.getElementById('alm-item-nome').value = '';
+    almPendingTem = null; almPendingPhoto = null;
+    renderAlmPendingPhoto();
+    var seg = document.getElementById('alm-item-tem');
+    seg.querySelectorAll('button').forEach(function(b){ b.className=''; });
+  }
+
+  document.getElementById('alm-item-add').addEventListener('click', function(){
+    var nomeInput = document.getElementById('alm-item-nome');
+    var nome = nomeInput.value.trim();
+    if (!nome){ toast('Informe o nome da ferramenta', 'error'); nomeInput.focus(); return; }
+    if (!almPendingTem){ toast('Informe se tem ou não tem', 'error'); return; }
+    if (!almPendingPhoto){ toast('Anexe a foto da ferramenta', 'error'); return; }
+    almItems.push({
+      id: slugify(nome)+'-'+Date.now().toString(36),
+      nome: nome,
+      status: almPendingTem==='tem' ? 'conforme' : 'faltando',
+      foto: almPendingPhoto
+    });
+    resetAlmItemBuilder();
+    renderAlmItemsList();
+    updateAlmProgress();
+  });
+
+  function renderAlmItemsList(){
+    var wrap = document.getElementById('alm-items-list');
+    if (!almItems.length){ wrap.innerHTML=''; return; }
+    wrap.innerHTML = almItems.map(function(it, idx){
+      var tem = it.status==='conforme';
+      return '<div class="added-item-row">' +
+        '<img src="'+it.foto+'" data-src="'+it.foto+'">' +
+        '<div class="nm">'+esc(it.nome)+'</div>' +
+        '<span class="pill '+(tem?'pill-ok':'pill-warn')+'">'+(tem?'Tem':'Não tem')+'</span>' +
+        '<button type="button" class="rm-item" data-rm-idx="'+idx+'" title="Remover">✕</button>' +
+      '</div>';
+    }).join('');
+    wrap.querySelectorAll('img[data-src]').forEach(function(img){ img.addEventListener('click', function(){ openLightbox(img.getAttribute('data-src')); }); });
+    wrap.querySelectorAll('[data-rm-idx]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        almItems.splice(parseInt(btn.getAttribute('data-rm-idx'),10), 1);
+        renderAlmItemsList();
+        updateAlmProgress();
+      });
+    });
+  }
+
+  function updateAlmProgress(){
+    var nameOk = document.getElementById('alm-nome').value.trim().length>0;
+    var escopoOk = document.getElementById('alm-escopo').value.length>0;
+    var dataOk = document.getElementById('alm-data').value.length>0;
+    var wrap = document.getElementById('alm-summary-wrap');
+    if (almItems.length){
+      var tem = almItems.filter(function(i){ return i.status==='conforme'; }).length;
+      var naotem = almItems.length - tem;
+      wrap.style.display = '';
+      document.getElementById('alm-summary').innerHTML =
+        '<div class="stat"><b>'+almItems.length+'</b>itens adicionados</div>' +
+        '<div class="stat"><b style="color:var(--ok-ink)">'+tem+'</b>tem</div>' +
+        '<div class="stat"><b style="color:var(--warn-ink)">'+naotem+'</b>não tem</div>';
+      document.getElementById('alm-progress').innerHTML = '<b>'+almItems.length+'</b> '+(almItems.length===1?'item pronto para envio':'itens prontos para envio');
+    } else {
+      wrap.style.display = 'none';
+      document.getElementById('alm-progress').textContent = 'Nenhum item adicionado ainda';
+    }
+    document.getElementById('alm-submit').disabled = !(nameOk && escopoOk && dataOk && almItems.length>0);
+  }
+  document.getElementById('alm-nome').addEventListener('input', updateAlmProgress);
+  document.getElementById('alm-escopo').addEventListener('change', updateAlmProgress);
+  document.getElementById('alm-data').addEventListener('input', updateAlmProgress);
+
+  document.getElementById('alm-submit').addEventListener('click', function(){
+    var scope = document.getElementById('alm-escopo').value;
+    if (!almItems.length) return;
+    var conforme = almItems.filter(function(i){ return i.status==='conforme'; }).length;
+    var faltando = almItems.length - conforme;
+    var btn = this; btn.disabled = true; btn.textContent = 'Enviando…';
+    var session = {
+      tipo: 'almoxarife',
+      escopo: scope,
+      escopoNome: scope==='ferramentaria' ? 'Ferramentaria' : 'Parada de Usina',
+      responsavel: document.getElementById('alm-nome').value.trim(),
+      data: document.getElementById('alm-data').value,
+      observacoes: document.getElementById('alm-obs').value.trim(),
+      resumo: { total: almItems.length, conforme: conforme, faltando: faltando, danificada: 0 },
+      criadoEm: new Date().toISOString()
+    };
+    var itemsSnapshot = almItems.slice();
+    db.collection('verificacoes').add(session).then(function(ref){
+      return Promise.all(itemsSnapshot.map(function(it){
+        return ref.collection('itens').add({
+          ferramentaId: it.id, ferramentaNome: it.nome, status: it.status, foto: it.foto
+        });
+      }));
+    }).then(function(){
+      toast('Conferência geral registrada');
+      document.getElementById('alm-obs').value='';
+      almItems = [];
+      renderAlmItemsList();
+      updateAlmProgress();
+    }).catch(function(err){ toast('Falha ao enviar conferência', 'error'); console.error(err); })
+    .finally(function(){ btn.textContent='Enviar conferência'; });
+  });
+
+  /* ======================================================================
+     6. PAINEL — FERRAMENTAS (gráficos + detalhe)
+  ====================================================================== */
+  function groupKeyOf(s){ return s.tipo + '|' + (s.tipo==='encarregado' ? (s.funcaoSlug||'—') : (s.escopo||'—')); }
+  function groupLabelOf(s){ return s.tipo==='encarregado' ? (s.funcaoNome||'—') : (s.escopoNome||'—'); }
+
+  function renderPainelFerramentas(){
+    var filtered = sessions.filter(function(s){ return pferrRole==='todos' || s.tipo===pferrRole; });
+
+    // Build per-group aggregates: "última conferência" keeps only the most recent
+    // session per função/escopo; "todo o histórico" sums every session per group.
+    var groups = {}; // key -> {label, tipo, conforme, faltando, danificada, total}
+    filtered.forEach(function(s){
+      var key = groupKeyOf(s);
+      var r = s.resumo || {total:0,conforme:0,faltando:0,danificada:0};
+      if (pferrScope==='ultima'){
+        if (!groups[key]) groups[key] = { label: groupLabelOf(s), tipo: s.tipo, conforme:r.conforme||0, faltando:r.faltando||0, danificada:r.danificada||0, total:r.total||0 };
+        // sessions are ordered newest-first, so the first hit per key is already the latest
+      } else {
+        if (!groups[key]) groups[key] = { label: groupLabelOf(s), tipo: s.tipo, conforme:0, faltando:0, danificada:0, total:0 };
+        groups[key].conforme += r.conforme||0;
+        groups[key].faltando += r.faltando||0;
+        groups[key].danificada += r.danificada||0;
+        groups[key].total += r.total||0;
+      }
+    });
+    var groupList = Object.keys(groups).map(function(k){ return groups[k]; }).sort(function(a,b){ return b.total - a.total; });
+
+    var totConforme=0, totFaltando=0, totDanificada=0;
+    groupList.forEach(function(g){ totConforme+=g.conforme; totFaltando+=g.faltando; totDanificada+=g.danificada; });
+    var totGeral = totConforme + totFaltando + totDanificada;
+
+    document.getElementById('pferr-kpis').innerHTML =
+      '<div class="kpi-tile t-ok"><div class="kpi-label">Conforme</div><div class="kpi-value">'+totConforme+'</div></div>' +
+      '<div class="kpi-tile t-danger"><div class="kpi-label">Não conforme</div><div class="kpi-value">'+totDanificada+'</div></div>' +
+      '<div class="kpi-tile t-warn"><div class="kpi-label">Não possuímos</div><div class="kpi-value">'+totFaltando+'</div></div>' +
+      '<div class="kpi-tile t-neutral"><div class="kpi-label">Itens conferidos</div><div class="kpi-value">'+totGeral+'</div></div>';
+
+    var legendSegs = [
+      { label:'Conforme', value:totConforme, fill:'var(--ok)' },
+      { label:'Não conforme', value:totDanificada, fill:'var(--danger)' },
+      { label:'Não possuímos', value:totFaltando, fill:'var(--warn)' }
+    ];
+    renderLegend(document.getElementById('pferr-legend'), legendSegs);
+
+    var groupsEl = document.getElementById('pferr-groups');
+    if (!groupList.length){
+      groupsEl.innerHTML = '<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20V10m6.5 10V4m6.5 16v-7"/></svg><div>Nenhuma conferência de ferramenta registrada ainda.</div></div>';
+    } else {
+      groupsEl.innerHTML = '';
+      groupList.forEach(function(g){
+        var row = document.createElement('div');
+        row.className = 'group-bar-row';
+        var probs = g.faltando + g.danificada;
+        row.innerHTML = '<div class="group-bar-head"><span class="group-bar-name">'+esc(g.label)+' <span class="pill '+(g.tipo==='encarregado'?'pill-brand':'pill-neutral')+'" style="margin-left:6px">'+(g.tipo==='encarregado'?'Encarregado':'Almoxarifado')+'</span></span><span class="group-bar-total">'+g.total+' itens'+(probs?' · '+probs+' pendência(s)':'')+'</span></div>';
+        var barBox = document.createElement('div');
+        row.appendChild(barBox);
+        groupsEl.appendChild(row);
+        renderStackedBar(barBox, [
+          { label:'Conforme', value:g.conforme, fill:'var(--ok)' },
+          { label:'Não conforme', value:g.danificada, fill:'var(--danger)' },
+          { label:'Não possuímos', value:g.faltando, fill:'var(--warn)' }
+        ]);
+      });
+    }
+
+    renderPferrList(filtered);
+  }
+
+  function renderPferrList(filtered){
+    var list = document.getElementById('pferr-list');
+    if (!filtered.length){
+      list.innerHTML = '<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 8v5l3 2"/><circle cx="12" cy="12" r="9"/></svg><div>Nenhuma conferência registrada ainda.</div></div>';
+      return;
+    }
+    list.innerHTML = filtered.map(function(s){
+      var who = groupLabelOf(s);
+      var badge = s.tipo==='encarregado' ? '<span class="pill pill-brand">Encarregado</span>' : '<span class="pill pill-neutral">Almoxarifado</span>';
+      var probs = (s.resumo && (s.resumo.faltando + s.resumo.danificada)) || 0;
+      return '' +
+      '<div class="session-card">' +
+        '<div class="session-head" data-sid="'+s._id+'">' +
+          badge +
+          '<div><div class="session-title">'+esc(who)+' — '+esc(s.responsavel)+'</div>' +
+          '<div class="session-sub">'+fmtDate(s.data)+' · '+(s.resumo?s.resumo.total:0)+' itens'+(probs? ' · '+probs+' com problema':'')+(s.responsaveis? ' · ferramentas com '+esc(s.responsaveis):'')+'</div></div>' +
+          (probs>0 ? '<span class="pill pill-warn" style="margin-left:auto">'+probs+' pendência(s)</span>' : '<span class="pill pill-ok" style="margin-left:auto">Tudo conforme</span>') +
+          '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m9 6 6 6-6 6"/></svg>' +
+        '</div>' +
+        '<div class="session-items" id="sitems-'+s._id+'"></div>' +
+      '</div>';
+    }).join('');
+    list.querySelectorAll('.session-head').forEach(function(head){
+      head.addEventListener('click', function(){
+        var sid = head.getAttribute('data-sid');
+        var itemsEl = document.getElementById('sitems-'+sid);
+        var opening = !itemsEl.classList.contains('open');
+        head.classList.toggle('open', opening);
+        itemsEl.classList.toggle('open', opening);
+        if (opening && !itemsEl.dataset.loaded){
+          itemsEl.dataset.loaded = '1';
+          itemsEl.innerHTML = '<div class="hint" style="padding:10px 0">Carregando itens…</div>';
+          db.collection('verificacoes').doc(sid).collection('itens').get().then(function(snap){
+            if (!snap.docs.length){ itemsEl.innerHTML = '<div class="hint" style="padding:10px 0">Sem itens.</div>'; return; }
+            itemsEl.innerHTML = snap.docs.map(function(d){
+              var it = d.data();
+              var sc = STATUS_COLORS[it.status] || STATUS_COLORS.conforme;
+              var pillClass = it.status==='conforme' ? 'pill-ok' : (it.status==='faltando' ? 'pill-warn' : 'pill-danger');
+              return '<div class="item-row">' +
+                (it.foto ? '<img src="'+it.foto+'" data-src="'+it.foto+'">' : '<div class="checklist-ico">'+toolIcon+'</div>') +
+                '<div class="nm">'+esc(it.ferramentaNome)+'</div>' +
+                '<span class="pill '+pillClass+'">'+sc.label+'</span>' +
+              '</div>';
+            }).join('');
+            itemsEl.querySelectorAll('img[data-src]').forEach(function(img){ img.addEventListener('click', function(){ openLightbox(img.getAttribute('data-src')); }); });
+          }).catch(function(){ itemsEl.innerHTML = '<div class="hint" style="padding:10px 0">Erro ao carregar itens.</div>'; });
+        }
+      });
+    });
+  }
+
+  /* ======================================================================
+     7. ADMIN — manage função tool lists + geral lists
+  ====================================================================== */
+  function renderAdminFuncaoSelect(){
+    var sel = document.getElementById('admin-funcao-select');
+    var cur = sel.value;
+    var slugs = Object.keys(toolsByFuncao).sort(function(a,b){ return toolsByFuncao[a].nome.localeCompare(toolsByFuncao[b].nome); });
+    sel.innerHTML = slugs.map(function(s){ return '<option value="'+s+'">'+esc(toolsByFuncao[s].nome)+'</option>'; }).join('');
+    if (slugs.indexOf(cur)>=0) sel.value = cur;
+    renderAdminFuncaoTags();
+  }
+  function renderAdminFuncaoTags(){
+    var sel = document.getElementById('admin-funcao-select');
+    var slug = sel.value;
+    var wrap = document.getElementById('admin-funcao-tags');
+    if (!slug || !toolsByFuncao[slug]){ wrap.innerHTML=''; return; }
+    var tools = toolsByFuncao[slug].ferramentas || [];
+    wrap.innerHTML = '<div class="hint" style="margin-bottom:8px">Ferramentas cadastradas para '+esc(toolsByFuncao[slug].nome)+':</div>' +
+      '<div class="taglist">' + tools.map(function(t){
+        return '<span class="tag-del">'+esc(t.nome)+'<button data-rm-tool="'+t.id+'" data-rm-funcao="'+slug+'">✕</button></span>';
+      }).join('') + '</div>';
+    wrap.querySelectorAll('[data-rm-tool]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var fs = b.getAttribute('data-rm-funcao'), tid = b.getAttribute('data-rm-tool');
+        var list = (toolsByFuncao[fs].ferramentas||[]).filter(function(t){ return t.id!==tid; });
+        db.collection('funcoes').doc(fs).update({ ferramentas: list }).then(function(){ toast('Ferramenta removida'); });
+      });
+    });
+  }
+  document.getElementById('admin-funcao-select').addEventListener('change', renderAdminFuncaoTags);
+
+  document.getElementById('admin-add-ferramenta').addEventListener('click', function(){
+    var slug = document.getElementById('admin-funcao-select').value;
+    var nomeInput = document.getElementById('admin-ferramenta-nome');
+    var nome = nomeInput.value.trim();
+    if (!slug || !nome) return;
+    var list = (toolsByFuncao[slug].ferramentas||[]).slice();
+    list.push({ id: slugify(nome)+'-'+Date.now().toString(36), nome: nome });
+    db.collection('funcoes').doc(slug).update({ ferramentas: list }).then(function(){
+      nomeInput.value=''; toast('Ferramenta adicionada — já vale na próxima conferência');
+    }).catch(function(){ toast('Falha ao adicionar', 'error'); });
+  });
+
+  document.getElementById('admin-add-funcao').addEventListener('click', function(){
+    var input = document.getElementById('admin-nova-funcao');
+    var nome = input.value.trim(); if (!nome) return;
+    var slug = slugify(nome);
+    db.collection('funcoes').doc(slug).set({ nome: nome, ferramentas: [] }).then(function(){
+      input.value=''; toast('Função criada: '+nome);
+    }).catch(function(){ toast('Falha ao criar função', 'error'); });
+  });
+
+  /* ======================================================================
+     8. SEED DEFAULTS
+  ====================================================================== */
+  // Listas oficiais dos kits de ferramenta (fonte: kits cadastrados do almoxarifado).
+  var DEFAULT_FUNCOES = [
+    { nome:'Mecânico', ferramentas:[
+      'Alicate p/anel interno 7"','Alicate p/anel externo 7"','Alicate de pressão 10"','Alicate universal 8"',
+      'Arco de serra 8" a 12"','Caixa de ferramenta 5 compart. sanfonada','Calibrador de folga',
+      'Chave ajustável 8"','Chave ajustável 12"',
+      'Chave combinada 7/16" Gedore (qtd. mín. 02)','Chave combinada 1/2" Gedore (qtd. mín. 02)',
+      'Chave combinada 9/16" Gedore (qtd. mín. 02)','Chave combinada 5/8" Gedore (qtd. mín. 02)',
+      'Chave combinada 11/16" Gedore (qtd. mín. 02)','Chave combinada 3/4" Gedore (qtd. mín. 02)',
+      'Chave combinada 7/8" Gedore (qtd. mín. 02)','Chave combinada 15/16" Gedore (qtd. mín. 02)',
+      'Chave combinada 1" Gedore (qtd. mín. 02)','Chave combinada 1.1/16" Gedore (qtd. mín. 02)',
+      'Chave combinada 1.1/8" Gedore (qtd. mín. 02)','Chave combinada 1.3/16" Gedore (qtd. mín. 02)',
+      'Chave combinada 1.1/4" Gedore (qtd. mín. 02)','Chave combinada 1.5/16" Gedore (qtd. mín. 02)',
+      'Chave combinada 1.1/2" Gedore (qtd. mín. 02)',
+      'Chave de fenda 1/4" x 6"','Chave de fenda 5/16" x 8"','Chave reta para tubos 12"',
+      'Catraca reversível 1/2" x 10"','Extensão enc. 1/2" x 5"','Extensão enc. 1/2" x 10"',
+      'Jogo de chave allen 1/8" a 9/16"','Jogo de vazadores c/15 peças','Marreta 2 kg','Martelo bola 500 g',
+      'Paquímetro 6"','Saca-pino paralelo 4mm','Saca-pino paralelo 5mm','Saca-pino paralelo 6mm','Saca-pino paralelo 8mm',
+      'Soquete enc. 1/2" x 7/16"','Soquete enc. 1/2" x 1/2"','Soquete enc. 1/2" x 9/16"','Soquete enc. 1/2" x 3/4"',
+      'Talhadeira','Tesoura p/ funileiro 10"','Trena caixa metálica 3m','Alavanca 450mm','Espátula'
+    ] },
+    { nome:'Eletricista', ferramentas:[
+      'Alicate T/fone reto 6.1/2" VDE','Alicate corte diagonal 6.1/2" VDE','Alicate prensa terminal 10"',
+      'Alicate universal 6" VDE','Alicate amperímetro','Bolsa de couro c/divisória e bolsos laterais',
+      'Chave ajustável 10" VDE','Chave tipo canhão série longa 6mm','Chave tipo canhão série longa 7mm',
+      'Chave tipo canhão série longa 8mm','Chave tipo canhão série longa 10mm',
+      'Chave combinada 13mm Gedore','Chave combinada 14mm Gedore','Chave combinada 1/2" Gedore',
+      'Chave fixa 3/8" x 7/16"','Chave fixa 1/2" x 9/16"','Chave fixa de uma boca isolada 10mm','Chave fixa de uma boca isolada 13mm',
+      'Chave allen c/cabo 7/32"','Chave fenda cotoco 3/16" x 1.1/2"',
+      'Chave de fenda simples VDE 3,5','Chave de fenda simples VDE 5,5','Chave de fenda simples VDE 8,0',
+      'Chave phillips n°0 VDE','Chave phillips n°1 VDE','Chave phillips n°2 VDE','Chave phillips n°3 VDE',
+      'Chave reta p/tubos 8"','Jogo de chave allen 1,5 a 10mm','Jogo de chave allen 1/8" a 9/16"',
+      'Multímetro digital','Pica-ponta cilíndrica vertical','Trena caixa metálica 3m','Estilete retrátil'
+    ] },
+    { nome:'Instrumentista', ferramentas:[
+      'Alicate T/fone reto 6.1/2" VDE','Alicate corte diagonal 6.1/2" VDE','Alicate prensa terminal 10"',
+      'Alicate universal 6" VDE','Bolsa de couro c/divisória e bolsos laterais','Chave ajustável 10" VDE',
+      'Chave tipo canhão série longa 10mm',
+      'Chave combinada 6mm','Chave combinada 7mm','Chave combinada 8mm','Chave combinada 9mm','Chave combinada 10mm',
+      'Chave combinada 13mm Gedore','Chave combinada 14mm Gedore','Chave combinada 1/2" Gedore',
+      'Chave fixa de uma boca isolante 10mm','Chave fixa de uma boca isolante 13mm','Chave fixa 3/8" x 7/16"','Chave fixa 1/2" x 9/16"',
+      'Chave allen c/cabo 7/32"','Chave fenda cotoco 3/16" x 1.1/2"',
+      'Chave de fenda simples 3,5','Chave de fenda simples 5,5','Chave de fenda simples 8,0',
+      'Chave phillips n°0 VDE','Chave phillips n°1 VDE','Chave phillips n°2 VDE','Chave phillips n°3 VDE',
+      'Chave reta p/tubos 8"','Jogo de chave allen 1,5 a 10mm','Jogo de chave allen 1/8" a 9/16"',
+      'Multímetro digital','Pica-ponta cilíndrica vertical','Trena caixa metálica 3m','Estilete retrátil'
+    ] },
+    { nome:'Soldador', ferramentas:[
+      'Chave ajustável 12"','Cintel para traçagem','Esquadro de base 45° 12"',
+      'Manômetro R-87 (acetileno)','Manômetro R-88 (oxigênio)','Maçarico de corte 90gr 530mm',
+      'Marreta 2 kg','Martelo de bola 500g','Nível de ferro fundido 12"','Picador de solda','Punção','Trena caixa metálica 3m'
+    ] }
+  ];
+  function seedIfEmpty(){
+    db.collection('funcoes').get().then(function(snap){
+      if (snap.docs.length) return;
+      DEFAULT_FUNCOES.forEach(function(f){
+        var slug = slugify(f.nome);
+        db.collection('funcoes').doc(slug).set({
+          nome: f.nome,
+          ferramentas: f.ferramentas.map(function(n,i){ return { id: slug+'-'+i, nome: n }; })
+        });
+      });
+    });
+  }
+
+  /* ======================================================================
+     9. WIRE UP LIVE SUBSCRIPTIONS
+  ====================================================================== */
+  function attachSubscriptions(){
+    db.collection('funcoes').onSnapshot(function(snap){
+      toolsByFuncao = {};
+      snap.docs.forEach(function(d){ toolsByFuncao[d.id] = d.data(); });
+      var sel = document.getElementById('enc-funcao');
+      var cur = sel.value;
+      var slugs = Object.keys(toolsByFuncao).sort(function(a,b){ return toolsByFuncao[a].nome.localeCompare(toolsByFuncao[b].nome); });
+      sel.innerHTML = '<option value="">Selecione…</option>' + slugs.map(function(s){ return '<option value="'+s+'">'+esc(toolsByFuncao[s].nome)+'</option>'; }).join('');
+      if (slugs.indexOf(cur)>=0) sel.value = cur;
+      renderAdminFuncaoSelect();
+    });
+
+    db.collection('isolamentos').orderBy('criadoEm','desc').limit(200).onSnapshot(function(snap){
+      isolamentos = snap.docs.map(function(d){ var o = Object.assign({_id:d.id}, d.data()); return o; });
+      renderPainelIsolamentos();
+    });
+    db.collection('verificacoes').orderBy('criadoEm','desc').limit(100).onSnapshot(function(snap){
+      sessions = snap.docs.map(function(d){ return Object.assign({_id:d.id}, d.data()); });
+      renderPainelFerramentas();
+    });
+  }
+
+  /* ======================================================================
+     10. BOOT
+  ====================================================================== */
+  function setConn(state){
+    var dot = document.getElementById('conn-dot'), label = document.getElementById('conn-label');
+    dot.className = 'dot ' + (state==='on'?'':(state==='off'?'off':'pending'));
+    label.textContent = state==='on' ? 'Conectado' : (state==='off' ? 'Modo local (sem sincronização)' : 'Conectando…');
+  }
+
+  updateIsoProgress();
+  renderIsoPhotoPreview();
+  updateAlmProgress();
+
+  function bootWithFirebase(){
+    var rtdb = tryInitFirebase();
+    if (!rtdb) return false;
+    db = makeFirebaseDb(rtdb, FIREBASE_ROOT);
+    usingFallback = false;
+    setConn('on');
+    seedIfEmpty();
+    attachSubscriptions();
+    return true;
+  }
+
+  if (!bootWithFirebase()){
+    (window.claude && window.claude.use ? window.claude.use('db') : Promise.resolve(null)).then(function(realDb){
+      if (realDb){
+        db = realDb;
+        usingFallback = false;
+        setConn('on');
+      } else {
+        db = makeMemDb();
+        usingFallback = true;
+        setConn('off');
+        var intro = document.querySelector('#view-iso .section-intro');
+        var banner = document.createElement('div');
+        banner.className = 'banner';
+        banner.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg><span><b>Armazenamento não disponível nesta visualização.</b> Os formulários funcionam normalmente, mas os registros ficam apenas nesta aba e não são compartilhados. Se este arquivo já tiver a configuração do Firebase preenchida no topo do código, verifique a conexão de internet; caso contrário, abra o artefato publicado para sincronizar de verdade.</span>';
+        intro.parentNode.insertBefore(banner, intro.nextSibling);
+      }
+      seedIfEmpty();
+      attachSubscriptions();
+    }).catch(function(err){
+      console.error(err);
+      db = makeMemDb(); usingFallback = true; setConn('off');
+      seedIfEmpty(); attachSubscriptions();
+    });
+  }
+
+})();
+</script>
+
+</body>
+</html>
