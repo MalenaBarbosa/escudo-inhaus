@@ -73,8 +73,9 @@ input,select,textarea{width:100%;background:var(--surface2);border:1.5px solid v
 input:focus,select:focus,textarea:focus{border-color:var(--navy);background:var(--surface);}
 select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7385' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;}
 textarea{resize:none;min-height:64px;}
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
-@media(max-width:480px){.g2{grid-template-columns:1fr;}}
+.g2{display:grid;grid-template-columns:1fr;gap:9px;}
+@media(min-width:640px){.g2{grid-template-columns:1fr 1fr;}}
+.f label{overflow-wrap:break-word;word-break:break-word;}
 
 /* PHOTO */
 .photo-zone{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
@@ -254,6 +255,7 @@ textarea{resize:none;min-height:64px;}
                 <option value="">Selecione…</option>
                 <option>Fatores de Risco de Saúde Ocupacional</option>
                 <option>Fatores de Riscos de Segurança</option>
+                <option>Fatores de Risco Ambiental</option>
               </select></div>
             <div class="f"><label>Tipo <em>*</em></label>
               <select id="ci-tipo" required>
@@ -386,6 +388,7 @@ textarea{resize:none;min-height:64px;}
                 <option value="">Selecione…</option>
                 <option>Fatores de Risco de Saúde Ocupacional</option>
                 <option>Fatores de Riscos de Segurança</option>
+                <option>Fatores de Risco Ambiental</option>
               </select></div>
             <div class="f"><label>Tipo <em>*</em></label>
               <select id="rqa-tipo" required>
