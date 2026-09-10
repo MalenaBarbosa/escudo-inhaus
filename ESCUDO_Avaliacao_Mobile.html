@@ -256,6 +256,23 @@ input:checked+.tgl-track::before{transform:translateX(18px);}
     <button class="back-btn" onclick="goS(1)">← Voltar</button>
     <div class="sec-title">Profissional</div>
     <div class="sec-sub">Selecione quem será avaliado.</div>
+    
+    <!-- BUSCA GLOBAL DE PROFISSIONAL -->
+    <div id="search-wrap" style="margin-bottom:.9rem;">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--ink3);margin-bottom:6px;">🔍 Buscar profissional (todas as equipes)</div>
+      <div style="display:flex;align-items:center;gap:8px;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--rsm);padding:9px 12px;transition:border-color .2s;" onfocusin="this.style.borderColor='var(--navy)'" onfocusout="this.style.borderColor=''">
+        <span style="font-size:16px;">🔍</span>
+        <input type="text" id="search-input"
+          placeholder="Digite o nome para buscar…"
+          oninput="searchQuery=this.value;renderSearch();"
+          autocomplete="off"
+          style="flex:1;border:none;background:transparent;color:var(--ink);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:500;outline:none;"/>
+        <span id="search-clear" onclick="document.getElementById('search-input').value='';searchQuery='';renderSearch();" style="cursor:pointer;color:var(--ink3);font-size:14px;display:none;">✕</span>
+      </div>
+      <div id="search-results" style="margin-top:6px;max-height:280px;overflow-y:auto;"></div>
+    </div>
+    <div style="font-size:11px;color:var(--ink3);margin-bottom:.6rem;text-align:center;letter-spacing:.5px;">— ou selecione pela equipe abaixo —</div>
+
     <div id="mem-grid-wrap"></div>
     <button class="btn btn-navy" onclick="goS(3)">Próximo — Preencher avaliação →</button>
   </div>
@@ -319,15 +336,17 @@ const CRITS = [
 ];
 
 const DEFAULT_TEAMS = {
-  A:{id:'A',label:'Turno A',seg:'turno',color:'#d97706',enc:{n:'CLEUTON FERREIRA DOS SANTOS',c:'ENCARREGADO OPERACIONAL'},members:[{n:'PRISCILA ANDRADE DA SILVA',c:'OPERAÇÃO ETI BN'},{n:'DIOGO VIEIRA BORGES',c:'OPERAÇÃO ETI 1/2'},{n:'BENEDITO PEREIRA DOS SANTOS',c:'OPERAÇÃO DRAGA 01'},{n:'BRENER RIBEIRO DE SOUZA',c:'POLPA/DRAGA 02'},{n:'JOSÉ IGOR COSTA CARDOSO',c:'PRECIPT. US03'},{n:'EDGARD BENA DOS SANTOS',c:'PRECIPT. US03'},{n:'LEONARDO DOS REIS VIEIRA',c:'PENEIRAMENTO US03'},{n:'LUIZ EDUARDO SANTOS SOUTO',c:'PRECIPT. US04'},{n:'JHON ROGER DE MORAES SECATO',c:'PRECIPT. US04'},{n:'RAPHAEL DOS SANTOS LOYOLA',c:'PENEIRAMENTO US04'},{n:'RYAN SOUZA SILVA',c:'FILTRO PRENSA'},{n:'KAUÃ XAVIER SEMEDO',c:'OPERADOR MANTENEDOR'},{n:'BRUNO HENRIQUE BRAGA',c:'OPERADOR MANTENEDOR'},{n:'FLAVIO MORAES NOGUEIRA',c:'OPERADOR MANTENEDOR'},{n:'PAULO LEANDRO REIS FILHO',c:'MECÂNICO'},{n:'EDUARDO DE ANDRADE MENDES',c:'MECÂNICO'},{n:'EDIRLEI MARTINS DE SOUZA',c:'SOLDADOR'},{n:'GABRIEL VIEIRA LIBARDI',c:'OPER. PÁTIO/PORTO'},{n:'ALCENIR DINIZ FARIAS',c:'OPER. PÁTIO/PORTO'},{n:'GEOVANI PASSOS DA VITORIA',c:'OPER. PÁTIO/PORTO ADM'}]},
-  B:{id:'B',label:'Turno B',seg:'turno',color:'#059669',enc:{n:'GEOVANE BRANDAO BELEM',c:'ENCARREGADO OPERACIONAL'},members:[{n:'SIMONE FERREIRA DA SILVA',c:'ETI BN'},{n:'FELLIPE WENDER SIQUEIRA SIMÕES',c:'ETI 1/2'},{n:'JORGE AUGUSTO NASCIMENTO RODRIGUES',c:'DRAGA 01'},{n:'LUIZ FELIPE SENNA DA SILVA',c:'POLPA/DRAGA 02'},{n:'REGES DE SA CORREA',c:'PRECIPT. US03'},{n:'KAUAN TRES CAMARGO',c:'PRECIPT. US03'},{n:'MARCOS ADRIANO GIULIATTI SEMEDO',c:'PENEIRAMENTO US03'},{n:'JOSÉ LUIZ FLUMINENSE DOS SANTOS',c:'PRECIPT. US04'},{n:'PIERRE MECKSON VIEIRA BARBOSA',c:'PRECIPT. US04'},{n:'MATEUS SOUZA MENEZES',c:'PENEIRAMENTO US04'},{n:'DAVI LUCAS CALDEIRA DE MATTOS',c:'FILTRO PRENSA'},{n:'ALEX FRONTINO DE OLIVEIRA DE MATTOS',c:'OPERADOR MANTENEDOR'},{n:'LUIZ HENRIQUE RIGO FERREIRA',c:'OPERADOR MANTENEDOR'},{n:'KRISLAINE SANTANA CARDOSO',c:'OPERADOR MANTENEDOR'},{n:'PEDRO FRANCISCO R ALMEIDA JUNIOR',c:'MECÂNICO'},{n:'FRANKSAID DELFINO FERREIRA',c:'MECÂNICO'},{n:'ALAN VASCONCELOS',c:'SOLDADOR'},{n:'ORLY DINIZ FARIAS',c:'OPER. PÁTIO/PORTO'},{n:'WILLIS SERAFIM DOS SANTOS',c:'OPER. PÁTIO/PORTO'},{n:'DHIOGO MILAGRE RODRIGUES SERAPHIM',c:'OPER. PÁTIO/PORTO ADM'}]},
-  C:{id:'C',label:'Turno C',seg:'turno',color:'#2563eb',enc:{n:'EDINALDO DA SILVA SANTOS',c:'ENCARREGADO OPERACIONAL'},members:[{n:'MAYDIANE TRINDADE RIBEIRO BASTOS',c:'ETI BN'},{n:'REGIS SILVA DAS NEVES',c:'ETI 1/2'},{n:'MARCIUS VINICIUS PINHEIRO SANTANA',c:'DRAGA 01'},{n:'LEONARDO PEREIRA DA FONSECA',c:'POLPA/DRAGA 02'},{n:'WELLINGTON DA SILVA MAGALHÃES',c:'PRECIPT. US03'},{n:'EDUARDO DA SILVA PETRE',c:'PRECIPT. US03'},{n:'REGINALDO SANTOS',c:'PENEIRAMENTO US03'},{n:'DANIEL BARBOZA RODRIGUES',c:'PRECIPT. US04'},{n:'EMERSON FERREIRA SEMEDO',c:'PRECIPT. US04'},{n:'DANIEL VIEIRA BARBOZA',c:'PENEIRAMENTO US04'},{n:'APOLO MARCHEZI CARNEIRO XAVIER',c:'FILTRO PRENSA'},{n:'SAULO BRANDAO DA SILVA',c:'OPERADOR MANTENEDOR'},{n:'NAUBERT LEONARDO CAMBOIM CORREA DA SILVA',c:'OPERADOR MANTENEDOR'},{n:'DAVID FERREIRA DE OLIVEIRA',c:'OPERADOR MANTENEDOR'},{n:'ALDEMAR MENDES NETTO',c:'MECÂNICO'},{n:'LUCIANO MUNIZ NASCIMENTO',c:'MECÂNICO'},{n:'BRUNO VASCO MACHADO DA VITORIA',c:'SOLDADOR'},{n:'ROQUE FERREIRA SANTOS',c:'OPER. PÁTIO/PORTO'},{n:'RENAN PEREIRA HERINGER',c:'OPER. PÁTIO/PORTO'},{n:'DIOGO SILVA QUINTEIRO',c:'OPER. PÁTIO/PORTO ADM'}]},
-  D:{id:'D',label:'Turno D',seg:'turno',color:'#7c3aed',enc:{n:'FABIANO SCHWANZ',c:'ENCARREGADO OPERACIONAL'},members:[{n:'IVANETE DA CRUZ SANTOS',c:'ETI BN'},{n:'LUAN BERMOND ARPINI CHAGAS',c:'ETI 1/2'},{n:'JOVANE CONCEIÇÃO DOS SANTOS',c:'DRAGA 01'},{n:'ALVIMAR DOS SANTOS E SILVA',c:'POLPA/DRAGA 02'},{n:'RAFAEL DE JESUS',c:'PRECIPT. US03'},{n:'UEVERTON SOUZA DE FREITAS',c:'PRECIPT. US03'},{n:'GABRIEL BARBOZA DA TRINDADE ALVES',c:'PENEIRAMENTO US03'},{n:'BRUNO DE ALMEIDA COELHO',c:'PRECIPT. US04'},{n:'BRUNO PERIN DONNA',c:'PRECIPT. US04'},{n:'JALEILTON ERMINIGILDO DOS SANTOS',c:'PENEIRAMENTO US04'},{n:'CARLOS DOUGLAS SENA RAMOS',c:'FILTRO PRENSA'},{n:'ERICK DA SILVA GOLTARA',c:'OPERADOR MANTENEDOR'},{n:'MARCUS VINICIUS DE OLIVEIRA SEMEDO',c:'OPERADOR MANTENEDOR'},{n:'DIANA PEREIRA RODRIGUES',c:'OPERADOR MANTENEDOR'},{n:'FILIPE DAS CHAGAS LUIZ',c:'MECÂNICO'},{n:'ALEXANDRE BARBOSA MOREIRA',c:'MECÂNICO'},{n:'EDUARDO VIEIRA DA SILVA',c:'SOLDADOR'},{n:'LUCAS DA SILVA DE SOUZA',c:'OPER. PÁTIO/PORTO'},{n:'DEIVID SERAFIM DOS SANTOS',c:'OPER. PÁTIO/PORTO'},{n:'FELIPE GONÇALVES DE ANDRADE',c:'OPER. PÁTIO/PORTO ADM'}]},
-  prod:{id:'prod',label:'Prod. Pátio/Porto',seg:'adm',color:'#ea580c',enc:{n:'CLAUDIO DOS SANTOS',c:'ENCARREGADO'},members:[{n:'THIAGO DO SANTÍSSIMO',c:'MANTENEDOR'},{n:'MARCOS PAULO ALVES PIRES',c:'MANTENEDOR'},{n:'JOÃO CARLOS DA TRINDADE PEREIRA',c:'MANTENEDOR'},{n:'FABRICIO DOS SANTOS FARIAS',c:'MANTENEDOR'},{n:'VITOR DA SILVA SOUZA',c:'MANTENEDOR'},{n:'RAI DOS SANTOS SILVA',c:'MANTENEDOR'},{n:'FELIPE CORREA BORGES',c:'MANTENEDOR'},{n:'VITOR DANTAS COUTO',c:'MANTENEDOR'},{n:'WESLLEY VIEIRA SILVA',c:'INSPETOR OPERACIONAL'},{n:'MIGUEL PEREIRA',c:'MANTENEDOR'},{n:'CÉLIO RIBEIRO DE SOUZA',c:'MANTENEDOR'},{n:'JONES VIEIRA BARBOSA',c:'MANTENEDOR'},{n:'GIOVANE CORRÊA BARBOZA',c:'MANTENEDOR'},{n:'LICIOMAR MORAES DA SILVA',c:'MANTENEDOR'},{n:'THIAGO RODOLFO DO SANTOS',c:'MANTENEDOR'},{n:'AUGUSTO RIBEIRO DE ALMEIDA',c:'MANTENEDOR'}]},
-  manut:{id:'manut',label:'Manutenção',seg:'adm',color:'#dc2626',enc:{n:'ALAN PEREIRA DA CRUZ',c:'ENCARREGADO MANUTENÇÃO'},members:[{n:'HERCULES CARVALHO LOYOLA',c:'MECÂNICO'},{n:'JEFERSON OLIVEIRA CHAGAS',c:'MECÂNICO'},{n:'ERICK DE OLIVEIRA SOUZA COUTINHO',c:'MECÂNICO'},{n:'GUILHERME DE SOUZA',c:'MECÂNICO'},{n:'UEBER VIEIRA SANTOS',c:'MECÂNICO'},{n:'GLEISON NEVES DOS SANTOS',c:'MECÂNICO'},{n:'MANOEL MESSIAS SILVA DA CONCEIÇÃO',c:'MECÂNICO'},{n:'CARLOS BOURGUIGNON JUNIOR',c:'MECÂNICO'},{n:'DANIEL GONÇALVES DA SILVA',c:'SOLDADOR'},{n:'ALEX NEVES DOS SANTOS RODRIGUES',c:'SOLDADOR'},{n:'DIONATAN DOS ANJOS VICTOR',c:'CALDEIREIRO'},{n:'AILTON RIBEIRO LIMA',c:'CALDEIREIRO'},{n:'ALDAIR VICTOR OLIVEIRA',c:'CALDEIREIRO'},{n:'WELLIS DE OLIVEIRA BARBOSA',c:'INSTRUMENTISTA'},{n:'CLAUDIO PRADO DE JESUS',c:'INSTRUMENTISTA'},{n:'WALQUIMAR FLORENTINO DE SOUZA RAMOS',c:'INSTRUMENTISTA'}]},
+  A:{id:'A',label:'Turno A',seg:'turno',color:'#d97706',enc:{n:'CLEUTON FERREIRA DOS SANTOS',c:'ENCARREGADO OPERACIONAL'},members:[{n:'BRUNO HENRIQUE BRAGA',c:'OPERADOR MANTENEDOR'},{n:'GABRIEL VIEIRA LIBARDI',c:'OPER. PÁTIO/PORTO'},{n:'BRENER RIBEIRO DE SOUZA',c:'POLPA/DRAGA 02'},{n:'RYAN SOUZA SILVA',c:'FILTRO PRENSA'},{n:'EDUARDO DE ANDRADE MENDES',c:'MECÂNICO'},{n:'ALLAN FERREIRA SANTOS',c:'OPERAÇÃO'},{n:'JHON ROGER DE MORAES SECATO',c:'PRECIPT. US04'},{n:'EDGARD BENA DOS SANTOS',c:'PRECIPT. US03'},{n:'LUIZ EDUARDO SANTOS SOUTO',c:'PRECIPT. US04'},{n:'GEOVANE NASCIMENTO SOUZA',c:'OPERAÇÃO'},{n:'ALCENIR DINIZ FARIAS',c:'OPER. PÁTIO/PORTO'},{n:'BENEDITO PEREIRA DOS SANTOS',c:'OPERAÇÃO DRAGA 01'},{n:'PRISCILA ANDRADE DA SILVA',c:'OPERAÇÃO ETI BN'},{n:'RAÍ GAZINELE MATIAS FERES',c:'OPERAÇÃO'},{n:'LEONARDO DOS REIS VIEIRA',c:'PENEIRAMENTO US03'},{n:'EDIRLEI MARTINS DE SOUZA',c:'SOLDADOR'},{n:'DAVID FERREIRA DE OLIVEIRA',c:'OPERADOR MANTENEDOR'},{n:'CASSIO DIAS',c:'OPERAÇÃO'},{n:'DIOGO VIEIRA BORGES',c:'OPERAÇÃO ETI 1/2'},{n:'JOSÉ IGOR COSTA CARDOSO',c:'PRECIPT. US03'},{n:'KAUÃ XAVIER SEMEDO',c:'OPERADOR MANTENEDOR'},{n:'EDUARDO PEREIRA',c:'OPERAÇÃO'},{n:'RAONY AMARAL',c:'OPERAÇÃO'},{n:'RAPHAEL DOS SANTOS LOYOLA',c:'PENEIRAMENTO US04'}]},
+  B:{id:'B',label:'Turno B',seg:'turno',color:'#059669',enc:{n:'GEOVANE BRANDAO BELEM',c:'ENCARREGADO OPERACIONAL'},members:[{n:'SIMONE FERREIRA DA SILVA',c:'ETI BN'},{n:'FELLIPE WENDER SIQUEIRA SIMÕES',c:'ETI 1/2'},{n:'JEFFERSON DA CONCEIÇÃO',c:'OPERAÇÃO'},{n:'JORGE AUGUSTO NASCIMENTO RODRIGUES',c:'DRAGA 01'},{n:'CARLOS DOUGLAS SENA RAMOS',c:'FILTRO PRENSA'},{n:'KAUAN TRES CAMARGO',c:'PRECIPT. US03'},{n:'KRISLAINE SANTANA CARDOSO',c:'OPERADOR MANTENEDOR'},{n:'MARCOS DOUGLAS',c:'OPERADOR MANTENEDOR'},{n:'ALEX FRONTINO DE OLIVEIRA DE MATTOS',c:'OPERADOR MANTENEDOR'},{n:'LUIZ FELIPE SENNA DA SILVA',c:'POLPA/DRAGA 02'},{n:'ORLY DINIZ FARIAS',c:'OPER. PÁTIO/PORTO'},{n:'WILLIS SERAFIM DOS SANTOS',c:'OPER. PÁTIO/PORTO'},{n:'DHIOGO MILAGRE RODRIGUES SERAPHIM',c:'OPER. PÁTIO/PORTO ADM'},{n:'JOSÉ LUIZ FLUMINENSE DOS SANTOS',c:'PRECIPT. US04'},{n:'MAURÍCIO BETCHER',c:'MECÂNICO'},{n:'MATEUS SOUZA MENEZES',c:'PENEIRAMENTO US04'},{n:'REGES DE SA CORREA',c:'PRECIPT. US03'},{n:'MARCOS ADRIANO GIULIATTI SEMEDO',c:'PENEIRAMENTO US03'},{n:'DAVI LUCAS CALDEIRA DE MATTOS',c:'FILTRO PRENSA'},{n:'FELIPE BRILHANTE',c:'SOLDADOR'},{n:'PIERRE MECKSON VIEIRA BARBOSA',c:'PRECIPT. US04'},{n:'PEDRO FRANCISCO R ALMEIDA JUNIOR',c:'MECÂNICO'},{n:'FRANKSAID DELFINO FERREIRA',c:'MECÂNICO'},{n:'ALAN VASCONCELOS',c:'SOLDADOR'}]},
+  C:{id:'C',label:'Turno C',seg:'turno',color:'#2563eb',enc:{n:'EDINALDO DA SILVA SANTOS',c:'ENCARREGADO OPERACIONAL'},members:[{n:'APOLO MARCHEZI CARNEIRO XAVIER',c:'FILTRO PRENSA'},{n:'RENAN PEREIRA HERINGER',c:'OPER. PÁTIO/PORTO'},{n:'WELLINGTON DA SILVA MAGALHÃES',c:'PRECIPT. US03'},{n:'BRUNO VASCO MACHADO DA VITORIA',c:'SOLDADOR'},{n:'DANIEL BARBOZA RODRIGUES',c:'PRECIPT. US04'},{n:'DANIEL VIEIRA BARBOZA',c:'PENEIRAMENTO US04'},{n:'DIOGO SILVA QUINTEIRO',c:'OPER. PÁTIO/PORTO ADM'},{n:'EDUARDO DA SILVA PETRE',c:'PRECIPT. US03'},{n:'EMERSON FERREIRA SEMEDO',c:'PRECIPT. US04'},{n:'LEONARDO PEREIRA DA FONSECA',c:'POLPA/DRAGA 02'},{n:'MARCIUS VINICIUS PINHEIRO SANTANA',c:'DRAGA 01'},{n:'MAYDIANE TRINDADE RIBEIRO BASTOS',c:'ETI BN'},{n:'ALDEMAR MENDES NETTO',c:'MECÂNICO'},{n:'NAUBERT LEONARDO CAMBOIM CORREA DA SILVA',c:'OPERADOR MANTENEDOR'},{n:'REGINALDO SANTOS',c:'PENEIRAMENTO US03'},{n:'LUIZ FERNANDO DOS SANTOS ADOLFO',c:'OPERAÇÃO'},{n:'ROQUE FERREIRA SANTOS',c:'OPER. PÁTIO/PORTO'},{n:'SAULO BRANDAO DA SILVA',c:'OPERADOR MANTENEDOR'},{n:'LUCIANO MUNIZ NASCIMENTO',c:'MECÂNICO'},{n:'FLAVIO MORAES NOGUEIRA',c:'OPERADOR MANTENEDOR'},{n:'RONNY VICTOR DOS SANTOS',c:'OPERAÇÃO'},{n:'VITOR DANTAS COUTO',c:'MANTENEDOR'}]},
+  D:{id:'D',label:'Turno D',seg:'turno',color:'#7c3aed',enc:{n:'FABIANO SCHWANZ',c:'ENCARREGADO OPERACIONAL'},members:[{n:'JALEILTON ERMINIGILDO DOS SANTOS',c:'PENEIRAMENTO US04'},{n:'ALEF CELESTE',c:'OPERAÇÃO'},{n:'ERICK DA SILVA GOLTARA',c:'OPERADOR MANTENEDOR'},{n:'JOVANE CONCEIÇÃO DOS SANTOS',c:'DRAGA 01'},{n:'LUAN BERMOND ARPINI CHAGAS',c:'ETI 1/2'},{n:'LUCAS DA SILVA DE SOUZA',c:'OPER. PÁTIO/PORTO'},{n:'RAFAEL DE JESUS',c:'PRECIPT. US03'},{n:'IVANETE DA CRUZ SANTOS',c:'ETI BN'},{n:'DIANA PEREIRA RODRIGUES',c:'OPERADOR MANTENEDOR'},{n:'DEIVID SERAFIM DOS SANTOS',c:'OPER. PÁTIO/PORTO'},{n:'LUIZ HENRIQUE RIGO FERREIRA',c:'OPERADOR MANTENEDOR'},{n:'NICOLLAS GELSON',c:'OPERAÇÃO'},{n:'BRUNO DE ALMEIDA COELHO',c:'PRECIPT. US04'},{n:'FILIPE GONÇALVES DE ANDRADE',c:'OPER. PÁTIO/PORTO ADM'},{n:'ALVIMAR DOS SANTOS E SILVA',c:'POLPA/DRAGA 02'},{n:'FILIPE DAS CHAGAS LUIZ',c:'MECÂNICO'},{n:'ALEXANDRE BARBOSA MOREIRA',c:'MECÂNICO'},{n:'EDUARDO VIEIRA DA SILVA',c:'SOLDADOR'},{n:'HIGOR JULIAN',c:'OPERAÇÃO'},{n:'GABRIEL BARBOZA DA TRINDADE ALVES',c:'PENEIRAMENTO US03'},{n:'MARCUS VINICIUS DE OLIVEIRA SEMEDO',c:'OPERADOR MANTENEDOR'},{n:'EMERSON DE CARVALHO',c:'OPERAÇÃO'},{n:'BRUNO PERIN DONNA',c:'PRECIPT. US04'}]},
+  prod:{id:'prod',label:'Prod. Pátio/Porto',seg:'adm',color:'#ea580c',enc:{n:'CLAUDIO DOS SANTOS',c:'ENCARREGADO'},members:[{n:'THIAGO DO SANTÍSSIMO',c:'MANTENEDOR'},{n:'MARCOS PAULO ALVES PIRES',c:'MANTENEDOR'},{n:'JOÃO CARLOS DA TRINDADE PEREIRA',c:'MANTENEDOR'},{n:'FABRICIO DOS SANTOS FARIAS',c:'MANTENEDOR'},{n:'VITOR DA SILVA SOUZA',c:'MANTENEDOR'},{n:'RAI DOS SANTOS SILVA',c:'MANTENEDOR'},{n:'FELIPE CORREA BORGES',c:'MANTENEDOR'},{n:'VITOR DANTAS COUTO',c:'MANTENEDOR'},{n:'WESLLEY VIEIRA SILVA',c:'INSPETOR OPERACIONAL'},{n:'MIGUEL PEREIRA',c:'MANTENEDOR'},{n:'CÉLIO RIBEIRO DE SOUZA',c:'MANTENEDOR'},{n:'JONES VIEIRA BARBOSA',c:'MANTENEDOR'},{n:'GIOVANE CORRÊA BARBOZA',c:'MANTENEDOR'},{n:'LICIOMAR MORAES DA SILVA',c:'MANTENEDOR'},{n:'THIAGO RODOLFO DO SANTOS',c:'MANTENEDOR'},{n:'AUGUSTO RIBEIRO DE ALMEIDA',c:'MANTENEDOR'},{n:'JOSELI PEREIRA CORREA',c:'OPER. PÁTIO/PORTO'},{n:'VINICIUS LEITE FRANCISCO',c:'OPER. PÁTIO/PORTO'}]},
+  manut:{id:'manut',label:'Manutenção',seg:'adm',color:'#dc2626',enc:{n:'HERCULES CARVALHO LOYOLA',c:'ENCARREGADO MANUTENÇÃO'},members:[{n:'UEBER VIEIRA SANTOS',c:'MECÂNICO'},{n:'ERIK DE OLIVEIRA SOUZA COUTINHO',c:'MECÂNICO'},{n:'JEFERSON OLIVEIRA CHAGAS',c:'MECÂNICO'},{n:'GUILHERME DE SOUZA',c:'MECÂNICO'},{n:'JOEDSON OLIVEIRA DA PENHA SILVA',c:'MECÂNICO'},{n:'THIAGO NASCIMENTO CARDOSO',c:'MECÂNICO'},{n:'MANOEL MESSIAS SILVA DA CONCEIÇÃO',c:'MECÂNICO'},{n:'CARLOS BOURGUIGNON JUNIOR',c:'MECÂNICO'},{n:'GLEISON NEVES DOS SANTOS',c:'MECÂNICO'},{n:'AILTON RIBEIRO LIMA',c:'CALDEIREIRO'},{n:'ALDAIR VICTOR OLIVEIRA',c:'CALDEIREIRO'},{n:'DANIEL GONÇALVES DA SILVA',c:'SOLDADOR'},{n:'DIONATAN DOS ANJOS VICTOR',c:'CALDEIREIRO'},{n:'ALEX NEVES DOS SANTOS RODRIGUES',c:'SOLDADOR'},{n:'ANDERSON DO COUTO RIBEIRO',c:'MECÂNICO'},{n:'WELLIS DE OLIVEIRA BARBOSA',c:'INSTRUMENTISTA'},{n:'WALQUIMAR FLORENTINO DE SOUZA RAMOS',c:'INSTRUMENTISTA'},{n:'CLAUDIO PRADO DE JESUS',c:'INSTRUMENTISTA'},{n:'EVANDRO BREGUNCE BISPO',c:'MECÂNICO'}]},
   plan:{id:'plan',label:'Planejamento',seg:'adm',color:'#0891b2',enc:{n:'REGAZZONY NASCIMENTO DE ALMEIDA',c:'SUPERVISOR'},members:[{n:'TIAGO NUNES',c:'INSPETOR'},{n:'VITOR CURTY VASCONCELOS',c:'INSPETOR'},{n:'MIQUEIAS SENNA ESPIRIDIAO',c:'PROGRAMAÇÃO'},{n:'GEOVANA NASCIMENTO ROCHA',c:'PROGRAMAÇÃO'},{n:'PEDRO COMINOTTI DE ALMEIDA ADOLFO',c:'PLANEJAMENTO'},{n:'LUCCA COUTINHO FAGUNDES',c:'PROGRAMAÇÃO'},{n:'JOSÉ MAURO NASCIMENTO DA SILVA',c:'PLANEJAMENTO'},{n:'HERBERT PITANGA DA ROCHA',c:'PLANEJAMENTO'},{n:'HELLEN CAROLINY NASCIMENTO SCHMIDT',c:'PL. GERENCIAL'},{n:'ELSON MARTINS',c:'COORDENADOR'},{n:'RAYANNE BARBOZA REIS DA MATTA',c:'ADMINISTRATIVO'},{n:'LEONARDO DE OLIVEIRA XIMENES',c:'MÉDICO'}]},
   sesmt:{id:'sesmt',label:'SESMT',seg:'adm',color:'#065f46',enc:{n:'MALENA BARBOSA COELHO',c:'ENGENHEIRA DE SEGURANÇA'},members:[{n:'RAPHAEL MULINARI DINIZ',c:'TÉC. SEGURANÇA'},{n:'DOUGLAS ALVES DA SILVA',c:'TÉC. SEGURANÇA'},{n:'ALEXANDRE GRIFFO DE LIMA',c:'AUX. SEGURANÇA'}]},
-  windfense:{id:'windfense',label:'Wind Fense',seg:'adm',color:'#1d4ed8',enc:{n:'FAGNER RANGEL DE SOUZA',c:'ENCARREGADO OPERACIONAL'},members:[{n:'JEFFERSON DA SILVA AVELINO',c:'MANTENEDOR'},{n:'PABLO ARAUJO SANTANA',c:'MANTENEDOR'},{n:'DAVI SIMÕES SILVA',c:'MANTENEDOR'},{n:'MATHEUS DIAS DOS SANTOS',c:'MANTENEDOR'},{n:'JOEL FERREIRA',c:'MANTENEDOR'},{n:'DAVIDSON PINTO HELEODORO',c:'ETEI POUPA'},{n:'SILVINO IZACK MARCHESI JUNIOR',c:'PRECIPITADORES'},{n:'JEFFERSON DOS SANTOS FREITAS',c:'INSTRUMENTISTA'},{n:'LUTHER KING FREIRE DA CRUZ',c:'ENC. PRECIPITADORES'},{n:'WESLEY SOUZA BERTOLANI',c:'ENC. ETEI POUPA'}]}
+  windfense:{id:'windfense',label:'Wind Fence',seg:'adm',color:'#1d4ed8',enc:{n:'FAGNER RANGEL DE SOUZA',c:'ENCARREGADO OPERACIONAL'},members:[{n:'PABLO ARAUJO SANTANA',c:'MANTENEDOR'},{n:'MATHEUS DIAS DOS SANTOS',c:'MANTENEDOR'},{n:'MARCELO SANTANA',c:'OPERADOR MANTENEDOR'},{n:'JEFFERSON DA SILVA AVELINO',c:'MANTENEDOR'},{n:'DAVI SIMÕES SILVA',c:'MANTENEDOR'},{n:'GEOVANI PASSOS',c:'OPERADOR MANTENEDOR'},{n:'VINICIUS SCHULTZ',c:'MANTENEDOR'},{n:'JOEL SANTANA',c:'MANTENEDOR'},{n:'AUGUSTO RIBEIRO DE ALMEIDA',c:'MANTENEDOR'},{n:'DAVID SIMOES SILVA',c:'MANTENEDOR'},{n:'JOEL FERREIRA',c:'MANTENEDOR'},{n:'VINICIUS PIMENTEL SCHULTZ',c:'MANTENEDOR'}]},
+  cond_insegura:{id:'cond_insegura',label:'Condição Insegura',seg:'adm',color:'#9333ea',enc:{n:'VANDERLEY SANTOS',c:'ENCARREGADO OPERACIONAL'},members:[{n:'LAURA CRISTINA',c:'OPERADOR MANTENEDOR'},{n:'THIAGO RODOLFO DO SANTOS',c:'MANTENEDOR'},{n:'CÉLIO RIBEIRO DE SOUZA',c:'MANTENEDOR'},{n:'SILVINO IZACK MARCHESI JUNIOR',c:'PRECIPITADORES'},{n:'GIOVANE CORRÊA BARBOZA',c:'MANTENEDOR'},{n:'MIGUEL PEREIRA',c:'MANTENEDOR'},{n:'LUCIOMAR MORAIS',c:'OPERADOR MANTENEDOR'},{n:'DAVIDSON PINTO HELEODORO',c:'ETEI POUPA'},{n:'JONES VIEIRA BARBOSA',c:'MANTENEDOR'},{n:'HONORATO',c:'MANTENEDOR'},{n:'GIOVANI CORREA BARBOZA',c:'MANTENEDOR'},{n:'LUCIANO HONORATO DA SILVA',c:'MANTENEDOR'}]},
+  sem_equipe:{id:'sem_equipe',label:'Sem Equipe Definida',seg:'adm',color:'#64748B',enc:{n:'A DEFINIR',c:''},members:[{n:'DIOGO DA SILVA DOS SANTOS',c:'OPERAÇÃO'},{n:'ELENIAS SANTOS SOUZA',c:'OPERAÇÃO'},{n:'FELIPE CORREIA BORGES',c:'OPERAÇÃO'},{n:'JEFFERSON DOS SANTOS FREITAS',c:'OPERAÇÃO'},{n:'WELLIZ DE OLIVEIRA BARBOZA',c:'OPERAÇÃO'},{n:'ERICK PAULO NERY CRUZ',c:'DRAGA/ETEI'}]}
 };
 
 // Estado
@@ -666,6 +685,81 @@ updateProgress();
 </script>
 
 <!-- Firebase — carregado após script principal -->
+<script>
+
+// ── BUSCA GLOBAL ──
+let searchQuery = '';
+
+function getAllMembers(){
+  const all = [];
+  Object.values(T).forEach(team=>{
+    if(!team) return;
+    all.push({n:team.enc.n, c:team.enc.c+' (Encarregado)', teamId:team.id, teamLabel:team.label, color:team.color, key:'enc'});
+    (team.members||[]).forEach((m,i)=>{
+      all.push({n:m.n, c:m.c, teamId:team.id, teamLabel:team.label, color:team.color, key:String(i)});
+    });
+  });
+  return all;
+}
+
+function renderSearch(){
+  const q = (searchQuery||'').trim().toLowerCase();
+  const wrap = document.getElementById('search-results');
+  const clr  = document.getElementById('search-clear');
+  if(clr) clr.style.display = q ? 'block' : 'none';
+  if(!wrap) return;
+  if(!q){ wrap.innerHTML=''; return; }
+
+  const found = getAllMembers().filter(m=>
+    (m.n||'').toLowerCase().includes(q) ||
+    (m.c||'').toLowerCase().includes(q) ||
+    (m.teamLabel||'').toLowerCase().includes(q)
+  );
+
+  if(!found.length){
+    wrap.innerHTML='<div style="text-align:center;padding:.8rem;font-size:12px;color:var(--ink3);">Nenhum profissional encontrado.</div>';
+    return;
+  }
+
+  const ini = n=>(n||'?').split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
+
+  wrap.innerHTML = found.slice(0,20).map(m=>{
+    const isSel = Array.isArray(selMbs) && selMbs.some(s=>s.name===m.n);
+    return '<div onclick="selectFromSearch('+JSON.stringify(m.n)+','+JSON.stringify(m.teamId)+','+JSON.stringify(m.key)+')" style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:#fff;border:1.5px solid '+(isSel?'var(--navy)':'var(--border)')+';border-radius:var(--rsm);margin-bottom:6px;cursor:pointer;transition:all .15s;">'
+      +'<div style="width:34px;height:34px;border-radius:50%;background:'+m.color+';display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;flex-shrink:0;">'+ini(m.n)+'</div>'
+      +'<div style="flex:1;min-width:0;">'
+        +'<div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+m.n+'</div>'
+        +'<div style="font-size:10px;color:var(--ink3);">'+m.teamLabel+' · '+m.c+'</div>'
+      +'</div>'
+      +(isSel?'<span style="color:var(--navy);font-weight:800;font-size:13px;">✓</span>':'')
+      +'</div>';
+  }).join('');
+}
+
+function selectFromSearch(name, teamId, key){
+  const team = T[teamId];
+  if(!team) return;
+  const cargo = key==='enc' ? team.enc.c : ((team.members||[])[parseInt(key)]||{}).c||'';
+  const mbObj = {name:name, cargo:cargo, teamId:teamId, teamLabel:team.label, teamColor:team.color};
+
+  if(!Array.isArray(selMbs)) selMbs=[];
+  const existIdx = selMbs.findIndex(s=>s.name===name);
+  if(existIdx===-1){ selMbs.push(mbObj); }
+  else { selMbs.splice(existIdx,1); }
+  selMb = selMbs.length ? selMbs[selMbs.length-1] : null;
+
+  // Atualizar contador
+  const cnt = document.getElementById('sel-count');
+  if(cnt){
+    if(selMbs.length>1){ cnt.textContent=selMbs.length+' profissionais selecionados'; cnt.style.display='block'; }
+    else { cnt.style.display='none'; }
+  }
+  renderSearch();
+  buildMemGrid();
+}
+
+</script>
+
 <script type="module">
   import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import{getDatabase,ref,set,get,onValue}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
