@@ -77,7 +77,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 .team-bar-fill{height:100%;border-radius:4px;transition:width .8s cubic-bezier(.23,1,.32,1);}
 
 /* Detalhes da equipe */
-.team-details{padding:.5rem 1rem .8rem;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+.team-details{padding:.5rem 1rem .8rem;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
 .td-item{text-align:center;background:var(--surface2);border-radius:6px;padding:.5rem .3rem;}
 .td-n{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--navy);}
 .td-l{font-size:9px;color:var(--ink3);text-transform:uppercase;letter-spacing:.5px;margin-top:1px;}
@@ -112,7 +112,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 
 <div class="hdr">
   <div class="hdr-title">🏆 Ranking de Equipes</div>
-  <div class="hdr-sub">Classificação por Score Bayesiano — pondera nota e volume de inspeções</div>
+  <div class="hdr-sub">Classificação por Score Bayesiano — pondera nota, volume de inspeções e registros de CI/RQA</div>
 </div>
 
 <!-- FILTRO DE MÊS -->
@@ -153,7 +153,10 @@ const db   = getDatabase(app);
 
 const MESES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 
-let T = {}, S = {}, S_BONUS = {}, S_DESC = {};
+// Quanto cada CI ou RQA registrado soma na nota final da pessoa (sem teto mensal).
+const CIRQA_BONUS_PER_REGISTRO = 0.3;
+
+let T = {}, S = {}, S_BONUS = {}, S_DESC = {}, CI_COUNTS = {}, RQA_COUNTS = {};
 let curMes = new Date().getMonth(); // mês atual por padrão
 let allMeses = [];
 
@@ -191,6 +194,7 @@ function buildTeamRanking(){
     let countInsp = 0;
     let totalBonus = 0;
     let totalDesc = 0;
+    let totalCiRqaCount = 0;
 
     members.forEach(name=>{
       const safeN = (name||'').replace(/[ .#$§\[\]]/g,'_');
@@ -221,10 +225,22 @@ function buildTeamRanking(){
         ? Object.keys(S_DESC).filter(k=>k.startsWith(safeN+'§') && k.endsWith('§'+curMes))
         : Object.keys(S_DESC).filter(k=>k.startsWith(safeN+'§'));
       descKeys.forEach(k=>{ totalDesc += Math.abs(S_DESC[k]?.total||0); });
+
+      // CI / RQA — registros de Condição Insegura e Quase Acidente (contagem por pessoa/mês)
+      const ciKeys = curMes >= 0
+        ? Object.keys(CI_COUNTS).filter(k=>k.startsWith(safeN+'§') && k.endsWith('§'+curMes))
+        : Object.keys(CI_COUNTS).filter(k=>k.startsWith(safeN+'§'));
+      ciKeys.forEach(k=>{ totalCiRqaCount += (CI_COUNTS[k]||0); });
+
+      const rqaKeys = curMes >= 0
+        ? Object.keys(RQA_COUNTS).filter(k=>k.startsWith(safeN+'§') && k.endsWith('§'+curMes))
+        : Object.keys(RQA_COUNTS).filter(k=>k.startsWith(safeN+'§'));
+      rqaKeys.forEach(k=>{ totalCiRqaCount += (RQA_COUNTS[k]||0); });
     });
 
     // Média bruta das inspeções
     const mediaInsp = countInsp > 0 ? totalPts / countInsp : 0;
+    const ciRqaBonus = totalCiRqaCount * CIRQA_BONUS_PER_REGISTRO;
 
     teams[tid] = {
       tid,
@@ -235,6 +251,8 @@ function buildTeamRanking(){
       mediaInsp: mediaInsp,
       bonus: totalBonus,
       desc: totalDesc,
+      ciRqaCount: totalCiRqaCount,
+      ciRqaBonus: ciRqaBonus,
       // mediaFinal calculada após — precisa da média global
     };
   });
@@ -250,8 +268,8 @@ function buildTeamRanking(){
   allTeams.forEach(t => {
     // Score bayesiano: puxa nota para prior quando insp é baixo
     const bayScore = (t.inspTotal * t.mediaInsp + C * prior) / (t.inspTotal + C);
-    // Aplica bônus e descontos sobre o score bayesiano
-    t.mediaFinal = bayScore + t.bonus - t.desc;
+    // Aplica bônus, descontos e o bônus de CI/RQA sobre o score bayesiano
+    t.mediaFinal = bayScore + t.bonus - t.desc + t.ciRqaBonus;
     t.bayScore   = bayScore; // para exibir no card
     t.prior      = prior;
   });
@@ -358,6 +376,10 @@ function render(){
             <div class="td-n" style="color:#059669;">+${t.bonus.toFixed(1)}</div>
             <div class="td-l">Bônus ideias</div>
           </div>
+          <div class="td-item">
+            <div class="td-n" style="color:#059669;">+${t.ciRqaBonus.toFixed(1)}</div>
+            <div class="td-l">CI/RQA (${t.ciRqaCount})</div>
+          </div>
         </div>
       </div>
     `;
@@ -368,16 +390,20 @@ function render(){
 window._onFbReady = async()=>{
   setSP('w','Conectando…');
   try{
-    const [st, ss, sb, sd] = await Promise.all([
+    const [st, ss, sb, sd, sci, srqa] = await Promise.all([
       get(ref(db,'escudo/teams')),
       get(ref(db,'escudo/scores')),
       get(ref(db,'escudo/scores_bonus')),
       get(ref(db,'escudo/scores_desconto')),
+      get(ref(db,'escudoCondicaoInsegura/pontosPorRelatorMes')),
+      get(ref(db,'escudoRQA/pontosPorRelatorMes')),
     ]);
     if(st.exists()) T = st.val();
     if(ss.exists()){ const raw=ss.val(); S={}; Object.entries(raw).forEach(([k,v])=>{ S[k.replace(/__([^_]*)$/,'§$1')]=v; }); }
     if(sb.exists()) S_BONUS = normKeys(sb.val());
     if(sd.exists()) S_DESC  = normKeys(sd.val());
+    if(sci.exists()) CI_COUNTS = normKeys(sci.val());
+    if(srqa.exists()) RQA_COUNTS = normKeys(srqa.val());
 
     setSP('ok','● Ao vivo');
     buildMesesFilter();
@@ -395,6 +421,12 @@ window._onFbReady = async()=>{
     });
     onValue(ref(db,'escudo/teams'),snap=>{
       if(snap.exists()){ T=snap.val(); render(); }
+    });
+    onValue(ref(db,'escudoCondicaoInsegura/pontosPorRelatorMes'),snap=>{
+      CI_COUNTS = snap.exists() ? normKeys(snap.val()) : {}; render();
+    });
+    onValue(ref(db,'escudoRQA/pontosPorRelatorMes'),snap=>{
+      RQA_COUNTS = snap.exists() ? normKeys(snap.val()) : {}; render();
     });
   }catch(e){
     setSP('w','Offline');
