@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1e3a5f">
+<title>ESCUDO — CI &amp; RQA</title>
+<meta name="description" content="Registro de Condição Insegura (CI) e Relato de Quase Acidente (RQA) do Programa Escudo — gera 1 ponto para o relator">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#eef1f5;--surface:#fff;--surface2:#f4f6f9;--border:#dde1e8;
+  --ink:#0d1117;--ink2:#3a4152;--ink3:#6b7385;
+  --navy:#1e3a5f;--navy-lt:#dbeafe;
+  --gold:#d97706;--gold-lt:#fef3c7;--gold-md:#fbbf24;
+  --green:#065f46;--green-lt:#d1fae5;--green-md:#10b981;
+  --red:#991b1b;--red-lt:#fee2e2;
+  --r:10px;--rsm:6px;
+  --sh:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.05);
+  --sh2:0 4px 12px rgba(0,0,0,.10),0 2px 4px rgba(0,0,0,.06);
+}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;-webkit-tap-highlight-color:transparent;}
+
+/* TOPBAR */
+.topbar{background:var(--navy);padding:.7rem 1.2rem;display:flex;align-items:center;gap:10px;
+  position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.25);}
+.logo{display:flex;align-items:center;gap:9px;}
+.logo svg{width:28px;height:28px;filter:drop-shadow(0 0 6px rgba(251,191,36,.4));flex:none;}
+.logo-name{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#fbbf24;letter-spacing:3px;}
+.logo-sub{font-size:9px;color:rgba(255,255,255,.4);letter-spacing:1.5px;text-transform:uppercase;}
+.topbar-r{margin-left:auto;display:flex;align-items:center;gap:6px;}
+.pill{font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;padding:4px 10px;border-radius:20px;white-space:nowrap;}
+.pill-sync{background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.3);color:#10b981;transition:all .3s;}
+.pill-sync.w{background:rgba(217,119,6,.12);border-color:rgba(217,119,6,.3);color:#fbbf24;}
+.pill-sync.e{background:rgba(153,27,27,.15);border-color:rgba(153,27,27,.3);color:#fca5a5;}
+.pill-samarco{background:#fbbf24;color:var(--navy);font-weight:800;}
+
+/* TAB NAV */
+.tab-nav{display:flex;gap:6px;padding:.65rem 1.1rem;background:var(--surface);border-bottom:1px solid var(--border);
+  overflow-x:auto;position:sticky;top:57px;z-index:90;box-shadow:0 2px 6px rgba(0,0,0,.04);}
+.tab-btn{flex:1;text-align:center;font-family:'Plus Jakarta Sans',sans-serif;font-size:11.5px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.4px;padding:9px 6px;border-radius:8px;border:1.5px solid var(--border);
+  background:var(--surface2);color:var(--ink3);cursor:pointer;white-space:nowrap;transition:all .15s;}
+.tab-btn:active{transform:scale(.96);}
+.tab-btn.active{background:var(--navy);border-color:var(--navy);color:#fff;box-shadow:var(--sh);}
+
+/* MAIN */
+.main{padding:1.1rem 1.1rem 3rem;max-width:540px;margin:0 auto;}
+.view{display:none;animation:fadeIn .25s ease;}
+.view.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+.sec-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--navy);margin-bottom:.2rem;}
+.sec-sub{font-size:11.5px;color:var(--ink3);margin-bottom:1rem;line-height:1.5;}
+
+/* CARD */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:1.1rem;box-shadow:var(--sh);margin-bottom:.9rem;}
+.card-title{font-family:'Syne',sans-serif;font-size:11px;font-weight:800;letter-spacing:.5px;
+  text-transform:uppercase;color:var(--navy);margin-bottom:.9rem;
+  padding-bottom:.6rem;border-bottom:2px solid var(--gold-lt);display:flex;align-items:center;justify-content:space-between;}
+.card-title span.sub{font-size:9px;color:var(--ink3);text-transform:none;font-weight:600;letter-spacing:0;}
+
+/* FORM */
+.f{margin-bottom:.85rem;}
+.f label{font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;
+  letter-spacing:.7px;display:block;margin-bottom:5px;}
+.f label em{color:var(--gold);font-style:normal;}
+input,select,textarea{width:100%;background:var(--surface2);border:1.5px solid var(--border);
+  color:var(--ink);font-family:'Plus Jakarta Sans',sans-serif;font-size:13.5px;font-weight:500;
+  padding:10px 12px;border-radius:var(--rsm);outline:none;transition:border-color .2s,background .2s;-webkit-appearance:none;}
+input:focus,select:focus,textarea:focus{border-color:var(--navy);background:var(--surface);}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7385' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;}
+textarea{resize:none;min-height:64px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+@media(max-width:480px){.g2{grid-template-columns:1fr;}}
+
+/* PHOTO */
+.photo-zone{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.photo-btn{display:inline-flex;align-items:center;gap:6px;cursor:pointer;border:1.5px dashed var(--border);
+  background:var(--surface2);color:var(--navy);border-radius:var(--rsm);padding:10px 14px;font-size:12.5px;
+  font-weight:700;transition:all .15s;}
+.photo-btn:hover{border-color:var(--navy);background:var(--navy-lt);}
+.photo-btn:active{transform:scale(.97);}
+.photo-btn input{display:none;}
+.photo-thumb{position:relative;width:60px;height:60px;border-radius:var(--rsm);overflow:hidden;border:1px solid var(--border);flex:none;}
+.photo-thumb img{width:100%;height:100%;object-fit:cover;display:block;cursor:pointer;}
+.photo-thumb .rm{position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;border:none;
+  background:rgba(13,17,23,.7);color:#fff;font-size:11px;cursor:pointer;display:grid;place-items:center;line-height:1;}
+
+/* PROGRESS */
+.progress-wrap{margin:1rem 0 .3rem;}
+.progress-bar-track{height:7px;background:var(--surface2);border-radius:8px;overflow:hidden;border:1px solid var(--border);}
+.progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--gold-md),var(--gold));width:0%;
+  transition:width .35s ease;border-radius:8px;}
+.progress-note{font-size:11px;color:var(--ink3);margin-top:7px;text-align:center;font-weight:600;}
+.progress-note b{color:var(--navy);}
+
+/* BUTTONS */
+.btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:13.5px;font-weight:700;
+  padding:13px;border-radius:var(--rsm);border:none;cursor:pointer;transition:all .15s;letter-spacing:.2px;}
+.btn-navy{background:var(--navy);color:#fff;}
+.btn-navy:hover{background:#162d4a;}
+.btn-navy:active{transform:scale(.98);}
+.btn-navy:disabled{opacity:.4;cursor:not-allowed;}
+.btn-ghost{background:transparent;border:1.5px solid var(--border);color:var(--ink2);}
+.btn-ghost:hover{border-color:var(--navy);color:var(--navy);}
+.btn-ghost:active{transform:scale(.98);}
+.btn-gold{background:var(--gold);color:#fff;}
+.btn-gold:hover{background:#b45309;}
+
+/* SUCCESS */
+.success{display:none;text-align:center;padding:2.2rem .5rem 1rem;}
+.success.show{display:block;}
+.success-icon{font-size:52px;margin-bottom:.6rem;}
+.success-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--green);margin-bottom:.4rem;}
+.success-score{font-family:'Syne',sans-serif;font-size:52px;font-weight:800;color:var(--navy);line-height:1;}
+.success-sub{font-size:10.5px;color:var(--ink3);text-transform:uppercase;letter-spacing:1px;margin-bottom:1.1rem;}
+.success-nm{font-size:13.5px;font-weight:700;color:var(--ink);margin-bottom:1.6rem;}
+
+/* REGISTROS TAB */
+.reg-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:.9rem;}
+.reg-stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:.8rem .5rem;text-align:center;box-shadow:var(--sh);}
+.reg-stat-n{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--navy);line-height:1;}
+.reg-stat-l{font-size:9px;color:var(--ink3);text-transform:uppercase;letter-spacing:.6px;margin-top:3px;font-weight:700;}
+.reg-filters{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+.reg-filter-pill{font-size:10.5px;font-weight:700;padding:8px 12px;border-radius:20px;border:1.5px solid var(--border);
+  background:var(--surface2);color:var(--ink3);cursor:pointer;transition:all .15s;}
+.reg-filter-pill.on{background:var(--navy);border-color:var(--navy);color:#fff;}
+.reg-filter-pill:active{transform:scale(.96);}
+.btn-export{margin-left:auto;font-size:10.5px;font-weight:700;padding:8px 13px;border-radius:20px;
+  border:1.5px solid var(--gold);background:var(--gold-lt);color:#92400e;cursor:pointer;transition:all .15s;}
+.btn-export:hover{background:var(--gold);color:#fff;}
+.btn-export:active{transform:scale(.96);}
+
+.reg-empty{text-align:center;padding:2.5rem 1rem;color:var(--ink3);font-size:13px;background:var(--surface);
+  border:1.5px dashed var(--border);border-radius:var(--r);}
+.reg-card{display:flex;gap:11px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:.75rem;margin-bottom:.6rem;box-shadow:var(--sh);cursor:pointer;transition:all .15s;}
+.reg-card:hover{border-color:var(--navy);box-shadow:var(--sh2);}
+.reg-card:active{transform:scale(.99);}
+.reg-thumb{width:56px;height:56px;border-radius:var(--rsm);overflow:hidden;flex:none;background:var(--surface2);}
+.reg-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+.reg-thumb-empty{display:flex;align-items:center;justify-content:center;font-size:22px;}
+.reg-info{flex:1;min-width:0;}
+.reg-top{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:3px;}
+.reg-tag{font-size:8.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;padding:2px 8px;border-radius:10px;white-space:nowrap;}
+.reg-tag-ci{background:var(--gold-lt);color:#92400e;}
+.reg-tag-rqa{background:var(--navy-lt);color:var(--navy);}
+.reg-date{font-size:9.5px;color:var(--ink3);white-space:nowrap;}
+.reg-title{font-size:13px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.reg-meta{font-size:11px;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px;}
+
+/* MODAL */
+.reg-modal-overlay{position:fixed;inset:0;background:rgba(10,15,23,.6);display:none;align-items:flex-end;
+  justify-content:center;z-index:300;backdrop-filter:blur(2px);}
+.reg-modal-overlay.open{display:flex;}
+@media(min-width:560px){.reg-modal-overlay{align-items:center;}}
+.reg-modal-card{background:var(--surface);width:100%;max-width:520px;max-height:86vh;overflow-y:auto;
+  border-radius:16px 16px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.3);animation:slideUp .25s ease;}
+@media(min-width:560px){.reg-modal-card{border-radius:16px;animation:popIn .2s ease;}}
+@keyframes slideUp{from{transform:translateY(30px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+@keyframes popIn{from{transform:scale(.94);opacity:0;}to{transform:scale(1);opacity:1;}}
+.reg-modal-topbar{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.1rem;
+  border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--surface);font-family:'Syne',sans-serif;
+  font-weight:800;font-size:13px;color:var(--navy);text-transform:uppercase;letter-spacing:.4px;}
+.reg-modal-topbar button{background:var(--surface2);border:none;width:28px;height:28px;border-radius:50%;
+  font-size:13px;color:var(--ink3);cursor:pointer;}
+.reg-modal-body{padding:1rem 1.1rem;}
+.reg-modal-photo{margin-bottom:1rem;border-radius:var(--r);overflow:hidden;border:1px solid var(--border);}
+.reg-modal-photo img{width:100%;display:block;cursor:zoom-in;max-height:280px;object-fit:cover;}
+.reg-field{padding:.55rem 0;border-bottom:1px solid var(--border);}
+.reg-field:last-child{border-bottom:none;}
+.reg-field-l{font-size:9.5px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;}
+.reg-field-v{font-size:13px;color:var(--ink);line-height:1.5;white-space:pre-wrap;}
+.reg-modal-foot{padding:.9rem 1.1rem 1.2rem;border-top:1px solid var(--border);}
+
+/* LIGHTBOX */
+.lightbox{position:fixed;inset:0;background:rgba(10,15,23,.88);display:none;align-items:center;justify-content:center;z-index:400;padding:26px;}
+.lightbox.open{display:flex;}
+.lightbox img{max-width:100%;max-height:100%;border-radius:10px;box-shadow:0 20px 60px rgba(0,0,0,.5);}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(8px);opacity:0;pointer-events:none;
+  background:var(--ink);color:#fff;padding:11px 18px;border-radius:8px;font-size:13px;font-weight:600;
+  box-shadow:0 10px 30px rgba(0,0,0,.3);transition:all .2s;z-index:500;display:flex;align-items:center;gap:8px;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto;}
+.toast svg{width:15px;height:15px;flex:none;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">
+    <svg viewBox="0 0 28 28" fill="none">
+      <path d="M14 1L2 6.5V15C2 22 14 27 14 27S26 22 26 15V6.5L14 1Z"
+        fill="rgba(251,191,36,.15)" stroke="#fbbf24" stroke-width="1.5"/>
+      <path d="M9 14L12.5 17.5L20 10" stroke="#fbbf24" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div>
+      <div class="logo-name">ESCUDO</div>
+      <div class="logo-sub">CI &amp; RQA</div>
+    </div>
+  </div>
+  <div class="topbar-r">
+    <span class="pill pill-sync w" id="conn-badge">⏳ Conectando…</span>
+    <span class="pill pill-samarco">Samarco</span>
+  </div>
+</div>
+
+<div class="tab-nav">
+  <button class="tab-btn active" data-tab="ci">Condição Insegura</button>
+  <button class="tab-btn" data-tab="rqa">RQA</button>
+  <button class="tab-btn" data-tab="registros">📋 Registros</button>
+</div>
+
+<div class="main">
+
+  <!-- ======================= CI ======================= -->
+  <section class="view active" id="tabview-ci">
+    <div id="ci-view-form">
+      <div class="sec-title">Registrar condição insegura</div>
+      <div class="sec-sub">Ao enviar, o registro gera 1 ponto para o relator no Programa Escudo. Todos os campos e a foto são obrigatórios.</div>
+
+      <form id="form-ci" novalidate>
+        <div class="card">
+          <div class="card-title">Novo registro <span class="sub">Preencha com o máximo de detalhe</span></div>
+
+          <div class="f"><label>Nome do relator <em>*</em></label>
+            <input type="text" id="ci-relator" placeholder="Seu nome completo" required></div>
+          <div class="f"><label>Título <em>*</em></label>
+            <input type="text" id="ci-titulo" placeholder="Resumo curto da condição encontrada" required></div>
+          <div class="f"><label>Local de instalação <em>*</em></label>
+            <input type="text" id="ci-local" placeholder="Ex.: ETI BN — Área de bombas" required></div>
+
+          <div class="f"><label>Área gestora <em>*</em></label>
+            <select id="ci-area-gestora" required>
+              <option value="">Selecione…</option>
+              <option>Gerência de Produção</option>
+              <option>GPU-Polpa e Filtragem 3 e 4</option>
+              <option>GPU-Forno 3 e 4</option>
+              <option>GPU-Pelotamento 3 e 4</option>
+              <option>GPU-Peneiramento 3 e 4</option>
+              <option>GPU-Moagem e Mistura 3 e 4</option>
+              <option>Porto</option>
+            </select></div>
+
+          <div class="g2">
+            <div class="f"><label>Classificação <em>*</em></label>
+              <select id="ci-classificacao" required>
+                <option value="">Selecione…</option>
+                <option>Fatores de Risco de Saúde Ocupacional</option>
+                <option>Fatores de Riscos de Segurança</option>
+              </select></div>
+            <div class="f"><label>Tipo <em>*</em></label>
+              <select id="ci-tipo" required>
+                <option value="">Selecione…</option>
+                <option>Estrutural</option><option>Projeto</option><option>Mecânica</option><option>Elétrica</option>
+                <option>Instrumentação</option><option>Automação</option><option>Operação</option>
+                <option>Infraestrutura</option><option>Ver e agir</option>
+              </select></div>
+          </div>
+
+          <div class="g2">
+            <div class="f"><label>Gravidade <em>*</em></label>
+              <select id="ci-gravidade" required>
+                <option value="">Selecione…</option>
+                <option>Crítica</option><option>Maior</option><option>Média</option><option>Menor</option><option>Baixa</option>
+              </select></div>
+            <div class="f"><label>Probabilidade <em>*</em></label>
+              <select id="ci-probabilidade" required>
+                <option value="">Selecione…</option>
+                <option>Alta</option><option>Média</option><option>Baixa</option>
+              </select>
+              <div style="font-size:10px;color:var(--ink3);margin-top:4px;">Escala provisória — ajustamos quando você tiver a lista oficial do SAP.</div>
+            </div>
+          </div>
+
+          <div class="f"><label>Risco crítico <em>*</em></label>
+            <select id="ci-risco-critico" required>
+              <option value="">Selecione…</option>
+              <option>Outros</option>
+              <option>Veículos rodoviários</option>
+              <option>Equipamentos móveis e superfícies</option>
+              <option>Explosivos e blaster</option>
+              <option>Controle de terreno</option>
+              <option>Gerenciamento de materiais perigosos</option>
+              <option>Ferramentas e instrumentos</option>
+              <option>Proteção de partes móveis</option>
+              <option>Isolamento e bloqueio de energia</option>
+              <option>Trabalho em altura</option>
+              <option>Içamento</option>
+              <option>Queda de objetos</option>
+              <option>Colapso de estruturas</option>
+              <option>Espaço confinado</option>
+              <option>Projeção de materiais</option>
+              <option>Afogamento</option>
+              <option>Explosão de equipamento/componentes mecânicos</option>
+              <option>Explosão de equipamento/componentes elétricos</option>
+              <option>Contato com redes elétricas (aéreas e subterrâneas)</option>
+            </select></div>
+
+          <div class="f"><label>Viés ambiental / Ambiental associado <em>*</em></label>
+            <select id="ci-vies-ambiental" required>
+              <option value="">Selecione…</option>
+              <option>Intervenção em cavidades e/ou sítios arqueológicos</option>
+              <option>Vazamento de óleo</option>
+              <option>Não se aplica</option>
+              <option>Lançamento inadequado de efluentes</option>
+              <option>Gestão inadequada de produtos ou resíduos perigosos</option>
+              <option>Vazamento de polpa / rejeito / minério</option>
+              <option>Falha na organização e limpeza - 5S</option>
+              <option>Emissão atmosférica inadequada</option>
+              <option>Intervenção negativa na fauna / flora</option>
+              <option>Vazamento de água</option>
+              <option>Erosões e movimentações de terra inadequadas</option>
+              <option>Vazamento de esgoto</option>
+            </select></div>
+
+          <div class="f"><label>Descrição <em>*</em></label>
+            <textarea id="ci-descricao" placeholder="Descreva a condição insegura observada" required></textarea></div>
+
+          <div class="f"><label>Foto da condição insegura <em>*</em></label>
+            <div class="photo-zone" id="ci-photo-field">
+              <label class="photo-btn"><input type="file" accept="image/*" capture="environment" id="ci-photo-input">
+                📷 Adicionar foto</label>
+              <div id="ci-photo-preview"></div>
+            </div></div>
+
+          <div class="progress-wrap">
+            <div class="progress-bar-track"><div class="progress-bar-fill" id="ci-progress-fill"></div></div>
+            <div class="progress-note" id="ci-progress"><b>0</b> de 12 campos preenchidos</div>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-navy" id="ci-submit" disabled>Registrar condição insegura (+1 ponto)</button>
+      </form>
+    </div>
+    <div class="success" id="ci-view-success">
+      <div class="success-icon">✅</div>
+      <div class="success-title">Registro enviado!</div>
+      <div class="success-score">+1</div>
+      <div class="success-sub" id="ci-succ-pontos-label">ponto no Programa Escudo</div>
+      <div class="success-nm" id="ci-succ-titulo"></div>
+      <button class="btn btn-navy" id="ci-btn-nova">Registrar outra condição</button>
+      <button class="btn btn-ghost" style="margin-top:9px;" id="ci-btn-ver-registros">📋 Ver registros</button>
+    </div>
+  </section>
+
+  <!-- ======================= RQA ======================= -->
+  <section class="view" id="tabview-rqa">
+    <div id="rqa-view-form">
+      <div class="sec-title">Registrar RQA</div>
+      <div class="sec-sub">Relato de Quase Acidente. Ao enviar, o registro gera 1 ponto para o relator no Programa Escudo. Todos os campos e a foto são obrigatórios.</div>
+
+      <form id="form-rqa" novalidate>
+        <div class="card">
+          <div class="card-title">Novo registro <span class="sub">Preencha com o máximo de detalhe</span></div>
+
+          <div class="f"><label>Nome do relator <em>*</em></label>
+            <input type="text" id="rqa-relator" placeholder="Seu nome completo" required></div>
+          <div class="f"><label>Título <em>*</em></label>
+            <input type="text" id="rqa-titulo" placeholder="Resumo curto do quase acidente" required></div>
+          <div class="f"><label>Local de instalação <em>*</em></label>
+            <input type="text" id="rqa-local" placeholder="Ex.: Draga 01" required></div>
+          <div class="f"><label>Atividade <em>*</em></label>
+            <input type="text" id="rqa-atividade" placeholder="Atividade sendo realizada no momento" required></div>
+
+          <div class="f"><label>Área gestora <em>*</em></label>
+            <select id="rqa-area-gestora" required>
+              <option value="">Selecione…</option>
+              <option>Gerência de Produção</option>
+              <option>GPU-Polpa e Filtragem 3 e 4</option>
+              <option>GPU-Forno 3 e 4</option>
+              <option>GPU-Pelotamento 3 e 4</option>
+              <option>GPU-Peneiramento 3 e 4</option>
+              <option>GPU-Moagem e Mistura 3 e 4</option>
+              <option>Porto</option>
+            </select></div>
+
+          <div class="g2">
+            <div class="f"><label>Classificação <em>*</em></label>
+              <select id="rqa-classificacao" required>
+                <option value="">Selecione…</option>
+                <option>Fatores de Risco de Saúde Ocupacional</option>
+                <option>Fatores de Riscos de Segurança</option>
+              </select></div>
+            <div class="f"><label>Tipo <em>*</em></label>
+              <select id="rqa-tipo" required>
+                <option value="">Selecione…</option>
+                <option>Estrutural</option><option>Projeto</option><option>Mecânica</option><option>Elétrica</option>
+                <option>Instrumentação</option><option>Automação</option><option>Operação</option>
+                <option>Infraestrutura</option><option>Ver e agir</option>
+              </select></div>
+          </div>
+
+          <div class="g2">
+            <div class="f"><label>Gravidade <em>*</em></label>
+              <select id="rqa-gravidade" required>
+                <option value="">Selecione…</option>
+                <option>Crítica</option><option>Maior</option><option>Média</option><option>Menor</option><option>Baixa</option>
+              </select></div>
+            <div class="f"><label>Probabilidade <em>*</em></label>
+              <select id="rqa-probabilidade" required>
+                <option value="">Selecione…</option>
+                <option>Alta</option><option>Média</option><option>Baixa</option>
+              </select>
+              <div style="font-size:10px;color:var(--ink3);margin-top:4px;">Escala provisória — ajustamos quando você tiver a lista oficial do SAP.</div>
+            </div>
+          </div>
+
+          <div class="f"><label>Risco crítico <em>*</em></label>
+            <select id="rqa-risco-critico" required>
+              <option value="">Selecione…</option>
+              <option>Outros</option>
+              <option>Veículos rodoviários</option>
+              <option>Equipamentos móveis e superfícies</option>
+              <option>Explosivos e blaster</option>
+              <option>Controle de terreno</option>
+              <option>Gerenciamento de materiais perigosos</option>
+              <option>Ferramentas e instrumentos</option>
+              <option>Proteção de partes móveis</option>
+              <option>Isolamento e bloqueio de energia</option>
+              <option>Trabalho em altura</option>
+              <option>Içamento</option>
+              <option>Queda de objetos</option>
+              <option>Colapso de estruturas</option>
+              <option>Espaço confinado</option>
+              <option>Projeção de materiais</option>
+              <option>Afogamento</option>
+              <option>Explosão de equipamento/componentes mecânicos</option>
+              <option>Explosão de equipamento/componentes elétricos</option>
+              <option>Contato com redes elétricas (aéreas e subterrâneas)</option>
+            </select></div>
+
+          <div class="f"><label>Viés ambiental / Ambiental associado <em>*</em></label>
+            <select id="rqa-vies-ambiental" required>
+              <option value="">Selecione…</option>
+              <option>Intervenção em cavidades e/ou sítios arqueológicos</option>
+              <option>Vazamento de óleo</option>
+              <option>Não se aplica</option>
+              <option>Lançamento inadequado de efluentes</option>
+              <option>Gestão inadequada de produtos ou resíduos perigosos</option>
+              <option>Vazamento de polpa / rejeito / minério</option>
+              <option>Falha na organização e limpeza - 5S</option>
+              <option>Emissão atmosférica inadequada</option>
+              <option>Intervenção negativa na fauna / flora</option>
+              <option>Vazamento de água</option>
+              <option>Erosões e movimentações de terra inadequadas</option>
+              <option>Vazamento de esgoto</option>
+            </select></div>
+
+          <div class="f"><label>Descrição <em>*</em></label>
+            <textarea id="rqa-descricao" placeholder="Descreva o que aconteceu (o quase acidente)" required></textarea></div>
+          <div class="f"><label>Descrição da sugestão <em>*</em></label>
+            <textarea id="rqa-sugestao" placeholder="Sugestão para evitar que aconteça de verdade" required></textarea></div>
+
+          <div class="f"><label>Foto <em>*</em></label>
+            <div class="photo-zone" id="rqa-photo-field">
+              <label class="photo-btn"><input type="file" accept="image/*" capture="environment" id="rqa-photo-input">
+                📷 Adicionar foto</label>
+              <div id="rqa-photo-preview"></div>
+            </div></div>
+
+          <div class="progress-wrap">
+            <div class="progress-bar-track"><div class="progress-bar-fill" id="rqa-progress-fill"></div></div>
+            <div class="progress-note" id="rqa-progress"><b>0</b> de 14 campos preenchidos</div>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-navy" id="rqa-submit" disabled>Registrar RQA (+1 ponto)</button>
+      </form>
+    </div>
+    <div class="success" id="rqa-view-success">
+      <div class="success-icon">✅</div>
+      <div class="success-title">Registro enviado!</div>
+      <div class="success-score">+1</div>
+      <div class="success-sub" id="rqa-succ-pontos-label">ponto no Programa Escudo</div>
+      <div class="success-nm" id="rqa-succ-titulo"></div>
+      <button class="btn btn-navy" id="rqa-btn-nova">Registrar outro RQA</button>
+      <button class="btn btn-ghost" style="margin-top:9px;" id="rqa-btn-ver-registros">📋 Ver registros</button>
+    </div>
+  </section>
+
+  <!-- ======================= REGISTROS (base de consulta) ======================= -->
+  <section class="view" id="tabview-registros">
+    <div class="sec-title">Registros — CI &amp; RQA</div>
+    <div class="sec-sub">Base separada só de consulta: veja os relatos cadastrados para extrair e lançar no SAP.</div>
+
+    <div class="reg-stats">
+      <div class="reg-stat"><div class="reg-stat-n" id="reg-stat-total">0</div><div class="reg-stat-l">Total</div></div>
+      <div class="reg-stat"><div class="reg-stat-n" id="reg-stat-ci">0</div><div class="reg-stat-l">CI</div></div>
+      <div class="reg-stat"><div class="reg-stat-n" id="reg-stat-rqa">0</div><div class="reg-stat-l">RQA</div></div>
+    </div>
+
+    <div class="card" style="padding:.9rem;">
+      <input type="text" id="reg-search" placeholder="Buscar por relator, local, título ou atividade…" style="margin-bottom:.8rem;">
+      <div class="reg-filters">
+        <button class="reg-filter-pill on" data-tipo="all">Todos</button>
+        <button class="reg-filter-pill" data-tipo="ci">⚠️ CI</button>
+        <button class="reg-filter-pill" data-tipo="rqa">🦺 RQA</button>
+        <button class="btn-export" id="reg-export-btn">⬇️ Exportar CSV</button>
+      </div>
+    </div>
+
+    <div id="reg-list"></div>
+  </section>
+
+</div>
+
+<!-- MODAL DE DETALHE -->
+<div class="reg-modal-overlay" id="reg-modal-overlay">
+  <div class="reg-modal-card">
+    <div class="reg-modal-topbar">
+      <span>Detalhe do registro</span>
+      <button id="reg-modal-close">✕</button>
+    </div>
+    <div class="reg-modal-body" id="reg-modal-body"></div>
+    <div class="reg-modal-foot">
+      <button class="btn btn-navy" id="reg-modal-copy">📋 Copiar para lançar no SAP</button>
+    </div>
+  </div>
+</div>
+
+<div class="lightbox" id="lightbox"><img id="lightbox-img" src="" alt=""></div>
+<div class="toast" id="toast"><svg id="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 13 4 4L19 7"/></svg><span id="toast-msg"></span></div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  /* ======================================================================
+     FIREBASE — mesmo projeto do restante do Programa Escudo (escudo-in-haus)
+  ====================================================================== */
+  var firebaseConfig = {
+    apiKey: "AIzaSyDP74FugIertZsbbi-LjUeNowEfWPqnmHo",
+    authDomain: "escudo-in-haus.firebaseapp.com",
+    databaseURL: "https://escudo-in-haus-default-rtdb.firebaseio.com",
+    projectId: "escudo-in-haus",
+    storageBucket: "escudo-in-haus.firebasestorage.app",
+    messagingSenderId: "961467182857",
+    appId: "1:961467182857:web:1458526eca1e78fddf6dd8"
+  };
+
+  function sanitizeKey(name){ return (name||'').toString().trim().replace(/[ .#$§\[\]]/g,'_'); }
+  function esc(s){ var d=document.createElement('div'); d.textContent = s==null?'':s; return d.innerHTML; }
+
+  function setConn(state){
+    var badge = document.getElementById('conn-badge');
+    if (state==='on'){ badge.className='pill pill-sync'; badge.textContent='🟢 Conectado'; }
+    else if (state==='off'){ badge.className='pill pill-sync e'; badge.textContent='⚠️ Modo local'; }
+    else { badge.className='pill pill-sync w'; badge.textContent='⏳ Conectando…'; }
+  }
+  function toast(msg, type){
+    var t = document.getElementById('toast');
+    var icon = document.getElementById('toast-icon');
+    icon.innerHTML = type==='error'
+      ? '<circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5m0 3.2h.01"/>'
+      : '<path d="m5 13 4 4L19 7"/>';
+    document.getElementById('toast-msg').textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._h); t._h = setTimeout(function(){ t.classList.remove('show'); }, 2600);
+  }
+
+  var rtdb = null;
+  var memStore = {}; // usado só se o Firebase não carregar: { root: { registros:[], pontos:{} } }
+  function memRoot(root){ if(!memStore[root]) memStore[root] = { registros: [], pontos: {} }; return memStore[root]; }
+
+  try {
+    if (typeof firebase !== 'undefined'){
+      var app = firebase.initializeApp(firebaseConfig);
+      rtdb = firebase.database(app);
+      setConn('on');
+    } else {
+      setConn('off');
+    }
+  } catch (err){
+    console.error('Firebase init falhou:', err);
+    setConn('off');
+  }
+
+  /* ======================================================================
+     TABS
+  ====================================================================== */
+  function switchTab(tab){
+    document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.toggle('active', b.getAttribute('data-tab')===tab); });
+    document.querySelectorAll('.view').forEach(function(v){ v.classList.remove('active'); });
+    document.getElementById('tabview-'+tab).classList.add('active');
+    if (tab === 'registros') renderRegistros();
+    window.scrollTo(0,0);
+  }
+  document.querySelectorAll('.tab-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){ switchTab(btn.getAttribute('data-tab')); });
+  });
+
+  /* ======================================================================
+     IMAGE COMPRESSION
+  ====================================================================== */
+  function compressImage(file, maxDim, quality){
+    return new Promise(function(resolve, reject){
+      var reader = new FileReader();
+      reader.onerror = reject;
+      reader.onload = function(){
+        var img = new Image();
+        img.onerror = reject;
+        img.onload = function(){
+          var w = img.width, h = img.height;
+          var scale = Math.min(1, maxDim / Math.max(w,h));
+          var cw = Math.max(1, Math.round(w*scale)), ch = Math.max(1, Math.round(h*scale));
+          var canvas = document.createElement('canvas');
+          canvas.width = cw; canvas.height = ch;
+          var ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, cw, ch);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  var lb = document.getElementById('lightbox');
+  lb.addEventListener('click', function(){ lb.classList.remove('open'); });
+  function openLightbox(src){ document.getElementById('lightbox-img').src = src; lb.classList.add('open'); }
+
+  /* ======================================================================
+     GENERIC FORM CONTROLLER — usado tanto para CI quanto para RQA
+     cfg = { prefix, textFieldIds, selectFieldIds, questionFields, firebaseRoot, submitLabel }
+  ====================================================================== */
+  function setupForm(cfg){
+    var photo = null;
+    var totalFields = cfg.textFieldIds.length + cfg.selectFieldIds.length + cfg.questionFields.length + 1;
+
+    var photoInput = document.getElementById(cfg.prefix+'-photo-input');
+    photoInput.addEventListener('change', function(e){
+      var file = e.target.files[0]; if(!file) return;
+      compressImage(file, 900, 0.6).then(function(dataUrl){
+        photo = dataUrl;
+        renderPhotoPreview();
+        updateProgress();
+      });
+      e.target.value = '';
+    });
+    function renderPhotoPreview(){
+      var wrap = document.getElementById(cfg.prefix+'-photo-preview');
+      wrap.innerHTML = '';
+      if (photo){
+        var t = document.createElement('div'); t.className='photo-thumb';
+        t.innerHTML = '<img src="'+photo+'"><button type="button" class="rm">✕</button>';
+        t.querySelector('.rm').addEventListener('click', function(){ photo=null; renderPhotoPreview(); updateProgress(); });
+        t.querySelector('img').addEventListener('click', function(){ openLightbox(photo); });
+        wrap.appendChild(t);
+      }
+    }
+
+    cfg.textFieldIds.forEach(function(id){ document.getElementById(id).addEventListener('input', updateProgress); });
+    cfg.selectFieldIds.forEach(function(id){ document.getElementById(id).addEventListener('change', updateProgress); });
+
+    var form = document.getElementById('form-'+cfg.prefix);
+    form.querySelectorAll('.segmented[data-field]').forEach(function(seg){
+      seg.addEventListener('click', function(e){
+        var btn = e.target.closest('button'); if(!btn) return;
+        var value = btn.getAttribute('data-value');
+        seg.querySelectorAll('button').forEach(function(b){ b.className=''; });
+        btn.className = value==='sim' ? 'on danger-on' : 'on';
+        seg.dataset.value = value;
+        updateProgress();
+      });
+    });
+
+    function filledCount(){
+      var n = 0;
+      cfg.textFieldIds.forEach(function(id){ if (document.getElementById(id).value.trim()) n++; });
+      cfg.selectFieldIds.forEach(function(id){ if (document.getElementById(id).value) n++; });
+      cfg.questionFields.forEach(function(f){ if (form.querySelector('.segmented[data-field="'+f+'"] .on')) n++; });
+      if (photo) n++;
+      return n;
+    }
+    function updateProgress(){
+      var n = filledCount();
+      document.getElementById(cfg.prefix+'-progress').innerHTML = '<b>'+n+'</b> de '+totalFields+' campos preenchidos';
+      document.getElementById(cfg.prefix+'-progress-fill').style.width = Math.round(n/totalFields*100)+'%';
+      document.getElementById(cfg.prefix+'-submit').disabled = n < totalFields;
+    }
+    updateProgress();
+
+    // Incrementa o total histórico (pontosPorRelator) e o contador do mês corrente
+    // (pontosPorRelatorMes/{relator}__{mês 0-11}), que é o mesmo contador lido
+    // pelos rankings (equipe e individual) para somar o bônus de CI/RQA.
+    function incrementPontos(relatorKey){
+      var monthIdx = new Date().getMonth();
+      var monthKey = relatorKey + '__' + monthIdx;
+      if (rtdb){
+        var refTotal = rtdb.ref(cfg.firebaseRoot + '/pontosPorRelator/' + relatorKey);
+        var refMes = rtdb.ref(cfg.firebaseRoot + '/pontosPorRelatorMes/' + monthKey);
+        return Promise.all([
+          refTotal.transaction(function(cur){ return (cur||0) + 1; }).then(function(r){ return r.snapshot.val(); }),
+          refMes.transaction(function(cur){ return (cur||0) + 1; }).then(function(r){ return r.snapshot.val(); })
+        ]).then(function(vals){ return { total: vals[0], mes: vals[1] }; });
+      }
+      var store = memRoot(cfg.firebaseRoot);
+      store.pontos[relatorKey] = (store.pontos[relatorKey]||0) + 1;
+      store.pontosMes = store.pontosMes || {};
+      store.pontosMes[monthKey] = (store.pontosMes[monthKey]||0) + 1;
+      return Promise.resolve({ total: store.pontos[relatorKey], mes: store.pontosMes[monthKey] });
+    }
+
+    form.addEventListener('submit', function(e){
+      e.preventDefault();
+      if (filledCount() < totalFields) return;
+
+      var record = { pontoGerado: 1, criadoEm: new Date().toISOString(), foto: photo };
+      cfg.textFieldIds.forEach(function(id){
+        var key = id.slice(cfg.prefix.length+1); // remove "ci-" / "rqa-" prefix
+        record[key] = document.getElementById(id).value.trim();
+      });
+      cfg.selectFieldIds.forEach(function(id){
+        var key = id.slice(cfg.prefix.length+1);
+        record[key] = document.getElementById(id).value;
+      });
+      cfg.questionFields.forEach(function(f){
+        var key = f.slice(cfg.prefix.length+1);
+        record[key] = form.querySelector('.segmented[data-field="'+f+'"] .on').getAttribute('data-value');
+      });
+
+      var relator = record.relator || '';
+      var titulo = record.titulo || '';
+      var btn = document.getElementById(cfg.prefix+'-submit'); btn.disabled = true; btn.textContent = 'Enviando…';
+      var relatorKey = sanitizeKey(relator);
+
+      var savePromise;
+      if (rtdb){
+        savePromise = rtdb.ref(cfg.firebaseRoot + '/registros').push(record)
+          .then(function(){ return incrementPontos(relatorKey); });
+      } else {
+        memRoot(cfg.firebaseRoot).registros.push(record);
+        savePromise = incrementPontos(relatorKey);
+      }
+
+      savePromise.then(function(pontos){
+        document.getElementById(cfg.prefix+'-succ-titulo').textContent = titulo;
+        document.getElementById(cfg.prefix+'-succ-pontos-label').textContent =
+          pontos.mes + ' este mês · ' + pontos.total + ' no total de ' + relator;
+        document.getElementById(cfg.prefix+'-view-form').style.display = 'none';
+        document.getElementById(cfg.prefix+'-view-success').classList.add('show');
+        window.scrollTo(0,0);
+        renderRegistros();
+      }).catch(function(err){
+        console.error(err);
+        toast('Não foi possível registrar. Tente novamente.', 'error');
+        btn.textContent = cfg.submitLabel;
+        btn.disabled = filledCount() < totalFields;
+      });
+    });
+
+    document.getElementById(cfg.prefix+'-btn-nova').addEventListener('click', function(){
+      form.reset();
+      photo = null; renderPhotoPreview();
+      form.querySelectorAll('.segmented[data-field] button').forEach(function(b){ b.className=''; });
+      form.querySelectorAll('.segmented[data-field]').forEach(function(s){ delete s.dataset.value; });
+      updateProgress();
+      document.getElementById(cfg.prefix+'-view-success').classList.remove('show');
+      document.getElementById(cfg.prefix+'-view-form').style.display = '';
+      var btn = document.getElementById(cfg.prefix+'-submit'); btn.textContent = cfg.submitLabel;
+      window.scrollTo(0,0);
+    });
+
+    document.getElementById(cfg.prefix+'-btn-ver-registros').addEventListener('click', function(){
+      switchTab('registros');
+    });
+  }
+
+  setupForm({
+    prefix: 'ci',
+    textFieldIds: ['ci-relator','ci-titulo','ci-local','ci-descricao'],
+    selectFieldIds: ['ci-area-gestora','ci-classificacao','ci-tipo','ci-gravidade','ci-probabilidade','ci-risco-critico','ci-vies-ambiental'],
+    questionFields: [],
+    firebaseRoot: 'escudoCondicaoInsegura',
+    submitLabel: 'Registrar condição insegura (+1 ponto)'
+  });
+
+  setupForm({
+    prefix: 'rqa',
+    textFieldIds: ['rqa-relator','rqa-titulo','rqa-local','rqa-atividade','rqa-descricao','rqa-sugestao'],
+    selectFieldIds: ['rqa-area-gestora','rqa-classificacao','rqa-tipo','rqa-gravidade','rqa-probabilidade','rqa-risco-critico','rqa-vies-ambiental'],
+    questionFields: [],
+    firebaseRoot: 'escudoRQA',
+    submitLabel: 'Registrar RQA (+1 ponto)'
+  });
+
+  /* ======================================================================
+     REGISTROS — base separada só de consulta, para extrair e lançar no SAP
+  ====================================================================== */
+  var REG = { ci: [], rqa: [] };
+  var regFilterTipo = 'all';
+  var regSearch = '';
+
+  function snapToArray(snap){
+    var out = [];
+    snap.forEach(function(child){ var v = child.val() || {}; v._id = child.key; out.push(v); });
+    return out;
+  }
+
+  if (rtdb){
+    rtdb.ref('escudoCondicaoInsegura/registros').on('value', function(snap){ REG.ci = snapToArray(snap); renderRegistros(); });
+    rtdb.ref('escudoRQA/registros').on('value', function(snap){ REG.rqa = snapToArray(snap); renderRegistros(); });
+  }
+
+  function getAllRecords(){
+    var ciSrc = rtdb ? REG.ci : memRoot('escudoCondicaoInsegura').registros;
+    var rqaSrc = rtdb ? REG.rqa : memRoot('escudoRQA').registros;
+    var ciArr = ciSrc.map(function(r){ var c={}; for(var k in r){c[k]=r[k];} c._tipo='CI'; return c; });
+    var rqaArr = rqaSrc.map(function(r){ var c={}; for(var k in r){c[k]=r[k];} c._tipo='RQA'; return c; });
+    var all = ciArr.concat(rqaArr);
+    all.sort(function(a,b){ return new Date(b.criadoEm||0) - new Date(a.criadoEm||0); });
+    return all;
+  }
+
+  function renderRegistros(){
+    var all = getAllRecords();
+    document.getElementById('reg-stat-total').textContent = all.length;
+    document.getElementById('reg-stat-ci').textContent = all.filter(function(r){return r._tipo==='CI';}).length;
+    document.getElementById('reg-stat-rqa').textContent = all.filter(function(r){return r._tipo==='RQA';}).length;
+
+    var filtered = all.filter(function(r){
+      if (regFilterTipo!=='all' && r._tipo.toLowerCase()!==regFilterTipo) return false;
+      if (regSearch){
+        var hay = [r.relator,r.titulo,r.local,r.atividade].filter(Boolean).join(' ').toLowerCase();
+        if (hay.indexOf(regSearch.toLowerCase())===-1) return false;
+      }
+      return true;
+    });
+
+    var list = document.getElementById('reg-list');
+    if (!filtered.length){
+      list.innerHTML = '<div class="reg-empty">Nenhum registro encontrado.</div>';
+      return;
+    }
+    list.innerHTML = filtered.map(function(r,i){
+      var dt = r.criadoEm ? new Date(r.criadoEm) : null;
+      var dtStr = dt ? dt.toLocaleDateString('pt-BR') + ' · ' + dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : '—';
+      var cls = r._tipo === 'CI' ? 'reg-tag-ci' : 'reg-tag-rqa';
+      var icon = r._tipo === 'CI' ? '⚠️' : '🦺';
+      return '<div class="reg-card" data-idx="'+i+'">'+
+        (r.foto ? '<div class="reg-thumb"><img src="'+r.foto+'"></div>' : '<div class="reg-thumb reg-thumb-empty">'+icon+'</div>') +
+        '<div class="reg-info">'+
+          '<div class="reg-top"><span class="reg-tag '+cls+'">'+icon+' '+r._tipo+'</span><span class="reg-date">'+dtStr+'</span></div>'+
+          '<div class="reg-title">'+esc(r.titulo||'(sem título)')+'</div>'+
+          '<div class="reg-meta">'+esc(r.relator||'—')+' · '+esc(r.local||'—')+'</div>'+
+        '</div>'+
+      '</div>';
+    }).join('');
+    list.querySelectorAll('.reg-card').forEach(function(card){
+      card.addEventListener('click', function(){ openRegDetail(filtered[parseInt(card.getAttribute('data-idx'),10)]); });
+    });
+  }
+
+  function fieldRow(label, val){
+    return '<div class="reg-field"><div class="reg-field-l">'+esc(label)+'</div><div class="reg-field-v">'+esc(val||'—')+'</div></div>';
+  }
+
+  function buildSapText(r){
+    var lines = [];
+    lines.push('['+r._tipo+'] '+(r.titulo||''));
+    lines.push('Relator: '+(r.relator||''));
+    lines.push('Local: '+(r.local||''));
+    if (r._tipo==='RQA') lines.push('Atividade: '+(r.atividade||''));
+    lines.push('Área gestora: '+(r['area-gestora']||''));
+    lines.push('Classificação: '+(r.classificacao||''));
+    lines.push('Tipo: '+(r.tipo||''));
+    lines.push('Gravidade: '+(r.gravidade||''));
+    lines.push('Probabilidade: '+(r.probabilidade||''));
+    lines.push('Risco crítico: '+(r['risco-critico']||''));
+    lines.push('Viés ambiental / Ambiental associado: '+(r['vies-ambiental']||''));
+    lines.push('Descrição: '+(r.descricao||''));
+    if (r._tipo==='RQA') lines.push('Sugestão: '+(r.sugestao||''));
+    var dt = r.criadoEm ? new Date(r.criadoEm) : null;
+    lines.push('Data do registro: '+(dt ? dt.toLocaleString('pt-BR') : '—'));
+    return lines.join('\n');
+  }
+
+  function openRegDetail(r){
+    if (!r) return;
+    var rows = [];
+    rows.push(fieldRow('Relator', r.relator));
+    rows.push(fieldRow('Título', r.titulo));
+    rows.push(fieldRow('Local', r.local));
+    if (r._tipo==='RQA') rows.push(fieldRow('Atividade', r.atividade));
+    rows.push(fieldRow('Área gestora', r['area-gestora']));
+    rows.push(fieldRow('Classificação', r.classificacao));
+    rows.push(fieldRow('Tipo', r.tipo));
+    rows.push(fieldRow('Gravidade', r.gravidade));
+    rows.push(fieldRow('Probabilidade', r.probabilidade));
+    rows.push(fieldRow('Risco crítico', r['risco-critico']));
+    rows.push(fieldRow('Viés ambiental / Ambiental associado', r['vies-ambiental']));
+    rows.push(fieldRow('Descrição', r.descricao));
+    if (r._tipo==='RQA') rows.push(fieldRow('Sugestão', r.sugestao));
+    var dt = r.criadoEm ? new Date(r.criadoEm) : null;
+    rows.push(fieldRow('Data do registro', dt ? dt.toLocaleString('pt-BR') : '—'));
+
+    var body = document.getElementById('reg-modal-body');
+    body.innerHTML =
+      '<div style="margin-bottom:.9rem;"><span class="reg-tag '+(r._tipo==='CI'?'reg-tag-ci':'reg-tag-rqa')+'" style="font-size:10px;padding:4px 10px;">'+
+        (r._tipo==='CI'?'⚠️ Condição Insegura':'🦺 RQA')+'</span></div>'+
+      (r.foto ? '<div class="reg-modal-photo"><img src="'+r.foto+'" id="reg-modal-img"></div>' : '') +
+      rows.join('');
+
+    if (r.foto){
+      document.getElementById('reg-modal-img').addEventListener('click', function(){ openLightbox(r.foto); });
+    }
+    document.getElementById('reg-modal-copy').onclick = function(){ copyText(buildSapText(r)); };
+    document.getElementById('reg-modal-overlay').classList.add('open');
+  }
+
+  function fallbackCopy(txt, ok, fail){
+    try{
+      var ta = document.createElement('textarea');
+      ta.value = txt; ta.style.position='fixed'; ta.style.left='-9999px';
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      var success = document.execCommand('copy');
+      document.body.removeChild(ta);
+      success ? ok() : fail();
+    }catch(e){ fail(); }
+  }
+  function copyText(txt){
+    function ok(){ toast('Copiado! Cole no SAP.'); }
+    function fail(){ toast('Não foi possível copiar automaticamente.', 'error'); }
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(txt).then(ok).catch(function(){ fallbackCopy(txt, ok, fail); });
+    } else {
+      fallbackCopy(txt, ok, fail);
+    }
+  }
+
+  function exportCsv(){
+    var all = getAllRecords();
+    if (!all.length){ toast('Nenhum registro para exportar.', 'error'); return; }
+    var headers = ['Tipo','Relator','Título','Local','Atividade','Área gestora','Classificação','Tipo','Gravidade','Probabilidade','Risco crítico','Viés ambiental','Descrição','Sugestão','Data','Tem foto'];
+    var rows = [headers];
+    all.forEach(function(r){
+      var dt = r.criadoEm ? new Date(r.criadoEm).toLocaleString('pt-BR') : '';
+      rows.push([
+        r._tipo, r.relator||'', r.titulo||'', r.local||'', r.atividade||'',
+        r['area-gestora']||'', r.classificacao||'', r.tipo||'', r.gravidade||'', r.probabilidade||'',
+        r['risco-critico']||'', r['vies-ambiental']||'',
+        r.descricao||'', r.sugestao||'',
+        dt, r.foto ? 'Sim' : 'Não'
+      ]);
+    });
+    var csv = rows.map(function(row){
+      return row.map(function(cell){
+        var s = String(cell==null?'':cell).replace(/"/g,'""');
+        return '"'+s+'"';
+      }).join(';');
+    }).join('\r\n');
+    var blob = new Blob(['﻿'+csv], {type:'text/csv;charset=utf-8;'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = 'escudo-ci-rqa-'+(new Date().toISOString().slice(0,10))+'.csv';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
+    toast('CSV exportado.');
+  }
+
+  document.querySelectorAll('.reg-filter-pill').forEach(function(p){
+    p.addEventListener('click', function(){
+      document.querySelectorAll('.reg-filter-pill').forEach(function(x){x.classList.remove('on');});
+      p.classList.add('on');
+      regFilterTipo = p.getAttribute('data-tipo');
+      renderRegistros();
+    });
+  });
+  document.getElementById('reg-search').addEventListener('input', function(e){
+    regSearch = e.target.value;
+    renderRegistros();
+  });
+  document.getElementById('reg-export-btn').addEventListener('click', exportCsv);
+  document.getElementById('reg-modal-close').addEventListener('click', function(){
+    document.getElementById('reg-modal-overlay').classList.remove('open');
+  });
+  document.getElementById('reg-modal-overlay').addEventListener('click', function(e){
+    if (e.target.id==='reg-modal-overlay') e.currentTarget.classList.remove('open');
+  });
+
+  renderRegistros();
+
+})();
+</script>
+
+</body>
+</html>
