@@ -218,10 +218,11 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   <div class="month-filter" id="month-filter"></div>
 
   <!-- STATS -->
-  <div class="stats" style="grid-template-columns:repeat(4,1fr); gap:.4rem;">
+  <div class="stats" style="grid-template-columns:repeat(5,1fr); gap:.4rem;">
     <div class="stat"><div class="stat-n" id="st-av">0</div><div class="stat-l">Inspeções</div></div>
     <div class="stat"><div class="stat-n" id="st-id">0</div><div class="stat-l" style="color:#22C55E;">💡 Ideias</div></div>
     <div class="stat"><div class="stat-n" id="st-dc">0</div><div class="stat-l" style="color:#EF4444;">⚠️ Descontos</div></div>
+    <div class="stat"><div class="stat-n" id="st-cr">0</div><div class="stat-l" style="color:#059669;">🦺 CI/RQA</div></div>
     <div class="stat"><div class="stat-n" id="st-md">—</div><div class="stat-l">Média Geral</div></div>
   </div>
 
@@ -287,9 +288,13 @@ let T       = JSON.parse(JSON.stringify(DEFAULT_TEAMS));
 let S       = {};   // scores inspeções
 let S_BONUS = {};   // bônus ideias de valor
 let S_DESC  = {};   // descontos (absenteísmo / NC)
+let CI_COUNTS  = {}; // registros de Condição Insegura por pessoa/mês
+let RQA_COUNTS = {}; // registros de RQA por pessoa/mês
+// Quanto cada CI ou RQA registrado soma na nota final da pessoa (sem teto mensal).
+const CIRQA_BONUS_PER_REGISTRO = 0.3;
 let isDemo  = true;
 let curEq   = 'all';   // filtro equipe
-let curMes  = new Date().getMonth(); // inicia no mês atual
+let curMes  = -1;      // -1 = todos os meses
 let curTab  = 'ranking';
 
 /* ── Utils ── */
@@ -298,11 +303,10 @@ const f2  = n => (n||'?').split(' ').slice(0,2).join(' ');
 
 /* ── Normaliza times do Firebase — rejeita equipes inválidas ── */
 // Lista de IDs e nomes válidos — rejeita qualquer dado fora disso
-const VALID_TEAM_IDS = new Set(['A','B','C','D','prod','manut','plan','sesmt','windfense','cond_insegura','sem_equipe']);
+const VALID_TEAM_IDS = new Set(['A','B','C','D','prod','manut','plan','sesmt','windfense']);
 const VALID_TEAM_LABELS = new Set([
   'Turno A','Turno B','Turno C','Turno D',
-  'Prod. Pátio/Porto','Manutenção','Planejamento','SESMT','Wind Fence','Wind Fense',
-  'Condição Insegura','Sem Equipe Definida','ETEI','Precipitador'
+  'Prod. Pátio/Porto','Manutenção','Planejamento','SESMT','Wind Fense'
 ]);
 
 function normTeams(raw) {
@@ -320,7 +324,7 @@ function normTeams(raw) {
     // Rejeita labels que parecem incidentes ou dados inválidos
     // (ex: "Condição Insegura", "Acidente", etc.)
     const labelUpper = t.label.toUpperCase();
-    const REJECT_WORDS = ['ACIDENTE','INCIDENTE','TESTE','TEST','UNDEFINED','NULL'];
+    const REJECT_WORDS = ['CONDIÇÃO','INSEGURA','ACIDENTE','INCIDENTE','TESTE','TEST','UNDEFINED','NULL'];
     if (REJECT_WORDS.some(w => labelUpper.includes(w))) return;
 
     // Normaliza encarregado
@@ -408,8 +412,22 @@ function getRankData(eqFilter, mesFilter) {
         : Object.keys(S_DESC).filter(k => k.startsWith(safeN + '__'));
       const totalDesc = descKeys.reduce((s,k) => s + Math.abs(S_DESC[k]?.total || 0), 0);
 
+      // CI / RQA — registros de Condição Insegura e Quase Acidente (contagem por pessoa/mês)
+      const ciKeys = mesFilter >= 0
+        ? [safeN + '__' + mesFilter].filter(k => CI_COUNTS[k])
+        : Object.keys(CI_COUNTS).filter(k => k.startsWith(safeN + '__'));
+      const totalCi = ciKeys.reduce((s,k) => s + (CI_COUNTS[k] || 0), 0);
+
+      const rqaKeys = mesFilter >= 0
+        ? [safeN + '__' + mesFilter].filter(k => RQA_COUNTS[k])
+        : Object.keys(RQA_COUNTS).filter(k => k.startsWith(safeN + '__'));
+      const totalRqa = rqaKeys.reduce((s,k) => s + (RQA_COUNTS[k] || 0), 0);
+
+      const totalCiRqaCount = totalCi + totalRqa;
+      const ciRqaBonus = totalCiRqaCount * CIRQA_BONUS_PER_REGISTRO;
+
       // Ignora só se absolutamente nada registrado
-      if (!keys.length && totalBonus === 0 && totalDesc === 0) return;
+      if (!keys.length && totalBonus === 0 && totalDesc === 0 && ciRqaBonus === 0) return;
 
       // Média bruta das inspeções (0 se não houver)
       const inspNums = keys.flatMap(k => (S[k]||[]).filter(v => v != null && v > 0));
@@ -421,6 +439,8 @@ function getRankData(eqFilter, mesFilter) {
         nInsp:      nInsp,
         bonus:      totalBonus,
         desc:       totalDesc,
+        ciRqaCount: totalCiRqaCount,
+        ciRqaBonus: ciRqaBonus,
         total:      baseAvg, // será recalculado com Bayesian abaixo
         n:          Math.max(nInsp, 1),
         tid:        t.id,
@@ -447,8 +467,8 @@ function getRankData(eqFilter, mesFilter) {
     const bayScore = v.nInsp > 0
       ? (v.nInsp * v.baseAvg + C * prior) / (v.nInsp + C)
       : 0;
-    // Pontuação final = score bayesiano + bônus − descontos
-    v.total    = bayScore + v.bonus - v.desc;
+    // Pontuação final = score bayesiano + bônus − descontos + bônus de CI/RQA
+    v.total    = bayScore + v.bonus - v.desc + v.ciRqaBonus;
     v.bayScore = bayScore;
   });
 
@@ -480,30 +500,15 @@ function goTab(name, btn) {
 /* ── Filtros ── */
 function buildEqFilters() {
   const wrap = document.getElementById('eq-filters'); if (!wrap) return;
-
-  // Descobrir quais equipes têm pelo menos 1 membro com inspeção registrada
-  const teamsWithData = new Set();
-  Object.values(T).forEach(t => {
-    const allNames = [];
-    if(t.enc && t.enc.n) allNames.push(t.enc.n);
-    (t.members||[]).forEach(m=>{ if(m&&m.n) allNames.push(m.n); });
-    const hasInsp = allNames.some(name => {
-      const safeN = (name||'').replace(/[ .#$§\[\]]/g,'_');
-      return Object.keys(S).some(k => k.startsWith(safeN+'§'));
-    });
-    if(hasInsp) teamsWithData.add(t.id);
-  });
-
-  // Mostrar apenas equipes com dados — elimina duplicatas e equipes vazias
-  const teams = Object.values(T).filter(t => teamsWithData.has(t.id));
-
+  // Monta todos os botões de equipe (sem o "Todas" no início)
+  const teams = Object.values(T);
   const teamBtns = teams.map(t => {
     const act = curEq === t.id;
     return `<button class="ftab${act?' on':''}"
       style="${act?`background:${t.color};border-color:${t.color};`:''}"
       onclick="setEq('${t.id}',this)">${t.label}</button>`;
   }).join('');
-
+  // Botão "Todas" ocupa linha inteira embaixo
   const todasBtn = `<button class="ftab ftab-all${curEq==='all'?' on':''}"
     style="${curEq==='all'?'background:var(--navy);border-color:var(--navy);':''}"
     onclick="setEq('all',this)">✦ Todas as equipes</button>`;
@@ -586,9 +591,18 @@ function buildStats(data) {
     ? Object.keys(S_DESC).filter(k => k.endsWith('__'+curMes)).length
     : Object.keys(S_DESC).length;
 
+  // CI/RQA — soma as contagens (não o nº de chaves, pois cada chave já é um total por pessoa/mês)
+  const ciRqaKeysFor = obj => curMes >= 0
+    ? Object.keys(obj).filter(k => k.endsWith('__'+curMes))
+    : Object.keys(obj);
+  const totalCiRqa =
+    ciRqaKeysFor(CI_COUNTS).reduce((s,k) => s + (CI_COUNTS[k]||0), 0) +
+    ciRqaKeysFor(RQA_COUNTS).reduce((s,k) => s + (RQA_COUNTS[k]||0), 0);
+
   document.getElementById('st-av').textContent = totalInsp;
   document.getElementById('st-id').textContent = totalIdeias;
   document.getElementById('st-dc').textContent = totalDesc;
+  document.getElementById('st-cr').textContent = totalCiRqa;
 
   if (data.length) {
     const avg = data.reduce((s,[,d]) => s+d.total/d.n, 0) / data.length;
@@ -736,11 +750,7 @@ window._onFbReady = async () => {
     const s = await get(ref(db, 'escudo/teams'));
     if (s.exists()) {
       const c = normTeams(s.val());
-      if (Object.keys(c).length >= 4) {
-        // Merge: Firebase + equipes do DEFAULT que não estão no Firebase
-        T = {...DEFAULT_TEAMS, ...c};
-        isDemo = false;
-      }
+      if (Object.keys(c).length >= 4) { T = c; isDemo = false; }
     }
     const s2 = await get(ref(db, 'escudo/scores'));
     if (s2.exists()) {
@@ -755,6 +765,11 @@ window._onFbReady = async () => {
     if (sb.exists()) S_BONUS = normalizeFirebaseKeys(sb.val());
     const sd = await get(ref(db, 'escudo/scores_desconto'));
     if (sd.exists()) S_DESC = normalizeFirebaseKeys(sd.val());
+    // Carrega contadores de CI e RQA (mesmos que o condicao-insegura.html grava)
+    const sci = await get(ref(db, 'escudoCondicaoInsegura/pontosPorRelatorMes'));
+    if (sci.exists()) CI_COUNTS = normalizeFirebaseKeys(sci.val());
+    const srqa = await get(ref(db, 'escudoRQA/pontosPorRelatorMes'));
+    if (srqa.exists()) RQA_COUNTS = normalizeFirebaseKeys(srqa.val());
     setSP('ok', '● Ao vivo');
     render();
     if (curTab === 'historico') renderHistorico();
@@ -763,7 +778,7 @@ window._onFbReady = async () => {
     onValue(ref(db, 'escudo/teams'), snap => {
       if (!snap.exists()) return;
       const c = normTeams(snap.val());
-      if (Object.keys(c).length >= 4) { T = {...DEFAULT_TEAMS, ...c}; isDemo = false; render(); }
+      if (Object.keys(c).length >= 4) { T = c; isDemo = false; render(); }
     });
     onValue(ref(db, 'escudo/scores'), snap => {
       if (!snap.exists()) return;
@@ -782,6 +797,13 @@ window._onFbReady = async () => {
     // Descontos em tempo real
     onValue(ref(db, 'escudo/scores_desconto'), snap => {
       if (snap.exists()) { S_DESC = normalizeFirebaseKeys(snap.val()); render(); }
+    });
+    // CI/RQA em tempo real
+    onValue(ref(db, 'escudoCondicaoInsegura/pontosPorRelatorMes'), snap => {
+      CI_COUNTS = snap.exists() ? normalizeFirebaseKeys(snap.val()) : {}; render();
+    });
+    onValue(ref(db, 'escudoRQA/pontosPorRelatorMes'), snap => {
+      RQA_COUNTS = snap.exists() ? normalizeFirebaseKeys(snap.val()) : {}; render();
     });
   } catch(e) {
     setSP('e', '⚠️');
