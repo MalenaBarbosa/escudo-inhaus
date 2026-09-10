@@ -64,6 +64,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 
 /* FORM */
 .f{margin-bottom:.85rem;}
+.char-count{font-size:9.5px;color:var(--ink3);text-align:right;margin-top:3px;font-weight:600;}
+.char-count.warn{color:var(--gold);}
 .f label{font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;
   letter-spacing:.7px;display:block;margin-bottom:5px;}
 .f label em{color:var(--gold);font-style:normal;}
@@ -233,9 +235,11 @@ textarea{resize:none;min-height:64px;}
           <div class="f"><label>Nome do relator <em>*</em></label>
             <input type="text" id="ci-relator" placeholder="Seu nome completo" required></div>
           <div class="f"><label>Título <em>*</em></label>
-            <input type="text" id="ci-titulo" placeholder="Resumo curto da condição encontrada" required></div>
+            <input type="text" id="ci-titulo" maxlength="25" placeholder="Resumo curto (máx. 25 caracteres)" required>
+            <div class="char-count" id="ci-titulo-count">0/25</div></div>
           <div class="f"><label>Local de instalação <em>*</em></label>
-            <input type="text" id="ci-local" placeholder="Ex.: ETI BN — Área de bombas" required></div>
+            <input type="text" id="ci-local" maxlength="11" placeholder="Máx. 11 caracteres" required>
+            <div class="char-count" id="ci-local-count">0/11</div></div>
 
           <div class="f"><label>Área gestora <em>*</em></label>
             <select id="ci-area-gestora" required>
@@ -255,7 +259,6 @@ textarea{resize:none;min-height:64px;}
                 <option value="">Selecione…</option>
                 <option>Fatores de Risco de Saúde Ocupacional</option>
                 <option>Fatores de Riscos de Segurança</option>
-                <option>Fatores de Risco Ambiental</option>
               </select></div>
             <div class="f"><label>Tipo <em>*</em></label>
               <select id="ci-tipo" required>
@@ -325,6 +328,11 @@ textarea{resize:none;min-height:64px;}
           <div class="f"><label>Descrição <em>*</em></label>
             <textarea id="ci-descricao" placeholder="Descreva a condição insegura observada" required></textarea></div>
 
+          <div class="f"><label>Descrição da Sugestão <em>*</em></label>
+            <textarea id="ci-sugestao" placeholder="Sugestão para corrigir a condição" required></textarea></div>
+          <div class="f"><label>Ações Imediatas <em>*</em></label>
+            <textarea id="ci-acoes-imediatas" placeholder="O que foi feito de imediato ao encontrar a condição" required></textarea></div>
+
           <div class="f"><label>Foto da condição insegura <em>*</em></label>
             <div class="photo-zone" id="ci-photo-field">
               <label class="photo-btn"><input type="file" accept="image/*" capture="environment" id="ci-photo-input">
@@ -334,7 +342,7 @@ textarea{resize:none;min-height:64px;}
 
           <div class="progress-wrap">
             <div class="progress-bar-track"><div class="progress-bar-fill" id="ci-progress-fill"></div></div>
-            <div class="progress-note" id="ci-progress"><b>0</b> de 12 campos preenchidos</div>
+            <div class="progress-note" id="ci-progress"><b>0</b> de 14 campos preenchidos</div>
           </div>
         </div>
         <button type="submit" class="btn btn-navy" id="ci-submit" disabled>Registrar condição insegura (+1 ponto)</button>
@@ -364,9 +372,11 @@ textarea{resize:none;min-height:64px;}
           <div class="f"><label>Nome do relator <em>*</em></label>
             <input type="text" id="rqa-relator" placeholder="Seu nome completo" required></div>
           <div class="f"><label>Título <em>*</em></label>
-            <input type="text" id="rqa-titulo" placeholder="Resumo curto do quase acidente" required></div>
+            <input type="text" id="rqa-titulo" maxlength="25" placeholder="Resumo curto (máx. 25 caracteres)" required>
+            <div class="char-count" id="rqa-titulo-count">0/25</div></div>
           <div class="f"><label>Local de instalação <em>*</em></label>
-            <input type="text" id="rqa-local" placeholder="Ex.: Draga 01" required></div>
+            <input type="text" id="rqa-local" maxlength="11" placeholder="Máx. 11 caracteres" required>
+            <div class="char-count" id="rqa-local-count">0/11</div></div>
           <div class="f"><label>Atividade <em>*</em></label>
             <input type="text" id="rqa-atividade" placeholder="Atividade sendo realizada no momento" required></div>
 
@@ -388,7 +398,6 @@ textarea{resize:none;min-height:64px;}
                 <option value="">Selecione…</option>
                 <option>Fatores de Risco de Saúde Ocupacional</option>
                 <option>Fatores de Riscos de Segurança</option>
-                <option>Fatores de Risco Ambiental</option>
               </select></div>
             <div class="f"><label>Tipo <em>*</em></label>
               <select id="rqa-tipo" required>
@@ -457,8 +466,10 @@ textarea{resize:none;min-height:64px;}
 
           <div class="f"><label>Descrição <em>*</em></label>
             <textarea id="rqa-descricao" placeholder="Descreva o que aconteceu (o quase acidente)" required></textarea></div>
-          <div class="f"><label>Descrição da sugestão <em>*</em></label>
+          <div class="f"><label>Descrição da Sugestão <em>*</em></label>
             <textarea id="rqa-sugestao" placeholder="Sugestão para evitar que aconteça de verdade" required></textarea></div>
+          <div class="f"><label>Ações Imediatas <em>*</em></label>
+            <textarea id="rqa-acoes-imediatas" placeholder="O que foi feito de imediato ao perceber o quase acidente" required></textarea></div>
 
           <div class="f"><label>Foto <em>*</em></label>
             <div class="photo-zone" id="rqa-photo-field">
@@ -469,7 +480,7 @@ textarea{resize:none;min-height:64px;}
 
           <div class="progress-wrap">
             <div class="progress-bar-track"><div class="progress-bar-fill" id="rqa-progress-fill"></div></div>
-            <div class="progress-note" id="rqa-progress"><b>0</b> de 14 campos preenchidos</div>
+            <div class="progress-note" id="rqa-progress"><b>0</b> de 15 campos preenchidos</div>
           </div>
         </div>
         <button type="submit" class="btn btn-navy" id="rqa-submit" disabled>Registrar RQA (+1 ponto)</button>
@@ -660,6 +671,21 @@ textarea{resize:none;min-height:64px;}
     }
 
     cfg.textFieldIds.forEach(function(id){ document.getElementById(id).addEventListener('input', updateProgress); });
+
+    // Contador de caracteres para campos com limite (título e local)
+    cfg.textFieldIds.forEach(function(id){
+      var counter = document.getElementById(id+'-count');
+      if (!counter) return;
+      var el = document.getElementById(id);
+      var max = parseInt(el.getAttribute('maxlength'), 10) || 0;
+      function updateCounter(){
+        var len = el.value.length;
+        counter.textContent = len + '/' + max;
+        counter.classList.toggle('warn', len >= max);
+      }
+      el.addEventListener('input', updateCounter);
+      updateCounter();
+    });
     cfg.selectFieldIds.forEach(function(id){ document.getElementById(id).addEventListener('change', updateProgress); });
 
     var form = document.getElementById('form-'+cfg.prefix);
@@ -778,7 +804,7 @@ textarea{resize:none;min-height:64px;}
 
   setupForm({
     prefix: 'ci',
-    textFieldIds: ['ci-relator','ci-titulo','ci-local','ci-descricao'],
+    textFieldIds: ['ci-relator','ci-titulo','ci-local','ci-descricao','ci-sugestao','ci-acoes-imediatas'],
     selectFieldIds: ['ci-area-gestora','ci-classificacao','ci-tipo','ci-gravidade','ci-probabilidade','ci-risco-critico','ci-vies-ambiental'],
     questionFields: [],
     firebaseRoot: 'escudoCondicaoInsegura',
@@ -787,7 +813,7 @@ textarea{resize:none;min-height:64px;}
 
   setupForm({
     prefix: 'rqa',
-    textFieldIds: ['rqa-relator','rqa-titulo','rqa-local','rqa-atividade','rqa-descricao','rqa-sugestao'],
+    textFieldIds: ['rqa-relator','rqa-titulo','rqa-local','rqa-atividade','rqa-descricao','rqa-sugestao','rqa-acoes-imediatas'],
     selectFieldIds: ['rqa-area-gestora','rqa-classificacao','rqa-tipo','rqa-gravidade','rqa-probabilidade','rqa-risco-critico','rqa-vies-ambiental'],
     questionFields: [],
     firebaseRoot: 'escudoRQA',
@@ -879,7 +905,8 @@ textarea{resize:none;min-height:64px;}
     lines.push('Risco crítico: '+(r['risco-critico']||''));
     lines.push('Viés ambiental / Ambiental associado: '+(r['vies-ambiental']||''));
     lines.push('Descrição: '+(r.descricao||''));
-    if (r._tipo==='RQA') lines.push('Sugestão: '+(r.sugestao||''));
+    lines.push('Descrição da Sugestão: '+(r.sugestao||''));
+    lines.push('Ações Imediatas: '+(r['acoes-imediatas']||''));
     var dt = r.criadoEm ? new Date(r.criadoEm) : null;
     lines.push('Data do registro: '+(dt ? dt.toLocaleString('pt-BR') : '—'));
     return lines.join('\n');
@@ -900,7 +927,8 @@ textarea{resize:none;min-height:64px;}
     rows.push(fieldRow('Risco crítico', r['risco-critico']));
     rows.push(fieldRow('Viés ambiental / Ambiental associado', r['vies-ambiental']));
     rows.push(fieldRow('Descrição', r.descricao));
-    if (r._tipo==='RQA') rows.push(fieldRow('Sugestão', r.sugestao));
+    rows.push(fieldRow('Descrição da Sugestão', r.sugestao));
+    rows.push(fieldRow('Ações Imediatas', r['acoes-imediatas']));
     var dt = r.criadoEm ? new Date(r.criadoEm) : null;
     rows.push(fieldRow('Data do registro', dt ? dt.toLocaleString('pt-BR') : '—'));
 
@@ -941,7 +969,7 @@ textarea{resize:none;min-height:64px;}
   function exportCsv(){
     var all = getAllRecords();
     if (!all.length){ toast('Nenhum registro para exportar.', 'error'); return; }
-    var headers = ['Tipo','Relator','Título','Local','Atividade','Área gestora','Classificação','Tipo','Gravidade','Probabilidade','Risco crítico','Viés ambiental','Descrição','Sugestão','Data','Tem foto'];
+    var headers = ['Tipo','Relator','Título','Local','Atividade','Área gestora','Classificação','Tipo','Gravidade','Probabilidade','Risco crítico','Viés ambiental','Descrição','Descrição da Sugestão','Ações Imediatas','Data','Tem foto'];
     var rows = [headers];
     all.forEach(function(r){
       var dt = r.criadoEm ? new Date(r.criadoEm).toLocaleString('pt-BR') : '';
@@ -949,7 +977,7 @@ textarea{resize:none;min-height:64px;}
         r._tipo, r.relator||'', r.titulo||'', r.local||'', r.atividade||'',
         r['area-gestora']||'', r.classificacao||'', r.tipo||'', r.gravidade||'', r.probabilidade||'',
         r['risco-critico']||'', r['vies-ambiental']||'',
-        r.descricao||'', r.sugestao||'',
+        r.descricao||'', r.sugestao||'', r['acoes-imediatas']||'',
         dt, r.foto ? 'Sim' : 'Não'
       ]);
     });
