@@ -290,6 +290,7 @@ let S_BONUS = {};   // bônus ideias de valor
 let S_DESC  = {};   // descontos (absenteísmo / NC)
 let CI_COUNTS  = {}; // registros de Condição Insegura por pessoa/mês
 let RQA_COUNTS = {}; // registros de RQA por pessoa/mês
+let INSP_COUNTS = {}; // nº de inspeções (visitas) por mês — 1 por registro salvo, não por pessoa avaliada
 // Quanto cada CI ou RQA registrado soma na nota final da pessoa (sem teto mensal).
 const CIRQA_BONUS_PER_REGISTRO = 0.3;
 let isDemo  = true;
@@ -360,7 +361,7 @@ function setSP(st, msg) {
     dot.className = 'ldot' + (st==='ok' ? '' : ' off');
     document.getElementById('ltxt').textContent =
       st==='ok' ? (isDemo ? 'Modo demonstração' : (() => {
-      const insp  = Object.keys(S).length;
+      const insp  = Object.values(INSP_COUNTS).reduce((s,v) => s + (v||0), 0);
       const ideias = Object.keys(S_BONUS).length;
       const desc   = Object.keys(S_DESC).length;
       const total  = insp + ideias + desc;
@@ -576,10 +577,10 @@ function buildList(data) {
 
 /* ── Stats ── */
 function buildStats(data) {
-  // Conta inspeções
+  // Conta inspeções — 1 por visita/registro salvo (não por pessoa avaliada na visita)
   const totalInsp = curMes >= 0
-    ? Object.keys(S).filter(k => k.endsWith('§'+curMes)).length
-    : Object.keys(S).length;
+    ? (INSP_COUNTS[curMes] || 0)
+    : Object.values(INSP_COUNTS).reduce((s,v) => s + (v||0), 0);
 
   // Ideias — chaves sanitizadas usam __ como separador
   const totalIdeias = curMes >= 0
@@ -622,12 +623,12 @@ function buildLegend() {
 function buildLiveBar() {
   const txt = document.getElementById('ltxt');
   if (!txt) return;
-  const total = Object.keys(S).length;
+  const total = Object.values(INSP_COUNTS).reduce((s,v) => s + (v||0), 0);
   if (curMes >= 0) {
-    const ct = Object.keys(S).filter(k => k.endsWith('§'+curMes)).length;
-    txt.textContent = `${ct} avaliações em ${MESES_F[curMes]}`;
+    const ct = INSP_COUNTS[curMes] || 0;
+    txt.textContent = `${ct} inspeções em ${MESES_F[curMes]}`;
   } else {
-    txt.textContent = isDemo ? 'Modo demonstração' : `${total} avaliações · ao vivo`;
+    txt.textContent = isDemo ? 'Modo demonstração' : `${total} inspeções · ao vivo`;
   }
   const m = document.getElementById('lmonth');
   if (m) m.textContent = curMes >= 0 ? MESES_F[curMes] : MESES_F[now.getMonth()] + ' ' + now.getFullYear();
@@ -770,6 +771,9 @@ window._onFbReady = async () => {
     if (sci.exists()) CI_COUNTS = normalizeFirebaseKeys(sci.val());
     const srqa = await get(ref(db, 'escudoRQA/pontosPorRelatorMes'));
     if (srqa.exists()) RQA_COUNTS = normalizeFirebaseKeys(srqa.val());
+    // Contador de inspeções por visita (1 por registro salvo, não por pessoa avaliada)
+    const sinsp = await get(ref(db, 'escudo/inspecoesPorMes'));
+    if (sinsp.exists()) INSP_COUNTS = sinsp.val();
     setSP('ok', '● Ao vivo');
     render();
     if (curTab === 'historico') renderHistorico();
@@ -804,6 +808,9 @@ window._onFbReady = async () => {
     });
     onValue(ref(db, 'escudoRQA/pontosPorRelatorMes'), snap => {
       RQA_COUNTS = snap.exists() ? normalizeFirebaseKeys(snap.val()) : {}; render();
+    });
+    onValue(ref(db, 'escudo/inspecoesPorMes'), snap => {
+      INSP_COUNTS = snap.exists() ? snap.val() : {}; render();
     });
   } catch(e) {
     setSP('e', '⚠️');
