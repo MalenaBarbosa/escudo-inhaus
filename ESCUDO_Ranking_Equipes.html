@@ -157,6 +157,7 @@ const MESES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov'
 const CIRQA_BONUS_PER_REGISTRO = 0.3;
 
 let T = {}, S = {}, S_BONUS = {}, S_DESC = {}, CI_COUNTS = {}, RQA_COUNTS = {};
+let INSP_COUNTS = {}; // nº de inspeções (visitas) por mês — 1 por registro salvo, não por pessoa avaliada
 let curMes = new Date().getMonth(); // mês atual por padrão
 let allMeses = [];
 
@@ -320,7 +321,11 @@ function render(){
   if(!list) return;
 
   // Stats
-  const totalInsp = ranking.reduce((s,t)=>s+t.inspTotal,0);
+  // Total de inspeções (visitas) exibido no topo — 1 por registro salvo, não por pessoa avaliada.
+  // Independente do inspTotal por pessoa usado no cálculo bayesiano acima.
+  const totalInsp = curMes >= 0
+    ? (INSP_COUNTS[curMes] || 0)
+    : Object.values(INSP_COUNTS).reduce((s,v) => s + (v||0), 0);
   const mediaGeral = ranking.length
     ? ranking.reduce((s,t)=>s+t.mediaFinal,0)/ranking.length
     : 0;
@@ -390,13 +395,14 @@ function render(){
 window._onFbReady = async()=>{
   setSP('w','Conectando…');
   try{
-    const [st, ss, sb, sd, sci, srqa] = await Promise.all([
+    const [st, ss, sb, sd, sci, srqa, sinsp] = await Promise.all([
       get(ref(db,'escudo/teams')),
       get(ref(db,'escudo/scores')),
       get(ref(db,'escudo/scores_bonus')),
       get(ref(db,'escudo/scores_desconto')),
       get(ref(db,'escudoCondicaoInsegura/pontosPorRelatorMes')),
       get(ref(db,'escudoRQA/pontosPorRelatorMes')),
+      get(ref(db,'escudo/inspecoesPorMes')),
     ]);
     if(st.exists()) T = st.val();
     if(ss.exists()){ const raw=ss.val(); S={}; Object.entries(raw).forEach(([k,v])=>{ S[k.replace(/__([^_]*)$/,'§$1')]=v; }); }
@@ -404,6 +410,7 @@ window._onFbReady = async()=>{
     if(sd.exists()) S_DESC  = normKeys(sd.val());
     if(sci.exists()) CI_COUNTS = normKeys(sci.val());
     if(srqa.exists()) RQA_COUNTS = normKeys(srqa.val());
+    if(sinsp.exists()) INSP_COUNTS = sinsp.val();
 
     setSP('ok','● Ao vivo');
     buildMesesFilter();
@@ -427,6 +434,9 @@ window._onFbReady = async()=>{
     });
     onValue(ref(db,'escudoRQA/pontosPorRelatorMes'),snap=>{
       RQA_COUNTS = snap.exists() ? normKeys(snap.val()) : {}; render();
+    });
+    onValue(ref(db,'escudo/inspecoesPorMes'),snap=>{
+      INSP_COUNTS = snap.exists() ? snap.val() : {}; render();
     });
   }catch(e){
     setSP('w','Offline');
