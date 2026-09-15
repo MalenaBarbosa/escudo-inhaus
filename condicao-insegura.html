@@ -233,7 +233,8 @@ textarea{resize:none;min-height:64px;}
           <div class="card-title">Novo registro <span class="sub">Preencha com o máximo de detalhe</span></div>
 
           <div class="f"><label>Nome do relator <em>*</em></label>
-            <input type="text" id="ci-relator" placeholder="Seu nome completo" required></div>
+            <select id="ci-relator" required><option value="">Selecione seu nome…</option></select>
+            <input type="text" id="ci-relator-outro" placeholder="Digite seu nome completo" maxlength="60" style="display:none;margin-top:6px"></div>
           <div class="f"><label>Título <em>*</em></label>
             <input type="text" id="ci-titulo" maxlength="25" placeholder="Resumo curto (máx. 25 caracteres)" required>
             <div class="char-count" id="ci-titulo-count">0/25</div></div>
@@ -370,7 +371,8 @@ textarea{resize:none;min-height:64px;}
           <div class="card-title">Novo registro <span class="sub">Preencha com o máximo de detalhe</span></div>
 
           <div class="f"><label>Nome do relator <em>*</em></label>
-            <input type="text" id="rqa-relator" placeholder="Seu nome completo" required></div>
+            <select id="rqa-relator" required><option value="">Selecione seu nome…</option></select>
+            <input type="text" id="rqa-relator-outro" placeholder="Digite seu nome completo" maxlength="60" style="display:none;margin-top:6px"></div>
           <div class="f"><label>Título <em>*</em></label>
             <input type="text" id="rqa-titulo" maxlength="25" placeholder="Resumo curto (máx. 25 caracteres)" required>
             <div class="char-count" id="rqa-titulo-count">0/25</div></div>
@@ -562,6 +564,34 @@ textarea{resize:none;min-height:64px;}
   function sanitizeKey(name){ return (name||'').toString().trim().replace(/[ .#$§\[\]]/g,'_'); }
   function esc(s){ var d=document.createElement('div'); d.textContent = s==null?'':s; return d.innerHTML; }
 
+  /* ======================================================================
+     LISTA DE EMPREGADOS — mesma base de nomes usada nos rankings do ESCUDO.
+     Usada para popular o select de "Nome do relator" (evita erro de digitação).
+  ====================================================================== */
+  var EMPREGADOS = ["AILTON RIBEIRO LIMA", "ALAN VASCONCELOS", "ALCENIR DINIZ FARIAS", "ALDAIR VICTOR OLIVEIRA", "ALDEMAR MENDES NETTO", "ALEF CELESTE", "ALEX FRONTINO DE OLIVEIRA DE MATTOS", "ALEX NEVES DOS SANTOS RODRIGUES", "ALEXANDRE BARBOSA MOREIRA", "ALEXANDRE GRIFFO DE LIMA", "ALLAN FERREIRA SANTOS", "ALVIMAR DOS SANTOS E SILVA", "ANDERSON DO COUTO RIBEIRO", "APOLO MARCHEZI CARNEIRO XAVIER", "AUGUSTO RIBEIRO DE ALMEIDA", "BENEDITO PEREIRA DOS SANTOS", "BRENER RIBEIRO DE SOUZA", "BRUNO DE ALMEIDA COELHO", "BRUNO HENRIQUE BRAGA", "BRUNO PERIN DONNA", "BRUNO VASCO MACHADO DA VITORIA", "CARLOS BOURGUIGNON JUNIOR", "CARLOS DOUGLAS SENA RAMOS", "CASSIO DIAS", "CLAUDIO DOS SANTOS", "CLAUDIO PRADO DE JESUS", "CLEUTON FERREIRA DOS SANTOS", "CÉLIO RIBEIRO DE SOUZA", "DANIEL BARBOZA RODRIGUES", "DANIEL GONÇALVES DA SILVA", "DANIEL VIEIRA BARBOZA", "DAVI LUCAS CALDEIRA DE MATTOS", "DAVI SIMÕES SILVA", "DAVID FERREIRA DE OLIVEIRA", "DAVID SIMOES SILVA", "DAVIDSON PINTO HELEODORO", "DEIVID SERAFIM DOS SANTOS", "DHIOGO MILAGRE RODRIGUES SERAPHIM", "DIANA PEREIRA RODRIGUES", "DIOGO DA SILVA DOS SANTOS", "DIOGO SILVA QUINTEIRO", "DIOGO VIEIRA BORGES", "DIONATAN DOS ANJOS VICTOR", "DOUGLAS ALVES DA SILVA", "EDGARD BENA DOS SANTOS", "EDINALDO DA SILVA SANTOS", "EDIRLEI MARTINS DE SOUZA", "EDUARDO DA SILVA PETRE", "EDUARDO DE ANDRADE MENDES", "EDUARDO PEREIRA", "EDUARDO VIEIRA DA SILVA", "ELENIAS SANTOS SOUZA", "ELSON MARTINS", "EMERSON DE CARVALHO", "EMERSON FERREIRA SEMEDO", "ERICK DA SILVA GOLTARA", "ERICK PAULO NERY CRUZ", "ERIK DE OLIVEIRA SOUZA COUTINHO", "EVANDRO BREGUNCE BISPO", "FABIANO SCHWANZ", "FABRICIO DOS SANTOS FARIAS", "FAGNER RANGEL DE SOUZA", "FELIPE BRILHANTE", "FELIPE CORREA BORGES", "FELIPE CORREIA BORGES", "FELLIPE WENDER SIQUEIRA SIMÕES", "FILIPE DAS CHAGAS LUIZ", "FILIPE GONÇALVES DE ANDRADE", "FLAVIO MORAES NOGUEIRA", "FRANKSAID DELFINO FERREIRA", "GABRIEL BARBOZA DA TRINDADE ALVES", "GABRIEL VIEIRA LIBARDI", "GEOVANA NASCIMENTO ROCHA", "GEOVANE BRANDAO BELEM", "GEOVANE NASCIMENTO SOUZA", "GEOVANI PASSOS", "GIOVANE CORRÊA BARBOZA", "GIOVANI CORREA BARBOZA", "GLEISON NEVES DOS SANTOS", "GUILHERME DE SOUZA", "HELLEN CAROLINY NASCIMENTO SCHMIDT", "HERBERT PITANGA DA ROCHA", "HERCULES CARVALHO LOYOLA", "HIGOR JULIAN", "HONORATO", "IVANETE DA CRUZ SANTOS", "JALEILTON ERMINIGILDO DOS SANTOS", "JEFERSON OLIVEIRA CHAGAS", "JEFFERSON DA CONCEIÇÃO", "JEFFERSON DA SILVA AVELINO", "JEFFERSON DOS SANTOS FREITAS", "JHON ROGER DE MORAES SECATO", "JOEDSON OLIVEIRA DA PENHA SILVA", "JOEL FERREIRA", "JOEL SANTANA", "JONES VIEIRA BARBOSA", "JORGE AUGUSTO NASCIMENTO RODRIGUES", "JOSELI PEREIRA CORREA", "JOSÉ IGOR COSTA CARDOSO", "JOSÉ LUIZ FLUMINENSE DOS SANTOS", "JOSÉ MAURO NASCIMENTO DA SILVA", "JOVANE CONCEIÇÃO DOS SANTOS", "JOÃO CARLOS DA TRINDADE PEREIRA", "KAUAN TRES CAMARGO", "KAUÃ XAVIER SEMEDO", "KRISLAINE SANTANA CARDOSO", "LAURA CRISTINA", "LEONARDO DE OLIVEIRA XIMENES", "LEONARDO DOS REIS VIEIRA", "LEONARDO PEREIRA DA FONSECA", "LICIOMAR MORAES DA SILVA", "LUAN BERMOND ARPINI CHAGAS", "LUCAS DA SILVA DE SOUZA", "LUCCA COUTINHO FAGUNDES", "LUCIANO HONORATO DA SILVA", "LUCIANO MUNIZ NASCIMENTO", "LUCIOMAR MORAIS", "LUIZ EDUARDO SANTOS SOUTO", "LUIZ FELIPE SENNA DA SILVA", "LUIZ FERNANDO DOS SANTOS ADOLFO", "LUIZ HENRIQUE RIGO FERREIRA", "MALENA BARBOSA COELHO", "MANOEL MESSIAS SILVA DA CONCEIÇÃO", "MARCELO SANTANA", "MARCIUS VINICIUS PINHEIRO SANTANA", "MARCOS ADRIANO GIULIATTI SEMEDO", "MARCOS DOUGLAS", "MARCOS PAULO ALVES PIRES", "MARCUS VINICIUS DE OLIVEIRA SEMEDO", "MATEUS SOUZA MENEZES", "MATHEUS DIAS DOS SANTOS", "MAURÍCIO BETCHER", "MAYDIANE TRINDADE RIBEIRO BASTOS", "MIGUEL PEREIRA", "MIQUEIAS SENNA ESPIRIDIAO", "NAUBERT LEONARDO CAMBOIM CORREA DA SILVA", "NICOLLAS GELSON", "ORLY DINIZ FARIAS", "PABLO ARAUJO SANTANA", "PEDRO COMINOTTI DE ALMEIDA ADOLFO", "PEDRO FRANCISCO R ALMEIDA JUNIOR", "PIERRE MECKSON VIEIRA BARBOSA", "PRISCILA ANDRADE DA SILVA", "RAFAEL DE JESUS", "RAI DOS SANTOS SILVA", "RAONY AMARAL", "RAPHAEL DOS SANTOS LOYOLA", "RAPHAEL MULINARI DINIZ", "RAYANNE BARBOZA REIS DA MATTA", "RAÍ GAZINELE MATIAS FERES", "REGAZZONY NASCIMENTO DE ALMEIDA", "REGES DE SA CORREA", "REGINALDO SANTOS", "RENAN PEREIRA HERINGER", "RONNY VICTOR DOS SANTOS", "ROQUE FERREIRA SANTOS", "RYAN SOUZA SILVA", "SAULO BRANDAO DA SILVA", "SILVINO IZACK MARCHESI JUNIOR", "SIMONE FERREIRA DA SILVA", "THIAGO DO SANTÍSSIMO", "THIAGO NASCIMENTO CARDOSO", "THIAGO RODOLFO DO SANTOS", "TIAGO NUNES", "UEBER VIEIRA SANTOS", "VANDERLEY SANTOS", "VINICIUS LEITE FRANCISCO", "VINICIUS PIMENTEL SCHULTZ", "VINICIUS SCHULTZ", "VITOR CURTY VASCONCELOS", "VITOR DA SILVA SOUZA", "VITOR DANTAS COUTO", "WALQUIMAR FLORENTINO DE SOUZA RAMOS", "WELLINGTON DA SILVA MAGALHÃES", "WELLIS DE OLIVEIRA BARBOSA", "WELLIZ DE OLIVEIRA BARBOZA", "WESLLEY VIEIRA SILVA", "WILLIS SERAFIM DOS SANTOS"];
+
+  function populateRelatorSelect(id){
+    var sel = document.getElementById(id);
+    EMPREGADOS.forEach(function(nome){
+      var opt = document.createElement('option');
+      opt.value = nome; opt.textContent = nome;
+      sel.appendChild(opt);
+    });
+    var optOutro = document.createElement('option');
+    optOutro.value = '__outro__'; optOutro.textContent = 'Meu nome não está na lista…';
+    sel.appendChild(optOutro);
+  }
+  ['ci-relator','rqa-relator'].forEach(populateRelatorSelect);
+  ['ci','rqa'].forEach(function(prefix){
+    var sel = document.getElementById(prefix+'-relator');
+    var outro = document.getElementById(prefix+'-relator-outro');
+    sel.addEventListener('change', function(){
+      var isOutro = sel.value === '__outro__';
+      outro.style.display = isOutro ? '' : 'none';
+      if (!isOutro) outro.value = '';
+    });
+  });
+
   function setConn(state){
     var badge = document.getElementById('conn-badge');
     if (state==='on'){ badge.className='pill pill-sync'; badge.textContent='🟢 Conectado'; }
@@ -686,7 +716,21 @@ textarea{resize:none;min-height:64px;}
       el.addEventListener('input', updateCounter);
       updateCounter();
     });
-    cfg.selectFieldIds.forEach(function(id){ document.getElementById(id).addEventListener('change', updateProgress); });
+    cfg.selectFieldIds.forEach(function(id){
+      document.getElementById(id).addEventListener('change', updateProgress);
+      var outroEl = document.getElementById(id+'-outro');
+      if (outroEl) outroEl.addEventListener('input', updateProgress);
+    });
+    // Resolve o valor real de um campo select — se a opção "outro" foi escolhida,
+    // usa o texto digitado no campo companheiro id+'-outro' em vez do sentinel.
+    function resolveSelectValue(id){
+      var val = document.getElementById(id).value;
+      if (val === '__outro__'){
+        var outroEl = document.getElementById(id+'-outro');
+        val = outroEl ? outroEl.value.trim() : '';
+      }
+      return val;
+    }
 
     var form = document.getElementById('form-'+cfg.prefix);
     form.querySelectorAll('.segmented[data-field]').forEach(function(seg){
@@ -703,7 +747,7 @@ textarea{resize:none;min-height:64px;}
     function filledCount(){
       var n = 0;
       cfg.textFieldIds.forEach(function(id){ if (document.getElementById(id).value.trim()) n++; });
-      cfg.selectFieldIds.forEach(function(id){ if (document.getElementById(id).value) n++; });
+      cfg.selectFieldIds.forEach(function(id){ if (resolveSelectValue(id)) n++; });
       cfg.questionFields.forEach(function(f){ if (form.querySelector('.segmented[data-field="'+f+'"] .on')) n++; });
       if (photo) n++;
       return n;
@@ -748,7 +792,7 @@ textarea{resize:none;min-height:64px;}
       });
       cfg.selectFieldIds.forEach(function(id){
         var key = id.slice(cfg.prefix.length+1);
-        record[key] = document.getElementById(id).value;
+        record[key] = resolveSelectValue(id);
       });
       cfg.questionFields.forEach(function(f){
         var key = f.slice(cfg.prefix.length+1);
@@ -787,6 +831,8 @@ textarea{resize:none;min-height:64px;}
 
     document.getElementById(cfg.prefix+'-btn-nova').addEventListener('click', function(){
       form.reset();
+      var outroEl = document.getElementById(cfg.prefix+'-relator-outro');
+      if (outroEl) outroEl.style.display = 'none';
       photo = null; renderPhotoPreview();
       form.querySelectorAll('.segmented[data-field] button').forEach(function(b){ b.className=''; });
       form.querySelectorAll('.segmented[data-field]').forEach(function(s){ delete s.dataset.value; });
@@ -804,8 +850,8 @@ textarea{resize:none;min-height:64px;}
 
   setupForm({
     prefix: 'ci',
-    textFieldIds: ['ci-relator','ci-titulo','ci-local','ci-descricao','ci-sugestao','ci-acoes-imediatas'],
-    selectFieldIds: ['ci-area-gestora','ci-classificacao','ci-tipo','ci-gravidade','ci-probabilidade','ci-risco-critico','ci-vies-ambiental'],
+    textFieldIds: ['ci-titulo','ci-local','ci-descricao','ci-sugestao','ci-acoes-imediatas'],
+    selectFieldIds: ['ci-relator','ci-area-gestora','ci-classificacao','ci-tipo','ci-gravidade','ci-probabilidade','ci-risco-critico','ci-vies-ambiental'],
     questionFields: [],
     firebaseRoot: 'escudoCondicaoInsegura',
     submitLabel: 'Registrar condição insegura (+1 ponto)'
@@ -813,8 +859,8 @@ textarea{resize:none;min-height:64px;}
 
   setupForm({
     prefix: 'rqa',
-    textFieldIds: ['rqa-relator','rqa-titulo','rqa-local','rqa-atividade','rqa-descricao','rqa-sugestao','rqa-acoes-imediatas'],
-    selectFieldIds: ['rqa-area-gestora','rqa-classificacao','rqa-tipo','rqa-gravidade','rqa-probabilidade','rqa-risco-critico','rqa-vies-ambiental'],
+    textFieldIds: ['rqa-titulo','rqa-local','rqa-atividade','rqa-descricao','rqa-sugestao','rqa-acoes-imediatas'],
+    selectFieldIds: ['rqa-relator','rqa-area-gestora','rqa-classificacao','rqa-tipo','rqa-gravidade','rqa-probabilidade','rqa-risco-critico','rqa-vies-ambiental'],
     questionFields: [],
     firebaseRoot: 'escudoRQA',
     submitLabel: 'Registrar RQA (+1 ponto)'
