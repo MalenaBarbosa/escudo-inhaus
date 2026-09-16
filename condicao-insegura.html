@@ -111,6 +111,9 @@ textarea{resize:none;min-height:64px;}
 .btn-ghost{background:transparent;border:1.5px solid var(--border);color:var(--ink2);}
 .btn-ghost:hover{border-color:var(--navy);color:var(--navy);}
 .btn-ghost:active{transform:scale(.98);}
+.btn-danger{background:transparent;border:1.5px solid var(--red);color:var(--red);margin-top:8px;}
+.btn-danger:hover{background:var(--red-lt);}
+.btn-danger:active{transform:scale(.98);}
 .btn-gold{background:var(--gold);color:#fff;}
 .btn-gold:hover{background:#b45309;}
 
@@ -336,8 +339,8 @@ textarea{resize:none;min-height:64px;}
 
           <div class="f"><label>Foto da condição insegura <em>*</em></label>
             <div class="photo-zone" id="ci-photo-field">
-              <label class="photo-btn"><input type="file" accept="image/*" capture="environment" id="ci-photo-input">
-                📷 Adicionar foto</label>
+              <label class="photo-btn"><input type="file" accept="image/*" id="ci-photo-input">
+                📷 Adicionar foto (câmera ou galeria)</label>
               <div id="ci-photo-preview"></div>
             </div></div>
 
@@ -475,8 +478,8 @@ textarea{resize:none;min-height:64px;}
 
           <div class="f"><label>Foto <em>*</em></label>
             <div class="photo-zone" id="rqa-photo-field">
-              <label class="photo-btn"><input type="file" accept="image/*" capture="environment" id="rqa-photo-input">
-                📷 Adicionar foto</label>
+              <label class="photo-btn"><input type="file" accept="image/*" id="rqa-photo-input">
+                📷 Adicionar foto (câmera ou galeria)</label>
               <div id="rqa-photo-preview"></div>
             </div></div>
 
@@ -535,6 +538,7 @@ textarea{resize:none;min-height:64px;}
     <div class="reg-modal-body" id="reg-modal-body"></div>
     <div class="reg-modal-foot">
       <button class="btn btn-navy" id="reg-modal-copy">📋 Copiar para lançar no SAP</button>
+      <button class="btn btn-danger" id="reg-modal-delete">🗑️ Excluir registro</button>
     </div>
   </div>
 </div>
@@ -884,14 +888,29 @@ textarea{resize:none;min-height:64px;}
     rtdb.ref('escudoRQA/registros').on('value', function(snap){ REG.rqa = snapToArray(snap); renderRegistros(); });
   }
 
+  function firebaseRootFor(tipo){ return tipo === 'CI' ? 'escudoCondicaoInsegura' : 'escudoRQA'; }
+
   function getAllRecords(){
     var ciSrc = rtdb ? REG.ci : memRoot('escudoCondicaoInsegura').registros;
     var rqaSrc = rtdb ? REG.rqa : memRoot('escudoRQA').registros;
-    var ciArr = ciSrc.map(function(r){ var c={}; for(var k in r){c[k]=r[k];} c._tipo='CI'; return c; });
-    var rqaArr = rqaSrc.map(function(r){ var c={}; for(var k in r){c[k]=r[k];} c._tipo='RQA'; return c; });
+    var ciArr = ciSrc.map(function(r,i){ var c={}; for(var k in r){c[k]=r[k];} c._tipo='CI'; if(c._id===undefined) c._id=i; return c; });
+    var rqaArr = rqaSrc.map(function(r,i){ var c={}; for(var k in r){c[k]=r[k];} c._tipo='RQA'; if(c._id===undefined) c._id=i; return c; });
     var all = ciArr.concat(rqaArr);
     all.sort(function(a,b){ return new Date(b.criadoEm||0) - new Date(a.criadoEm||0); });
     return all;
+  }
+
+  // Exclui um registro de CI/RQA — usado no botão "Excluir registro" do modal de detalhe.
+  function deleteRecord(r){
+    var root = firebaseRootFor(r._tipo);
+    if (rtdb){
+      return rtdb.ref(root + '/registros/' + r._id).remove();
+    } else {
+      var arr = memRoot(root).registros;
+      arr.splice(r._id, 1);
+      renderRegistros();
+      return Promise.resolve();
+    }
   }
 
   function renderRegistros(){
@@ -989,6 +1008,19 @@ textarea{resize:none;min-height:64px;}
       document.getElementById('reg-modal-img').addEventListener('click', function(){ openLightbox(r.foto); });
     }
     document.getElementById('reg-modal-copy').onclick = function(){ copyText(buildSapText(r)); };
+    document.getElementById('reg-modal-delete').onclick = function(){
+      if (!confirm('Excluir este registro de '+(r._tipo==='CI'?'Condição Insegura':'RQA')+'? Essa ação não pode ser desfeita.')) return;
+      var delBtn = document.getElementById('reg-modal-delete');
+      delBtn.disabled = true; delBtn.textContent = 'Excluindo…';
+      Promise.resolve(deleteRecord(r)).then(function(){
+        document.getElementById('reg-modal-overlay').classList.remove('open');
+        toast('Registro excluído.', 'ok');
+      }).catch(function(err){
+        console.error(err);
+        toast('Não foi possível excluir. Tente novamente.', 'error');
+        delBtn.disabled = false; delBtn.textContent = '🗑️ Excluir registro';
+      });
+    };
     document.getElementById('reg-modal-overlay').classList.add('open');
   }
 
