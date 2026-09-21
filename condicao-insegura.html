@@ -114,6 +114,12 @@ textarea{resize:none;min-height:64px;}
 .btn-danger{background:transparent;border:1.5px solid var(--red);color:var(--red);margin-top:8px;}
 .btn-danger:hover{background:var(--red-lt);}
 .btn-danger:active{transform:scale(.98);}
+.btn-status{margin-top:8px;}
+.btn-status.pendente{background:var(--green);color:#fff;}
+.btn-status.pendente:hover{background:var(--green-md);}
+.btn-status.lancado{background:transparent;border:1.5px solid var(--gold);color:#92400e;}
+.btn-status.lancado:hover{background:var(--gold-lt);}
+.btn-status:active{transform:scale(.98);}
 .btn-gold{background:var(--gold);color:#fff;}
 .btn-gold:hover{background:#b45309;}
 
@@ -127,7 +133,7 @@ textarea{resize:none;min-height:64px;}
 .success-nm{font-size:13.5px;font-weight:700;color:var(--ink);margin-bottom:1.6rem;}
 
 /* REGISTROS TAB */
-.reg-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:.9rem;}
+.reg-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:.9rem;}
 .reg-stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:.8rem .5rem;text-align:center;box-shadow:var(--sh);}
 .reg-stat-n{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--navy);line-height:1;}
 .reg-stat-l{font-size:9px;color:var(--ink3);text-transform:uppercase;letter-spacing:.6px;margin-top:3px;font-weight:700;}
@@ -158,6 +164,11 @@ textarea{resize:none;min-height:64px;}
 .reg-date{font-size:9.5px;color:var(--ink3);white-space:nowrap;}
 .reg-title{font-size:13px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .reg-meta{font-size:11px;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px;}
+.reg-sap-badge{font-size:8.5px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;padding:2px 8px;
+  border-radius:10px;white-space:nowrap;display:inline-block;margin-top:4px;}
+.reg-sap-badge.pendente{background:var(--gold-lt);color:#92400e;}
+.reg-sap-badge.lancado{background:var(--green-lt);color:var(--green);}
+.reg-month-filters{display:flex;gap:6px;flex-wrap:wrap;margin-top:.7rem;padding-top:.7rem;border-top:1px solid var(--border);}
 
 /* MODAL */
 .reg-modal-overlay{position:fixed;inset:0;background:rgba(10,15,23,.6);display:none;align-items:flex-end;
@@ -511,6 +522,7 @@ textarea{resize:none;min-height:64px;}
       <div class="reg-stat"><div class="reg-stat-n" id="reg-stat-total">0</div><div class="reg-stat-l">Total</div></div>
       <div class="reg-stat"><div class="reg-stat-n" id="reg-stat-ci">0</div><div class="reg-stat-l">CI</div></div>
       <div class="reg-stat"><div class="reg-stat-n" id="reg-stat-rqa">0</div><div class="reg-stat-l">RQA</div></div>
+      <div class="reg-stat"><div class="reg-stat-n" id="reg-stat-pendentes" style="color:#92400e;">0</div><div class="reg-stat-l">Pendentes SAP</div></div>
     </div>
 
     <div class="card" style="padding:.9rem;">
@@ -521,6 +533,12 @@ textarea{resize:none;min-height:64px;}
         <button class="reg-filter-pill" data-tipo="rqa">🦺 RQA</button>
         <button class="btn-export" id="reg-export-btn">⬇️ Exportar CSV</button>
       </div>
+      <div class="reg-filters" id="reg-status-filters" style="margin-top:.6rem;">
+        <button class="reg-filter-pill on" data-status="all">Status: Todos</button>
+        <button class="reg-filter-pill" data-status="pendente">🟡 Pendentes</button>
+        <button class="reg-filter-pill" data-status="lancado">🟢 Lançados no SAP</button>
+      </div>
+      <div class="reg-month-filters" id="reg-month-filters"></div>
     </div>
 
     <div id="reg-list"></div>
@@ -538,6 +556,7 @@ textarea{resize:none;min-height:64px;}
     <div class="reg-modal-body" id="reg-modal-body"></div>
     <div class="reg-modal-foot">
       <button class="btn btn-navy" id="reg-modal-copy">📋 Copiar para lançar no SAP</button>
+      <button class="btn btn-status" id="reg-modal-status"></button>
       <button class="btn btn-danger" id="reg-modal-delete">🗑️ Excluir registro</button>
     </div>
   </div>
@@ -904,7 +923,13 @@ textarea{resize:none;min-height:64px;}
   ====================================================================== */
   var REG = { ci: [], rqa: [] };
   var regFilterTipo = 'all';
+  var regFilterStatus = 'all';
+  var regFilterMes = -1; // -1 = todos os meses
   var regSearch = '';
+  var MESES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+  // Status de lançamento no SAP — registros antigos sem o campo contam como pendente.
+  function getSapStatus(r){ return r.sapStatus === 'lancado' ? 'lancado' : 'pendente'; }
 
   function snapToArray(snap){
     var out = [];
@@ -942,14 +967,57 @@ textarea{resize:none;min-height:64px;}
     }
   }
 
+  // Marca um registro como lançado no SAP ou volta pra pendente — usado no modal de detalhe.
+  function updateSapStatus(r, status){
+    var root = firebaseRootFor(r._tipo);
+    if (rtdb){
+      return rtdb.ref(root + '/registros/' + r._id).update({ sapStatus: status });
+    } else {
+      var arr = memRoot(root).registros;
+      if (arr[r._id]) arr[r._id].sapStatus = status;
+      renderRegistros();
+      return Promise.resolve();
+    }
+  }
+
+  function buildRegMonthFilter(all){
+    var wrap = document.getElementById('reg-month-filters');
+    if (!wrap) return;
+    var mesesComDados = {};
+    all.forEach(function(r){
+      if (!r.criadoEm) return;
+      mesesComDados[new Date(r.criadoEm).getMonth()] = true;
+    });
+    var html = MESES.map(function(m, i){
+      var hasDados = !!mesesComDados[i];
+      var isOn = regFilterMes === i;
+      return '<button class="reg-filter-pill'+(isOn?' on':'')+'" data-mes="'+i+'" style="'+(hasDados&&!isOn?'border-color:var(--gold);':'')+'">'+m+'</button>';
+    }).join('') +
+      '<button class="reg-filter-pill'+(regFilterMes===-1?' on':'')+'" data-mes="-1" style="margin-left:auto;">Todos os meses</button>';
+    wrap.innerHTML = html;
+    wrap.querySelectorAll('button[data-mes]').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        regFilterMes = parseInt(btn.getAttribute('data-mes'), 10);
+        renderRegistros();
+      });
+    });
+  }
+
   function renderRegistros(){
     var all = getAllRecords();
     document.getElementById('reg-stat-total').textContent = all.length;
     document.getElementById('reg-stat-ci').textContent = all.filter(function(r){return r._tipo==='CI';}).length;
     document.getElementById('reg-stat-rqa').textContent = all.filter(function(r){return r._tipo==='RQA';}).length;
+    document.getElementById('reg-stat-pendentes').textContent = all.filter(function(r){return getSapStatus(r)==='pendente';}).length;
+
+    buildRegMonthFilter(all);
 
     var filtered = all.filter(function(r){
       if (regFilterTipo!=='all' && r._tipo.toLowerCase()!==regFilterTipo) return false;
+      if (regFilterStatus!=='all' && getSapStatus(r)!==regFilterStatus) return false;
+      if (regFilterMes!==-1){
+        if (!r.criadoEm || new Date(r.criadoEm).getMonth()!==regFilterMes) return false;
+      }
       if (regSearch){
         var hay = [r.relator,r.titulo,r.local,r.atividade].filter(Boolean).join(' ').toLowerCase();
         if (hay.indexOf(regSearch.toLowerCase())===-1) return false;
@@ -967,12 +1035,15 @@ textarea{resize:none;min-height:64px;}
       var dtStr = dt ? dt.toLocaleDateString('pt-BR') + ' · ' + dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : '—';
       var cls = r._tipo === 'CI' ? 'reg-tag-ci' : 'reg-tag-rqa';
       var icon = r._tipo === 'CI' ? '⚠️' : '🦺';
+      var status = getSapStatus(r);
+      var statusBadge = status === 'lancado' ? '<span class="reg-sap-badge lancado">🟢 Lançado no SAP</span>' : '<span class="reg-sap-badge pendente">🟡 Pendente SAP</span>';
       return '<div class="reg-card" data-idx="'+i+'">'+
         (r.foto ? '<div class="reg-thumb"><img src="'+r.foto+'"></div>' : '<div class="reg-thumb reg-thumb-empty">'+icon+'</div>') +
         '<div class="reg-info">'+
           '<div class="reg-top"><span class="reg-tag '+cls+'">'+icon+' '+r._tipo+'</span><span class="reg-date">'+dtStr+'</span></div>'+
           '<div class="reg-title">'+esc(r.titulo||'(sem título)')+'</div>'+
           '<div class="reg-meta">'+esc(r.relator||'—')+' · '+esc(r.local||'—')+'</div>'+
+          statusBadge +
         '</div>'+
       '</div>';
     }).join('');
@@ -1028,14 +1099,45 @@ textarea{resize:none;min-height:64px;}
 
     var body = document.getElementById('reg-modal-body');
     body.innerHTML =
-      '<div style="margin-bottom:.9rem;"><span class="reg-tag '+(r._tipo==='CI'?'reg-tag-ci':'reg-tag-rqa')+'" style="font-size:10px;padding:4px 10px;">'+
-        (r._tipo==='CI'?'⚠️ Condição Insegura':'🦺 RQA')+'</span></div>'+
+      '<div style="margin-bottom:.9rem;display:flex;gap:6px;flex-wrap:wrap;">'+
+        '<span class="reg-tag '+(r._tipo==='CI'?'reg-tag-ci':'reg-tag-rqa')+'" style="font-size:10px;padding:4px 10px;">'+
+        (r._tipo==='CI'?'⚠️ Condição Insegura':'🦺 RQA')+'</span>'+
+        '<span class="reg-sap-badge" id="reg-modal-status-badge" style="margin-top:0;"></span>'+
+      '</div>'+
       (r.foto ? '<div class="reg-modal-photo"><img src="'+r.foto+'" id="reg-modal-img"></div>' : '') +
       rows.join('');
 
     if (r.foto){
       document.getElementById('reg-modal-img').addEventListener('click', function(){ openLightbox(r.foto); });
     }
+
+    // Atualiza o badge e o botão de status conforme o valor atual de r.sapStatus.
+    function refreshStatusUI(){
+      var status = getSapStatus(r);
+      var badge = document.getElementById('reg-modal-status-badge');
+      badge.className = 'reg-sap-badge ' + status;
+      badge.textContent = status === 'lancado' ? '🟢 Lançado no SAP' : '🟡 Pendente SAP';
+      var statusBtn = document.getElementById('reg-modal-status');
+      statusBtn.className = 'btn btn-status ' + status;
+      statusBtn.textContent = status === 'lancado' ? '↩️ Marcar como pendente' : '✅ Marcar como lançado no SAP';
+    }
+    refreshStatusUI();
+    document.getElementById('reg-modal-status').onclick = function(){
+      var statusBtn = document.getElementById('reg-modal-status');
+      var newStatus = getSapStatus(r) === 'lancado' ? 'pendente' : 'lancado';
+      statusBtn.disabled = true;
+      Promise.resolve(updateSapStatus(r, newStatus)).then(function(){
+        r.sapStatus = newStatus;
+        statusBtn.disabled = false;
+        refreshStatusUI();
+        toast(newStatus === 'lancado' ? 'Marcado como lançado no SAP.' : 'Marcado como pendente.', 'ok');
+      }).catch(function(err){
+        console.error(err);
+        statusBtn.disabled = false;
+        toast('Não foi possível atualizar o status. Tente novamente.', 'error');
+      });
+    };
+
     document.getElementById('reg-modal-copy').onclick = function(){ copyText(buildSapText(r)); };
     document.getElementById('reg-modal-delete').onclick = function(){
       if (!confirm('Excluir este registro de '+(r._tipo==='CI'?'Condição Insegura':'RQA')+'? Essa ação não pode ser desfeita.')) return;
@@ -1076,7 +1178,7 @@ textarea{resize:none;min-height:64px;}
   function exportCsv(){
     var all = getAllRecords();
     if (!all.length){ toast('Nenhum registro para exportar.', 'error'); return; }
-    var headers = ['Tipo','Relator','Título','Local','Atividade','Área gestora','Classificação','Tipo','Gravidade','Probabilidade','Risco crítico','Viés ambiental','Descrição','Descrição da Sugestão','Ações Imediatas','Data','Tem foto'];
+    var headers = ['Tipo','Relator','Título','Local','Atividade','Área gestora','Classificação','Tipo','Gravidade','Probabilidade','Risco crítico','Viés ambiental','Descrição','Descrição da Sugestão','Ações Imediatas','Data','Tem foto','Status SAP'];
     var rows = [headers];
     all.forEach(function(r){
       var dt = r.criadoEm ? new Date(r.criadoEm).toLocaleString('pt-BR') : '';
@@ -1085,7 +1187,8 @@ textarea{resize:none;min-height:64px;}
         r['area-gestora']||'', r.classificacao||'', r.tipo||'', r.gravidade||'', r.probabilidade||'',
         r['risco-critico']||'', r['vies-ambiental']||'',
         r.descricao||'', r.sugestao||'', r['acoes-imediatas']||'',
-        dt, r.foto ? 'Sim' : 'Não'
+        dt, r.foto ? 'Sim' : 'Não',
+        getSapStatus(r) === 'lancado' ? 'Lançado' : 'Pendente'
       ]);
     });
     var csv = rows.map(function(row){
@@ -1103,11 +1206,19 @@ textarea{resize:none;min-height:64px;}
     toast('CSV exportado.');
   }
 
-  document.querySelectorAll('.reg-filter-pill').forEach(function(p){
+  document.querySelectorAll('.reg-filters .reg-filter-pill[data-tipo]').forEach(function(p){
     p.addEventListener('click', function(){
-      document.querySelectorAll('.reg-filter-pill').forEach(function(x){x.classList.remove('on');});
+      document.querySelectorAll('.reg-filters .reg-filter-pill[data-tipo]').forEach(function(x){x.classList.remove('on');});
       p.classList.add('on');
       regFilterTipo = p.getAttribute('data-tipo');
+      renderRegistros();
+    });
+  });
+  document.querySelectorAll('#reg-status-filters .reg-filter-pill[data-status]').forEach(function(p){
+    p.addEventListener('click', function(){
+      document.querySelectorAll('#reg-status-filters .reg-filter-pill[data-status]').forEach(function(x){x.classList.remove('on');});
+      p.classList.add('on');
+      regFilterStatus = p.getAttribute('data-status');
       renderRegistros();
     });
   });
