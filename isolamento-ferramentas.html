@@ -211,6 +211,7 @@
   }
   .photo-btn:hover{ border-color: var(--brand); }
   .photo-btn input{ display:none; }
+  .photo-btn.optional{ opacity:.55; border-style:dotted; }
   .photo-thumb{ position:relative; width:56px; height:56px; border-radius:7px; overflow:hidden; border:1px solid var(--border); flex:none; }
   .photo-thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
   .photo-thumb .rm{
@@ -465,7 +466,7 @@
               <label>Foto do isolamento / sinalização<span class="req">*</span></label>
               <div class="photo-field" id="iso-photo-field">
                 <label class="photo-btn">
-                  <input type="file" accept="image/*" capture="environment" id="iso-photo-input">
+                  <input type="file" accept="image/*" id="iso-photo-input">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h3l1.5-2h7L17 8h3v11H4V8Z"/><circle cx="12" cy="13.5" r="3.2"/></svg>
                   Adicionar foto
                 </label>
@@ -627,7 +628,7 @@
                 <label>Foto<span class="req">*</span></label>
                 <div class="photo-field">
                   <label class="photo-btn">
-                    <input type="file" accept="image/*" capture="environment" id="alm-item-photo-input">
+                    <input type="file" accept="image/*" id="alm-item-photo-input">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h3l1.5-2h7L17 8h3v11H4V8Z"/><circle cx="12" cy="13.5" r="3.2"/></svg>
                     Foto
                   </label>
@@ -1012,6 +1013,16 @@
   }
   function esc(s){ var d=document.createElement('div'); d.textContent = s==null?'':s; return d.innerHTML; }
 
+  // Evita que um envio fique travado pra sempre em "Enviando…" quando a conexão
+  // cai no meio do caminho — depois de ms milissegundos sem resposta, rejeita
+  // com uma mensagem clara em vez de deixar a Promise pendurada indefinidamente.
+  function withTimeout(promise, ms, msg){
+    return new Promise(function(resolve, reject){
+      var t = setTimeout(function(){ reject(new Error(msg || 'Tempo esgotado. Verifique sua conexão e tente novamente.')); }, ms);
+      promise.then(function(v){ clearTimeout(t); resolve(v); }, function(err){ clearTimeout(t); reject(err); });
+    });
+  }
+
   function toast(msg, type){
     var t = document.getElementById('toast');
     var icon = document.getElementById('toast-icon');
@@ -1092,6 +1103,10 @@
       } else if (field==='alm-item-tem'){
         btn.className = value==='tem' ? 'on-tem' : 'on-naotem';
         almPendingTem = value;
+        // Sem a ferramenta em mãos ("não tem"), não há o que fotografar.
+        var almPhotoInput = document.getElementById('alm-item-photo-input');
+        var almPhotoBtn = almPhotoInput ? almPhotoInput.closest('label.photo-btn') : null;
+        if (almPhotoBtn) almPhotoBtn.classList.toggle('optional', value === 'naotem');
       } else {
         btn.className = 'on';
       }
@@ -1363,8 +1378,9 @@
             '<button type="button" data-v="faltando">Faltando</button>' +
             '<button type="button" data-v="danificada">Danificada</button>' +
           '</div>' +
-          '<label class="photo-btn"><input type="file" accept="image/*" capture="environment" data-tool-photo="'+t.id+'">' +
-            '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h3l1.5-2h7L17 8h3v11H4V8Z"/><circle cx="12" cy="13.5" r="3.2"/></svg>Foto</label>' +
+          '<label class="photo-btn" data-tool-photolabel="'+t.id+'"><input type="file" accept="image/*" data-tool-photo="'+t.id+'">' +
+            '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h3l1.5-2h7L17 8h3v11H4V8Z"/><circle cx="12" cy="13.5" r="3.2"/></svg>' +
+            '<span data-tool-phototext="'+t.id+'">Foto</span></label>' +
           '<div class="photo-thumb" data-tool-thumb="'+t.id+'" style="display:none"></div>' +
         '</div>' +
       '</div>';
@@ -1378,6 +1394,14 @@
         seg.querySelectorAll('button').forEach(function(x){ x.className=''; });
         b.className = 'on-'+v;
         statusMap[id] = v;
+        // Ferramenta "Faltando" não existe fisicamente pra fotografar — a foto
+        // só é obrigatória quando a ferramenta está presente (conforme/danificada).
+        var lbl = el.querySelector('[data-tool-photolabel="'+id+'"]');
+        var txt = el.querySelector('[data-tool-phototext="'+id+'"]');
+        if (lbl && txt){
+          if (v === 'faltando'){ lbl.classList.add('optional'); txt.textContent = 'Foto (opcional)'; }
+          else { lbl.classList.remove('optional'); txt.textContent = 'Foto'; }
+        }
         onChange();
       });
     });
@@ -1404,10 +1428,14 @@
   function checklistSummary(tools, statusMap, photoMap){
     var done = 0, conforme=0, faltando=0, danificada=0;
     tools.forEach(function(t){
-      if (statusMap[t.id] && photoMap[t.id]) done++;
-      if (statusMap[t.id]==='conforme') conforme++;
-      if (statusMap[t.id]==='faltando') faltando++;
-      if (statusMap[t.id]==='danificada') danificada++;
+      var st = statusMap[t.id];
+      // Foto só é exigida quando a ferramenta está fisicamente presente
+      // (conforme ou danificada) — "faltando" não tem o que fotografar.
+      if (st === 'faltando') done++;
+      else if (st && photoMap[t.id]) done++;
+      if (st==='conforme') conforme++;
+      if (st==='faltando') faltando++;
+      if (st==='danificada') danificada++;
     });
     return { done: done, total: tools.length, conforme: conforme, faltando: faltando, danificada: danificada };
   }
@@ -1459,23 +1487,26 @@
       data: document.getElementById('enc-data').value,
       observacoes: document.getElementById('enc-obs').value.trim(),
       resumo: { total: s.total, conforme: s.conforme, faltando: s.faltando, danificada: s.danificada },
+      itens: encTools.map(function(t){
+        return { ferramentaId: t.id, ferramentaNome: t.nome, status: encStatus[t.id], foto: encPhotos[t.id] };
+      }),
       criadoEm: new Date().toISOString()
     };
-    db.collection('verificacoes').add(session).then(function(ref){
-      return Promise.all(encTools.map(function(t){
-        return ref.collection('itens').add({
-          ferramentaId: t.id, ferramentaNome: t.nome, status: encStatus[t.id], foto: encPhotos[t.id]
-        });
-      }));
-    }).then(function(){
+    // Grava a sessão inteira (com os itens já embutidos) em UMA única escrita,
+    // em vez de 1 escrita pra sessão + 1 por ferramenta — evita que uma conexão
+    // instável deixe o envio travado em "Enviando…" pra sempre, e dá um limite
+    // de tempo claro pra falhar com uma mensagem em vez de nunca responder.
+    withTimeout(db.collection('verificacoes').add(session), 20000).then(function(){
       toast('Conferência enviada — vai compor a nota do encarregado no Escudo');
       document.getElementById('enc-obs').value='';
       document.getElementById('enc-responsaveis').value='';
       encStatus = {}; encPhotos = {};
       buildChecklist('enc-checklist', encTools, encStatus, encPhotos, updateEncProgress);
       updateEncProgress();
-    }).catch(function(err){ toast('Falha ao enviar conferência', 'error'); console.error(err); })
-    .finally(function(){ btn.textContent='Enviar conferência'; });
+    }).catch(function(err){
+      toast(err && err.message ? err.message : 'Falha ao enviar conferência', 'error');
+      console.error(err);
+    }).finally(function(){ btn.textContent='Enviar conferência'; btn.disabled = false; updateEncProgress(); });
   });
 
   /* ---- Almoxarife (itens digitados livremente) ---- */
@@ -1507,6 +1538,9 @@
     renderAlmPendingPhoto();
     var seg = document.getElementById('alm-item-tem');
     seg.querySelectorAll('button').forEach(function(b){ b.className=''; });
+    var almPhotoInput = document.getElementById('alm-item-photo-input');
+    var almPhotoBtn = almPhotoInput ? almPhotoInput.closest('label.photo-btn') : null;
+    if (almPhotoBtn) almPhotoBtn.classList.remove('optional');
   }
 
   document.getElementById('alm-item-add').addEventListener('click', function(){
@@ -1514,7 +1548,9 @@
     var nome = nomeInput.value.trim();
     if (!nome){ toast('Informe o nome da ferramenta', 'error'); nomeInput.focus(); return; }
     if (!almPendingTem){ toast('Informe se tem ou não tem', 'error'); return; }
-    if (!almPendingPhoto){ toast('Anexe a foto da ferramenta', 'error'); return; }
+    // Foto só é exigida quando a ferramenta está presente ("tem") — sem a
+    // ferramenta em mãos, não há o que fotografar.
+    if (almPendingTem==='tem' && !almPendingPhoto){ toast('Anexe a foto da ferramenta', 'error'); return; }
     almItems.push({
       id: slugify(nome)+'-'+Date.now().toString(36),
       nome: nome,
@@ -1578,6 +1614,7 @@
     var conforme = almItems.filter(function(i){ return i.status==='conforme'; }).length;
     var faltando = almItems.length - conforme;
     var btn = this; btn.disabled = true; btn.textContent = 'Enviando…';
+    var itemsSnapshot = almItems.slice();
     var session = {
       tipo: 'almoxarife',
       escopo: scope,
@@ -1586,23 +1623,23 @@
       data: document.getElementById('alm-data').value,
       observacoes: document.getElementById('alm-obs').value.trim(),
       resumo: { total: almItems.length, conforme: conforme, faltando: faltando, danificada: 0 },
+      itens: itemsSnapshot.map(function(it){
+        return { ferramentaId: it.id, ferramentaNome: it.nome, status: it.status, foto: it.foto };
+      }),
       criadoEm: new Date().toISOString()
     };
-    var itemsSnapshot = almItems.slice();
-    db.collection('verificacoes').add(session).then(function(ref){
-      return Promise.all(itemsSnapshot.map(function(it){
-        return ref.collection('itens').add({
-          ferramentaId: it.id, ferramentaNome: it.nome, status: it.status, foto: it.foto
-        });
-      }));
-    }).then(function(){
+    // Uma única escrita (sessão + itens embutidos) com limite de tempo — ver
+    // comentário equivalente no envio do encarregado.
+    withTimeout(db.collection('verificacoes').add(session), 20000).then(function(){
       toast('Conferência geral registrada');
       document.getElementById('alm-obs').value='';
       almItems = [];
       renderAlmItemsList();
       updateAlmProgress();
-    }).catch(function(err){ toast('Falha ao enviar conferência', 'error'); console.error(err); })
-    .finally(function(){ btn.textContent='Enviar conferência'; });
+    }).catch(function(err){
+      toast(err && err.message ? err.message : 'Falha ao enviar conferência', 'error');
+      console.error(err);
+    }).finally(function(){ btn.textContent='Enviar conferência'; btn.disabled = false; updateAlmProgress(); });
   });
 
   /* ======================================================================
@@ -1705,21 +1742,21 @@
         itemsEl.classList.toggle('open', opening);
         if (opening && !itemsEl.dataset.loaded){
           itemsEl.dataset.loaded = '1';
-          itemsEl.innerHTML = '<div class="hint" style="padding:10px 0">Carregando itens…</div>';
-          db.collection('verificacoes').doc(sid).collection('itens').get().then(function(snap){
-            if (!snap.docs.length){ itemsEl.innerHTML = '<div class="hint" style="padding:10px 0">Sem itens.</div>'; return; }
-            itemsEl.innerHTML = snap.docs.map(function(d){
-              var it = d.data();
-              var sc = STATUS_COLORS[it.status] || STATUS_COLORS.conforme;
-              var pillClass = it.status==='conforme' ? 'pill-ok' : (it.status==='faltando' ? 'pill-warn' : 'pill-danger');
-              return '<div class="item-row">' +
-                (it.foto ? '<img src="'+it.foto+'" data-src="'+it.foto+'">' : '<div class="checklist-ico">'+toolIcon+'</div>') +
-                '<div class="nm">'+esc(it.ferramentaNome)+'</div>' +
-                '<span class="pill '+pillClass+'">'+sc.label+'</span>' +
-              '</div>';
-            }).join('');
-            itemsEl.querySelectorAll('img[data-src]').forEach(function(img){ img.addEventListener('click', function(){ openLightbox(img.getAttribute('data-src')); }); });
-          }).catch(function(){ itemsEl.innerHTML = '<div class="hint" style="padding:10px 0">Erro ao carregar itens.</div>'; });
+          // Os itens já vêm embutidos na própria sessão (ver comentário no envio
+          // do encarregado/almoxarife) — não precisa mais buscar uma subcoleção.
+          var sess = sessions.filter(function(x){ return x._id === sid; })[0];
+          var itens = (sess && sess.itens) || [];
+          if (!itens.length){ itemsEl.innerHTML = '<div class="hint" style="padding:10px 0">Sem itens.</div>'; return; }
+          itemsEl.innerHTML = itens.map(function(it){
+            var sc = STATUS_COLORS[it.status] || STATUS_COLORS.conforme;
+            var pillClass = it.status==='conforme' ? 'pill-ok' : (it.status==='faltando' ? 'pill-warn' : 'pill-danger');
+            return '<div class="item-row">' +
+              (it.foto ? '<img src="'+it.foto+'" data-src="'+it.foto+'">' : '<div class="checklist-ico">'+toolIcon+'</div>') +
+              '<div class="nm">'+esc(it.ferramentaNome)+'</div>' +
+              '<span class="pill '+pillClass+'">'+sc.label+'</span>' +
+            '</div>';
+          }).join('');
+          itemsEl.querySelectorAll('img[data-src]').forEach(function(img){ img.addEventListener('click', function(){ openLightbox(img.getAttribute('data-src')); }); });
         }
       });
     });
