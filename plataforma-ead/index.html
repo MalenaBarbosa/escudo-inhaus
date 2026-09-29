@@ -727,8 +727,9 @@ const DB = {
   fb: null,
   async init() {
     if (CONFIG.firebase) {
-      await loadScript("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");
-      await loadScript("https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js");
+      await loadScriptAlt(["https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js", "https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-app-compat.js"]);
+      await loadScriptAlt(["https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js", "https://cdn.jsdelivr.net/npm/firebase@10.12.2/firebase-database-compat.js"]);
+      if (!window.firebase || !firebase.database) throw new Error("biblioteca do Firebase não carregou");
       firebase.initializeApp(CONFIG.firebase);
       this.fb = firebase.database();
       document.getElementById("modo").hidden = true;
@@ -752,6 +753,7 @@ const DB = {
     try { return JSON.parse(localStorage.getItem("cipaEAD__idx") || "[]").map(k => JSON.parse(localStorage.getItem(this._lsKey(k)))).filter(Boolean); } catch (e) { return []; }
   }
 };
+async function loadScriptAlt(urls) { let ult; for (const u of urls) { try { await loadScript(u); return; } catch (e) { ult = new Error("não foi possível baixar " + u.split("/")[2]); } } throw ult; }
 function loadScript(src) { return new Promise((ok, er) => { const s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = er; document.head.appendChild(s); }); }
 
 /* ============================ PDF (declarações e certificados) ============================ */
@@ -942,7 +944,7 @@ const App = {
     $("#empresaTop").textContent = "NR-05 · Módulo EAD";
     $("#btnSair").onclick = () => this.sair();
     this.tema();
-    try { await DB.init(); } catch (e) { $("#app").innerHTML = `<div class="aviso err">Não foi possível conectar ao banco de dados. Confira a configuração do Firebase no início do arquivo.</div>`; return; }
+    try { await DB.init(); } catch (e) { console.error(e); $("#app").innerHTML = `<div class="aviso err"><b>Não foi possível conectar ao banco de dados.</b><br>Detalhe: ${esc(e && (e.message || e.code) || "falha ao carregar o Firebase")}.<br>Verifique a internet e tente novamente. Em rede corporativa, o acesso a gstatic.com ou firebaseio.com pode estar bloqueado; teste pelo 4G do celular.</div><div style="margin-top:12px"><button class="btn" onclick="location.reload()">Tentar novamente</button></div>`; return; }
     if (location.hash === "#admin") return this.adminLogin();
     let k = null; try { k = sessionStorage.getItem("cipaEAD_user"); } catch (e) {}
     if (k) { const u = await DB.get(k); if (u) { this.u = u; return this.painel(); } }
