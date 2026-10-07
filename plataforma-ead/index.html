@@ -1022,7 +1022,13 @@ const App = {
   },
 
   /* ---------- REGRAS ---------- */
-  st(id) { return (this.u.etapas ||= {})[id] ||= { tempoLeitura: 0, leituraOk: false, tentativas: [], melhor: null, aprovado: false }; },
+  st(id) {
+    // o Firebase não guarda listas vazias nem valores nulos: ao recarregar, "tentativas" pode voltar ausente
+    const s = (this.u.etapas ||= {})[id] ||= {};
+    if (!Array.isArray(s.tentativas)) s.tentativas = s.tentativas ? Object.values(s.tentativas) : [];
+    s.tempoLeitura ||= 0; s.leituraOk ||= false; s.aprovado ||= false; if (s.melhor === undefined) s.melhor = null;
+    return s;
+  },
   liberada(i) { if (i === 0) return true; const ant = ETAPAS()[i - 1]; return !!(this.u.etapas?.[ant.id]?.aprovado); },
   concluidos() { return ETAPAS().filter(e => this.u.etapas?.[e.id]?.aprovado).length; },
   abrir(e) { e.tipo === "final" ? this.prova("final") : this.leitura(e.id); },
