@@ -218,11 +218,10 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   <div class="month-filter" id="month-filter"></div>
 
   <!-- STATS -->
-  <div class="stats" style="grid-template-columns:repeat(5,1fr); gap:.4rem;">
+  <div class="stats" style="grid-template-columns:repeat(4,1fr); gap:.4rem;">
     <div class="stat"><div class="stat-n" id="st-av">0</div><div class="stat-l">Inspeções</div></div>
     <div class="stat"><div class="stat-n" id="st-id">0</div><div class="stat-l" style="color:#22C55E;">💡 Ideias</div></div>
     <div class="stat"><div class="stat-n" id="st-dc">0</div><div class="stat-l" style="color:#EF4444;">⚠️ Descontos</div></div>
-    <div class="stat"><div class="stat-n" id="st-cr">0</div><div class="stat-l" style="color:#059669;">🦺 CI/RQA</div></div>
     <div class="stat"><div class="stat-n" id="st-md">—</div><div class="stat-l">Média Geral</div></div>
   </div>
 
@@ -288,11 +287,6 @@ let T       = JSON.parse(JSON.stringify(DEFAULT_TEAMS));
 let S       = {};   // scores inspeções
 let S_BONUS = {};   // bônus ideias de valor
 let S_DESC  = {};   // descontos (absenteísmo / NC)
-let CI_COUNTS  = {}; // registros de Condição Insegura por pessoa/mês
-let RQA_COUNTS = {}; // registros de RQA por pessoa/mês
-let INSP_COUNTS = {}; // nº de inspeções (visitas) por mês — 1 por registro salvo, não por pessoa avaliada
-// Quanto cada CI ou RQA registrado soma na nota final da pessoa (sem teto mensal).
-const CIRQA_BONUS_PER_REGISTRO = 0.3;
 let isDemo  = true;
 let curEq   = 'all';   // filtro equipe
 let curMes  = -1;      // -1 = todos os meses
@@ -361,7 +355,7 @@ function setSP(st, msg) {
     dot.className = 'ldot' + (st==='ok' ? '' : ' off');
     document.getElementById('ltxt').textContent =
       st==='ok' ? (isDemo ? 'Modo demonstração' : (() => {
-      const insp  = Object.values(INSP_COUNTS).reduce((s,v) => s + (v||0), 0);
+      const insp  = Object.keys(S).length;
       const ideias = Object.keys(S_BONUS).length;
       const desc   = Object.keys(S_DESC).length;
       const total  = insp + ideias + desc;
@@ -413,22 +407,8 @@ function getRankData(eqFilter, mesFilter) {
         : Object.keys(S_DESC).filter(k => k.startsWith(safeN + '__'));
       const totalDesc = descKeys.reduce((s,k) => s + Math.abs(S_DESC[k]?.total || 0), 0);
 
-      // CI / RQA — registros de Condição Insegura e Quase Acidente (contagem por pessoa/mês)
-      const ciKeys = mesFilter >= 0
-        ? [safeN + '__' + mesFilter].filter(k => CI_COUNTS[k])
-        : Object.keys(CI_COUNTS).filter(k => k.startsWith(safeN + '__'));
-      const totalCi = ciKeys.reduce((s,k) => s + (CI_COUNTS[k] || 0), 0);
-
-      const rqaKeys = mesFilter >= 0
-        ? [safeN + '__' + mesFilter].filter(k => RQA_COUNTS[k])
-        : Object.keys(RQA_COUNTS).filter(k => k.startsWith(safeN + '__'));
-      const totalRqa = rqaKeys.reduce((s,k) => s + (RQA_COUNTS[k] || 0), 0);
-
-      const totalCiRqaCount = totalCi + totalRqa;
-      const ciRqaBonus = totalCiRqaCount * CIRQA_BONUS_PER_REGISTRO;
-
       // Ignora só se absolutamente nada registrado
-      if (!keys.length && totalBonus === 0 && totalDesc === 0 && ciRqaBonus === 0) return;
+      if (!keys.length && totalBonus === 0 && totalDesc === 0) return;
 
       // Média bruta das inspeções (0 se não houver)
       const inspNums = keys.flatMap(k => (S[k]||[]).filter(v => v != null && v > 0));
@@ -440,8 +420,6 @@ function getRankData(eqFilter, mesFilter) {
         nInsp:      nInsp,
         bonus:      totalBonus,
         desc:       totalDesc,
-        ciRqaCount: totalCiRqaCount,
-        ciRqaBonus: ciRqaBonus,
         total:      baseAvg, // será recalculado com Bayesian abaixo
         n:          Math.max(nInsp, 1),
         tid:        t.id,
@@ -468,8 +446,8 @@ function getRankData(eqFilter, mesFilter) {
     const bayScore = v.nInsp > 0
       ? (v.nInsp * v.baseAvg + C * prior) / (v.nInsp + C)
       : 0;
-    // Pontuação final = score bayesiano + bônus − descontos + bônus de CI/RQA
-    v.total    = bayScore + v.bonus - v.desc + v.ciRqaBonus;
+    // Pontuação final = score bayesiano + bônus − descontos
+    v.total    = bayScore + v.bonus - v.desc;
     v.bayScore = bayScore;
   });
 
@@ -577,10 +555,10 @@ function buildList(data) {
 
 /* ── Stats ── */
 function buildStats(data) {
-  // Conta inspeções — 1 por visita/registro salvo (não por pessoa avaliada na visita)
+  // Conta inspeções
   const totalInsp = curMes >= 0
-    ? (INSP_COUNTS[curMes] || 0)
-    : Object.values(INSP_COUNTS).reduce((s,v) => s + (v||0), 0);
+    ? Object.keys(S).filter(k => k.endsWith('§'+curMes)).length
+    : Object.keys(S).length;
 
   // Ideias — chaves sanitizadas usam __ como separador
   const totalIdeias = curMes >= 0
@@ -592,18 +570,9 @@ function buildStats(data) {
     ? Object.keys(S_DESC).filter(k => k.endsWith('__'+curMes)).length
     : Object.keys(S_DESC).length;
 
-  // CI/RQA — soma as contagens (não o nº de chaves, pois cada chave já é um total por pessoa/mês)
-  const ciRqaKeysFor = obj => curMes >= 0
-    ? Object.keys(obj).filter(k => k.endsWith('__'+curMes))
-    : Object.keys(obj);
-  const totalCiRqa =
-    ciRqaKeysFor(CI_COUNTS).reduce((s,k) => s + (CI_COUNTS[k]||0), 0) +
-    ciRqaKeysFor(RQA_COUNTS).reduce((s,k) => s + (RQA_COUNTS[k]||0), 0);
-
   document.getElementById('st-av').textContent = totalInsp;
   document.getElementById('st-id').textContent = totalIdeias;
   document.getElementById('st-dc').textContent = totalDesc;
-  document.getElementById('st-cr').textContent = totalCiRqa;
 
   if (data.length) {
     const avg = data.reduce((s,[,d]) => s+d.total/d.n, 0) / data.length;
@@ -623,12 +592,12 @@ function buildLegend() {
 function buildLiveBar() {
   const txt = document.getElementById('ltxt');
   if (!txt) return;
-  const total = Object.values(INSP_COUNTS).reduce((s,v) => s + (v||0), 0);
+  const total = Object.keys(S).length;
   if (curMes >= 0) {
-    const ct = INSP_COUNTS[curMes] || 0;
-    txt.textContent = `${ct} inspeções em ${MESES_F[curMes]}`;
+    const ct = Object.keys(S).filter(k => k.endsWith('§'+curMes)).length;
+    txt.textContent = `${ct} avaliações em ${MESES_F[curMes]}`;
   } else {
-    txt.textContent = isDemo ? 'Modo demonstração' : `${total} inspeções · ao vivo`;
+    txt.textContent = isDemo ? 'Modo demonstração' : `${total} avaliações · ao vivo`;
   }
   const m = document.getElementById('lmonth');
   if (m) m.textContent = curMes >= 0 ? MESES_F[curMes] : MESES_F[now.getMonth()] + ' ' + now.getFullYear();
@@ -766,14 +735,6 @@ window._onFbReady = async () => {
     if (sb.exists()) S_BONUS = normalizeFirebaseKeys(sb.val());
     const sd = await get(ref(db, 'escudo/scores_desconto'));
     if (sd.exists()) S_DESC = normalizeFirebaseKeys(sd.val());
-    // Carrega contadores de CI e RQA (mesmos que o condicao-insegura.html grava)
-    const sci = await get(ref(db, 'escudoCondicaoInsegura/pontosPorRelatorMes'));
-    if (sci.exists()) CI_COUNTS = normalizeFirebaseKeys(sci.val());
-    const srqa = await get(ref(db, 'escudoRQA/pontosPorRelatorMes'));
-    if (srqa.exists()) RQA_COUNTS = normalizeFirebaseKeys(srqa.val());
-    // Contador de inspeções por visita (1 por registro salvo, não por pessoa avaliada)
-    const sinsp = await get(ref(db, 'escudo/inspecoesPorMes'));
-    if (sinsp.exists()) INSP_COUNTS = sinsp.val();
     setSP('ok', '● Ao vivo');
     render();
     if (curTab === 'historico') renderHistorico();
@@ -801,16 +762,6 @@ window._onFbReady = async () => {
     // Descontos em tempo real
     onValue(ref(db, 'escudo/scores_desconto'), snap => {
       if (snap.exists()) { S_DESC = normalizeFirebaseKeys(snap.val()); render(); }
-    });
-    // CI/RQA em tempo real
-    onValue(ref(db, 'escudoCondicaoInsegura/pontosPorRelatorMes'), snap => {
-      CI_COUNTS = snap.exists() ? normalizeFirebaseKeys(snap.val()) : {}; render();
-    });
-    onValue(ref(db, 'escudoRQA/pontosPorRelatorMes'), snap => {
-      RQA_COUNTS = snap.exists() ? normalizeFirebaseKeys(snap.val()) : {}; render();
-    });
-    onValue(ref(db, 'escudo/inspecoesPorMes'), snap => {
-      INSP_COUNTS = snap.exists() ? snap.val() : {}; render();
     });
   } catch(e) {
     setSP('e', '⚠️');
