@@ -287,6 +287,8 @@ let T       = JSON.parse(JSON.stringify(DEFAULT_TEAMS));
 let S       = {};   // scores inspeções
 let S_BONUS = {};   // bônus ideias de valor
 let S_DESC  = {};   // descontos (absenteísmo / NC)
+let INSP_COUNTS = {}; // nº de inspeções (visitas) por mês — 1 por registro salvo, não por pessoa avaliada
+let DESC_COUNTS = {}; // nº de descontos (lançamentos) por mês — 1 por registro salvo, não por pessoa atingida
 let isDemo  = true;
 let curEq   = 'all';   // filtro equipe
 let curMes  = -1;      // -1 = todos os meses
@@ -355,9 +357,9 @@ function setSP(st, msg) {
     dot.className = 'ldot' + (st==='ok' ? '' : ' off');
     document.getElementById('ltxt').textContent =
       st==='ok' ? (isDemo ? 'Modo demonstração' : (() => {
-      const insp  = Object.keys(S).length;
+      const insp  = Object.values(INSP_COUNTS).reduce((s,v) => s + (v||0), 0);
       const ideias = Object.keys(S_BONUS).length;
-      const desc   = Object.keys(S_DESC).length;
+      const desc   = Object.values(DESC_COUNTS).reduce((s,v) => s + (v||0), 0);
       const total  = insp + ideias + desc;
       return `${total} lançamentos · ${insp} inspeções · ${ideias} ideias · ${desc} descontos`;
     })())
@@ -555,20 +557,20 @@ function buildList(data) {
 
 /* ── Stats ── */
 function buildStats(data) {
-  // Conta inspeções
+  // Inspeções — 1 por visita/registro salvo, não por pessoa avaliada na visita
   const totalInsp = curMes >= 0
-    ? Object.keys(S).filter(k => k.endsWith('§'+curMes)).length
-    : Object.keys(S).length;
+    ? (INSP_COUNTS[curMes] || 0)
+    : Object.values(INSP_COUNTS).reduce((s,v) => s + (v||0), 0);
 
   // Ideias — chaves sanitizadas usam __ como separador
   const totalIdeias = curMes >= 0
     ? Object.keys(S_BONUS).filter(k => k.endsWith('__'+curMes)).length
     : Object.keys(S_BONUS).length;
 
-  // Descontos — chaves sanitizadas usam __ como separador
+  // Descontos — 1 por lançamento, não por pessoa atingida no lançamento
   const totalDesc = curMes >= 0
-    ? Object.keys(S_DESC).filter(k => k.endsWith('__'+curMes)).length
-    : Object.keys(S_DESC).length;
+    ? (DESC_COUNTS[curMes] || 0)
+    : Object.values(DESC_COUNTS).reduce((s,v) => s + (v||0), 0);
 
   document.getElementById('st-av').textContent = totalInsp;
   document.getElementById('st-id').textContent = totalIdeias;
@@ -735,6 +737,11 @@ window._onFbReady = async () => {
     if (sb.exists()) S_BONUS = normalizeFirebaseKeys(sb.val());
     const sd = await get(ref(db, 'escudo/scores_desconto'));
     if (sd.exists()) S_DESC = normalizeFirebaseKeys(sd.val());
+    // Contadores reais por evento — 1 por visita/lançamento, não por pessoa incluída
+    const sinsp = await get(ref(db, 'escudo/inspecoesPorMes'));
+    if (sinsp.exists()) INSP_COUNTS = sinsp.val();
+    const sdesc = await get(ref(db, 'escudo/descontosPorMes'));
+    if (sdesc.exists()) DESC_COUNTS = sdesc.val();
     setSP('ok', '● Ao vivo');
     render();
     if (curTab === 'historico') renderHistorico();
@@ -762,6 +769,15 @@ window._onFbReady = async () => {
     // Descontos em tempo real
     onValue(ref(db, 'escudo/scores_desconto'), snap => {
       if (snap.exists()) { S_DESC = normalizeFirebaseKeys(snap.val()); render(); }
+    });
+    // Contadores reais de inspeções/descontos em tempo real
+    onValue(ref(db, 'escudo/inspecoesPorMes'), snap => {
+      INSP_COUNTS = snap.exists() ? snap.val() : {};
+      render();
+    });
+    onValue(ref(db, 'escudo/descontosPorMes'), snap => {
+      DESC_COUNTS = snap.exists() ? snap.val() : {};
+      render();
     });
   } catch(e) {
     setSP('e', '⚠️');
