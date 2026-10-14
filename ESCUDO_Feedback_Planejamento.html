@@ -990,6 +990,7 @@ function saveAv() {
   }); // end targets_fb.forEach
 
   saveToFirebase();
+  registrarInspecao(avMonth); // 1 inspeção por visita/feedback, não por pessoa avaliada
 
   document.getElementById('succ-score').textContent = avg.toFixed(1);
   document.getElementById('succ-sub').textContent = `/ 5.0 · ${MESES_F[avMonth]} · Feedback de Atividade`;
@@ -1002,6 +1003,29 @@ function saveAv() {
 function sanitizeFbKey(name, mes) {
   const safe = (name||'').replace(/[ .#$§\[\]]/g,'_');
   return safe + '__' + mes;
+}
+
+// Conta 1 inspeção por VISITA/registro de feedback salvo — mesmo quando várias
+// pessoas são avaliadas de uma vez (multi-seleção), continua contando como 1 só.
+// Soma no MESMO contador usado pelo ESCUDO_Avaliacao_Mobile (escudo/inspecoesPorMes),
+// pois um feedback de atividade em campo também é uma inspeção real realizada.
+function registrarInspecao(mes, tentativa){
+  tentativa = tentativa || 1;
+  if(!window.$FB || !window.$FB.runTransaction) return;
+  const {db,ref,runTransaction} = window.$FB;
+  Promise.resolve(runTransaction(ref(db,'escudo/inspecoesPorMes/'+mes), cur => (cur||0)+1))
+    .catch(e=>{
+      console.warn('registrarInspecao (feedback) falhou (tentativa '+tentativa+'):', e);
+      if(tentativa < 3){
+        setTimeout(()=>registrarInspecao(mes, tentativa+1), 1500*tentativa);
+      } else {
+        try{
+          const pend = JSON.parse(localStorage.getItem('esc_insp_pendentes')||'[]');
+          pend.push({mes, ts:new Date().toISOString()});
+          localStorage.setItem('esc_insp_pendentes', JSON.stringify(pend));
+        }catch(e2){}
+      }
+    });
 }
 
 function saveToFirebase() {
@@ -1299,7 +1323,7 @@ function selectFromSearch(name, teamId){
 <!-- Firebase — carregado após script principal -->
 <script type="module">
   import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import{getDatabase,ref,set,get,onValue}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import{getDatabase,ref,set,get,onValue,runTransaction}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
   const cfg={
     apiKey:"AIzaSyDP74FugIertZsbbi-LjUeNowEfWPqnmHo",
     authDomain:"escudo-in-haus.firebaseapp.com",
@@ -1311,7 +1335,7 @@ function selectFromSearch(name, teamId){
   };
   try{
     const app=initializeApp(cfg);const db=getDatabase(app);
-    window.$FB={db,ref,set,get,onValue};
+    window.$FB={db,ref,set,get,onValue,runTransaction};
     if(typeof window._onFbReady==='function') window._onFbReady();
   }catch(e){console.error('Firebase:',e);}
 </script>
