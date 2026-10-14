@@ -357,9 +357,9 @@ function setSP(st, msg) {
     dot.className = 'ldot' + (st==='ok' ? '' : ' off');
     document.getElementById('ltxt').textContent =
       st==='ok' ? (isDemo ? 'Modo demonstração' : (() => {
-      const insp  = Object.values(INSP_COUNTS).reduce((s,v) => s + (v||0), 0);
+      const insp  = TOTAL_APRESENTACAO_INSP;
       const ideias = Object.keys(S_BONUS).length;
-      const desc   = Object.values(DESC_COUNTS).reduce((s,v) => s + (v||0), 0);
+      const desc   = Object.values(DESC_COUNTS).reduce((s,v) => s + (v||0), 0) || Object.keys(S_DESC).length;
       const total  = insp + ideias + desc;
       return `${total} lançamentos · ${insp} inspeções · ${ideias} ideias · ${desc} descontos`;
     })())
@@ -570,9 +570,11 @@ function buildStats(data) {
     : Object.keys(S_BONUS).length;
 
   // Descontos — 1 por lançamento, não por pessoa atingida no lançamento
+  // (meses sem contador real ainda caem para a contagem antiga como aproximação —
+  // mesmo ajuste temporário aplicado às inspeções acima)
   const totalDesc = curMes >= 0
-    ? (DESC_COUNTS[curMes] || 0)
-    : Object.values(DESC_COUNTS).reduce((s,v) => s + (v||0), 0);
+    ? (DESC_COUNTS[curMes] || Object.keys(S_DESC).filter(k => k.endsWith('__'+curMes)).length)
+    : (Object.values(DESC_COUNTS).reduce((s,v) => s + (v||0), 0) || Object.keys(S_DESC).length);
 
   document.getElementById('st-av').textContent = totalInsp;
   document.getElementById('st-id').textContent = totalIdeias;
