@@ -256,6 +256,23 @@ input:checked+.tgl-track::before{transform:translateX(18px);}
     <button class="back-btn" onclick="goS(1)">← Voltar</button>
     <div class="sec-title">Profissional</div>
     <div class="sec-sub">Selecione quem será avaliado.</div>
+    
+    <!-- BUSCA GLOBAL DE PROFISSIONAL -->
+    <div id="search-wrap" style="margin-bottom:.9rem;">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--ink3);margin-bottom:6px;">🔍 Buscar profissional (todas as equipes)</div>
+      <div style="display:flex;align-items:center;gap:8px;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--rsm);padding:9px 12px;transition:border-color .2s;" onfocusin="this.style.borderColor='var(--navy)'" onfocusout="this.style.borderColor=''">
+        <span style="font-size:16px;">🔍</span>
+        <input type="text" id="search-input"
+          placeholder="Digite o nome para buscar…"
+          oninput="searchQuery=this.value;renderSearch();"
+          autocomplete="off"
+          style="flex:1;border:none;background:transparent;color:var(--ink);font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:500;outline:none;"/>
+        <span id="search-clear" onclick="document.getElementById('search-input').value='';searchQuery='';renderSearch();" style="cursor:pointer;color:var(--ink3);font-size:14px;display:none;">✕</span>
+      </div>
+      <div id="search-results" style="margin-top:6px;max-height:280px;overflow-y:auto;"></div>
+    </div>
+    <div style="font-size:11px;color:var(--ink3);margin-bottom:.6rem;text-align:center;letter-spacing:.5px;">— ou selecione pela equipe abaixo —</div>
+
     <div id="mem-grid-wrap"></div>
     <button class="btn btn-navy" onclick="goS(3)">Próximo — Preencher avaliação →</button>
   </div>
@@ -557,7 +574,6 @@ function goS(n){
       S[safeNInsp+'§'+avMonth]=vals;
     });
     saveToFirebase();
-    registrarInspecao(avMonth); // 1 inspeção por visita, não por pessoa avaliada
     const avg=nums.reduce((a,b)=>a+b,0)/nums.length;
     const naCount=crits.filter(cr=>avS[cr.k]==='na').length;
     const mainInfo=getMemberInfo();
@@ -578,16 +594,6 @@ function saveAv(){goS(4);}
 function sanitizeFbKey(name, mes) {
   const safe = (name||'').replace(/[ .#$§\[\]]/g,'_');
   return safe + '__' + mes;
-}
-
-// Conta 1 inspeção por VISITA/registro salvo — mesmo quando várias pessoas
-// são avaliadas de uma vez (multi-seleção), continua contando como 1 só.
-function registrarInspecao(mes){
-  if(!window.$FB || !window.$FB.runTransaction) return;
-  try{
-    const {db,ref,runTransaction} = window.$FB;
-    runTransaction(ref(db,'escudo/inspecoesPorMes/'+mes), cur => (cur||0)+1);
-  }catch(e){}
 }
 
 function saveToFirebase(){
@@ -679,15 +685,90 @@ updateProgress();
 </script>
 
 <!-- Firebase — carregado após script principal -->
+<script>
+
+// ── BUSCA GLOBAL ──
+let searchQuery = '';
+
+function getAllMembers(){
+  const all = [];
+  Object.values(T).forEach(team=>{
+    if(!team) return;
+    all.push({n:team.enc.n, c:team.enc.c+' (Encarregado)', teamId:team.id, teamLabel:team.label, color:team.color, key:'enc'});
+    (team.members||[]).forEach((m,i)=>{
+      all.push({n:m.n, c:m.c, teamId:team.id, teamLabel:team.label, color:team.color, key:String(i)});
+    });
+  });
+  return all;
+}
+
+function renderSearch(){
+  const q = (searchQuery||'').trim().toLowerCase();
+  const wrap = document.getElementById('search-results');
+  const clr  = document.getElementById('search-clear');
+  if(clr) clr.style.display = q ? 'block' : 'none';
+  if(!wrap) return;
+  if(!q){ wrap.innerHTML=''; return; }
+
+  const found = getAllMembers().filter(m=>
+    (m.n||'').toLowerCase().includes(q) ||
+    (m.c||'').toLowerCase().includes(q) ||
+    (m.teamLabel||'').toLowerCase().includes(q)
+  );
+
+  if(!found.length){
+    wrap.innerHTML='<div style="text-align:center;padding:.8rem;font-size:12px;color:var(--ink3);">Nenhum profissional encontrado.</div>';
+    return;
+  }
+
+  const ini = n=>(n||'?').split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
+
+  wrap.innerHTML = found.slice(0,20).map(m=>{
+    const isSel = Array.isArray(selMbs) && selMbs.some(s=>s.name===m.n);
+    return '<div onclick="selectFromSearch('+JSON.stringify(m.n)+','+JSON.stringify(m.teamId)+','+JSON.stringify(m.key)+')" style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:#fff;border:1.5px solid '+(isSel?'var(--navy)':'var(--border)')+';border-radius:var(--rsm);margin-bottom:6px;cursor:pointer;transition:all .15s;">'
+      +'<div style="width:34px;height:34px;border-radius:50%;background:'+m.color+';display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;flex-shrink:0;">'+ini(m.n)+'</div>'
+      +'<div style="flex:1;min-width:0;">'
+        +'<div style="font-size:12px;font-weight:700;text-transform:uppercase;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+m.n+'</div>'
+        +'<div style="font-size:10px;color:var(--ink3);">'+m.teamLabel+' · '+m.c+'</div>'
+      +'</div>'
+      +(isSel?'<span style="color:var(--navy);font-weight:800;font-size:13px;">✓</span>':'')
+      +'</div>';
+  }).join('');
+}
+
+function selectFromSearch(name, teamId, key){
+  const team = T[teamId];
+  if(!team) return;
+  const cargo = key==='enc' ? team.enc.c : ((team.members||[])[parseInt(key)]||{}).c||'';
+  const mbObj = {name:name, cargo:cargo, teamId:teamId, teamLabel:team.label, teamColor:team.color};
+
+  if(!Array.isArray(selMbs)) selMbs=[];
+  const existIdx = selMbs.findIndex(s=>s.name===name);
+  if(existIdx===-1){ selMbs.push(mbObj); }
+  else { selMbs.splice(existIdx,1); }
+  selMb = selMbs.length ? selMbs[selMbs.length-1] : null;
+
+  // Atualizar contador
+  const cnt = document.getElementById('sel-count');
+  if(cnt){
+    if(selMbs.length>1){ cnt.textContent=selMbs.length+' profissionais selecionados'; cnt.style.display='block'; }
+    else { cnt.style.display='none'; }
+  }
+  renderSearch();
+  buildMemGrid();
+}
+
+</script>
+
 <script type="module">
   import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import{getDatabase,ref,set,get,onValue,runTransaction}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import{getDatabase,ref,set,get,onValue}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
   const cfg={apiKey:"AIzaSyDP74FugIertZsbbi-LjUeNowEfWPqnmHo",authDomain:"escudo-in-haus.firebaseapp.com",
     databaseURL:"https://escudo-in-haus-default-rtdb.firebaseio.com",projectId:"escudo-in-haus",
     storageBucket:"escudo-in-haus.firebasestorage.app",messagingSenderId:"961467182857",
     appId:"1:961467182857:web:1458526eca1e78fddf6dd8"};
   try{const app=initializeApp(cfg);const db=getDatabase(app);
-    window.$FB={db,ref,set,get,onValue,runTransaction};
+    window.$FB={db,ref,set,get,onValue};
     if(typeof window._onFbReady==='function')window._onFbReady();
   }catch(e){console.error('Firebase:',e);}
 </script>
