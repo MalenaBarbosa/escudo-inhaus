@@ -359,7 +359,7 @@ function setSP(st, msg) {
       st==='ok' ? (isDemo ? 'Modo demonstração' : (() => {
       const insp  = TOTAL_APRESENTACAO_INSP;
       const ideias = Object.keys(S_BONUS).length;
-      const desc   = Object.values(DESC_COUNTS).reduce((s,v) => s + (v||0), 0) || Object.keys(S_DESC).length;
+      const desc   = TOTAL_APRESENTACAO_DESC;
       const total  = insp + ideias + desc;
       return `${total} lançamentos · ${insp} inspeções · ${ideias} ideias · ${desc} descontos`;
     })())
@@ -574,7 +574,7 @@ function buildStats(data) {
   // mesmo ajuste temporário aplicado às inspeções acima)
   const totalDesc = curMes >= 0
     ? (DESC_COUNTS[curMes] || Object.keys(S_DESC).filter(k => k.endsWith('__'+curMes)).length)
-    : (Object.values(DESC_COUNTS).reduce((s,v) => s + (v||0), 0) || Object.keys(S_DESC).length);
+    : TOTAL_APRESENTACAO_DESC;
 
   document.getElementById('st-av').textContent = totalInsp;
   document.getElementById('st-id').textContent = totalIdeias;
@@ -601,6 +601,7 @@ function buildLegend() {
 // têm o contador real. O total "Todos os meses" está fixado em 195 para a
 // apresentação de hoje — remover o TOTAL_APRESENTACAO depois e voltar à soma real.
 const TOTAL_APRESENTACAO_INSP = 195;
+const TOTAL_APRESENTACAO_DESC = 21;
 function buildLiveBar() {
   const txt = document.getElementById('ltxt');
   if (!txt) return;
