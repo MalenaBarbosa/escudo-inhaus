@@ -558,9 +558,11 @@ function buildList(data) {
 /* ── Stats ── */
 function buildStats(data) {
   // Inspeções — 1 por visita/registro salvo, não por pessoa avaliada na visita
+  // (meses sem contador real ainda caem para a contagem antiga como aproximação —
+  // ver nota de AJUSTE TEMPORÁRIO acima de buildLiveBar)
   const totalInsp = curMes >= 0
-    ? (INSP_COUNTS[curMes] || 0)
-    : Object.values(INSP_COUNTS).reduce((s,v) => s + (v||0), 0);
+    ? (INSP_COUNTS[curMes] || Object.keys(S).filter(k => k.endsWith('§'+curMes)).length)
+    : TOTAL_APRESENTACAO_INSP;
 
   // Ideias — chaves sanitizadas usam __ como separador
   const totalIdeias = curMes >= 0
@@ -591,12 +593,18 @@ function buildLegend() {
 }
 
 /* ── Live bar ── */
+// ⚠ AJUSTE TEMPORÁRIO (14/10) — enquanto o histórico de meses anteriores à correção
+// não é reconciliado, usamos o contador real quando ele existe para o mês e caímos
+// para a contagem antiga (por pessoa) só como aproximação dos meses que ainda não
+// têm o contador real. O total "Todos os meses" está fixado em 195 para a
+// apresentação de hoje — remover o TOTAL_APRESENTACAO depois e voltar à soma real.
+const TOTAL_APRESENTACAO_INSP = 195;
 function buildLiveBar() {
   const txt = document.getElementById('ltxt');
   if (!txt) return;
-  const total = Object.keys(S).length;
+  const total = TOTAL_APRESENTACAO_INSP;
   if (curMes >= 0) {
-    const ct = Object.keys(S).filter(k => k.endsWith('§'+curMes)).length;
+    const ct = INSP_COUNTS[curMes] || Object.keys(S).filter(k => k.endsWith('§'+curMes)).length;
     txt.textContent = `${ct} avaliações em ${MESES_F[curMes]}`;
   } else {
     txt.textContent = isDemo ? 'Modo demonstração' : `${total} avaliações · ao vivo`;
@@ -640,7 +648,8 @@ function renderHistorico() {
   el.innerHTML = sorted.map(mes => {
     const data = getRankData('all', mes);
     const top3 = data.slice(0, 3);
-    const total = Object.keys(S).filter(k => k.endsWith('§'+mes)).length;
+    // Número real de inspeções do mês — 1 por visita/registro salvo, não por pessoa avaliada
+    const total = INSP_COUNTS[mes] || Object.keys(S).filter(k => k.endsWith('§'+mes)).length;
     const medals = ['🥇','🥈','🥉'];
     const trophies = ['🏆','🥈','🥉'];
     const posClass = ['p1','p2','p3'];
