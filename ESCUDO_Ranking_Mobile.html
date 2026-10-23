@@ -289,6 +289,7 @@ let S_BONUS = {};   // bônus ideias de valor
 let S_DESC  = {};   // descontos (absenteísmo / NC)
 let INSP_COUNTS = {}; // nº de inspeções (visitas) por mês — 1 por registro salvo, não por pessoa avaliada
 let DESC_COUNTS = {}; // nº de descontos (lançamentos) por mês — 1 por registro salvo, não por pessoa atingida
+let IDEIAS_COUNTS = {}; // nº de ideias (lançamentos) por mês — 1 por registro salvo, não por pessoa envolvida
 let isDemo  = true;
 let curEq   = 'all';   // filtro equipe
 let curMes  = -1;      // -1 = todos os meses
@@ -358,7 +359,7 @@ function setSP(st, msg) {
     document.getElementById('ltxt').textContent =
       st==='ok' ? (isDemo ? 'Modo demonstração' : (() => {
       const insp  = TOTAL_APRESENTACAO_INSP;
-      const ideias = Object.keys(S_BONUS).length;
+      const ideias = Object.values(IDEIAS_COUNTS).reduce((s,v) => s + (v||0), 0) || Object.keys(S_BONUS).length;
       const desc   = TOTAL_APRESENTACAO_DESC;
       const total  = insp + ideias + desc;
       return `${total} lançamentos · ${insp} inspeções · ${ideias} ideias · ${desc} descontos`;
@@ -564,10 +565,11 @@ function buildStats(data) {
     ? (INSP_COUNTS[curMes] || Object.keys(S).filter(k => k.endsWith('§'+curMes)).length)
     : TOTAL_APRESENTACAO_INSP;
 
-  // Ideias — chaves sanitizadas usam __ como separador
+  // Ideias — 1 por lançamento, não por pessoa envolvida na ideia
+  // (meses sem contador real ainda caem para a contagem antiga por pessoa como aproximação)
   const totalIdeias = curMes >= 0
-    ? Object.keys(S_BONUS).filter(k => k.endsWith('__'+curMes)).length
-    : Object.keys(S_BONUS).length;
+    ? (IDEIAS_COUNTS[curMes] || Object.keys(S_BONUS).filter(k => k.endsWith('__'+curMes)).length)
+    : (Object.values(IDEIAS_COUNTS).reduce((s,v) => s + (v||0), 0) || Object.keys(S_BONUS).length);
 
   // Descontos — 1 por lançamento, não por pessoa atingida no lançamento
   // (meses sem contador real ainda caem para a contagem antiga como aproximação —
@@ -754,6 +756,8 @@ window._onFbReady = async () => {
     if (sinsp.exists()) INSP_COUNTS = sinsp.val();
     const sdesc = await get(ref(db, 'escudo/descontosPorMes'));
     if (sdesc.exists()) DESC_COUNTS = sdesc.val();
+    const sideias = await get(ref(db, 'escudo/ideiasPorMes'));
+    if (sideias.exists()) IDEIAS_COUNTS = sideias.val();
     setSP('ok', '● Ao vivo');
     render();
     if (curTab === 'historico') renderHistorico();
@@ -789,6 +793,10 @@ window._onFbReady = async () => {
     });
     onValue(ref(db, 'escudo/descontosPorMes'), snap => {
       DESC_COUNTS = snap.exists() ? snap.val() : {};
+      render();
+    });
+    onValue(ref(db, 'escudo/ideiasPorMes'), snap => {
+      IDEIAS_COUNTS = snap.exists() ? snap.val() : {};
       render();
     });
   } catch(e) {
