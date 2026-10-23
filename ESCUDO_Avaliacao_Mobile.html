@@ -574,7 +574,6 @@ function goS(n){
       S[safeNInsp+'§'+avMonth]=vals;
     });
     saveToFirebase();
-    registrarInspecao(avMonth); // 1 inspeção por visita, não por pessoa avaliada
     const avg=nums.reduce((a,b)=>a+b,0)/nums.length;
     const naCount=crits.filter(cr=>avS[cr.k]==='na').length;
     const mainInfo=getMemberInfo();
@@ -595,29 +594,6 @@ function saveAv(){goS(4);}
 function sanitizeFbKey(name, mes) {
   const safe = (name||'').replace(/[ .#$§\[\]]/g,'_');
   return safe + '__' + mes;
-}
-
-// Conta 1 inspeção por VISITA/registro salvo — mesmo quando várias pessoas
-// são avaliadas de uma vez (multi-seleção), continua contando como 1 só.
-function registrarInspecao(mes, tentativa){
-  tentativa = tentativa || 1;
-  if(!window.$FB || !window.$FB.runTransaction) return;
-  const {db,ref,runTransaction} = window.$FB;
-  // runTransaction é assíncrono — precisa de .catch, um try/catch síncrono
-  // não pega erro de rede/Firebase e o incremento se perde sem avisar.
-  Promise.resolve(runTransaction(ref(db,'escudo/inspecoesPorMes/'+mes), cur => (cur||0)+1))
-    .catch(e=>{
-      console.warn('registrarInspecao falhou (tentativa '+tentativa+'):', e);
-      if(tentativa < 3){
-        setTimeout(()=>registrarInspecao(mes, tentativa+1), 1500*tentativa);
-      } else {
-        try{
-          const pend = JSON.parse(localStorage.getItem('esc_insp_pendentes')||'[]');
-          pend.push({mes, ts:new Date().toISOString()});
-          localStorage.setItem('esc_insp_pendentes', JSON.stringify(pend));
-        }catch(e2){}
-      }
-    });
 }
 
 function saveToFirebase(){
@@ -786,13 +762,13 @@ function selectFromSearch(name, teamId, key){
 
 <script type="module">
   import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import{getDatabase,ref,set,get,onValue,runTransaction}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import{getDatabase,ref,set,get,onValue}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
   const cfg={apiKey:"AIzaSyDP74FugIertZsbbi-LjUeNowEfWPqnmHo",authDomain:"escudo-in-haus.firebaseapp.com",
     databaseURL:"https://escudo-in-haus-default-rtdb.firebaseio.com",projectId:"escudo-in-haus",
     storageBucket:"escudo-in-haus.firebasestorage.app",messagingSenderId:"961467182857",
     appId:"1:961467182857:web:1458526eca1e78fddf6dd8"};
   try{const app=initializeApp(cfg);const db=getDatabase(app);
-    window.$FB={db,ref,set,get,onValue,runTransaction};
+    window.$FB={db,ref,set,get,onValue};
     if(typeof window._onFbReady==='function')window._onFbReady();
   }catch(e){console.error('Firebase:',e);}
 </script>
