@@ -858,27 +858,6 @@ function goS(n){
   curStep=typeof n==='number'?n:3;updateProgress();window.scrollTo(0,0);
 }
 
-/* Conta 1 desconto por LANÇAMENTO/registro salvo — mesmo quando aplicado
-   a vários profissionais de uma vez (multi-seleção), continua contando como 1 só. */
-function registrarDesconto(mes, tentativa){
-  tentativa = tentativa || 1;
-  if(!window.$FB || !window.$FB.runTransaction) return;
-  const {db,ref,runTransaction} = window.$FB;
-  Promise.resolve(runTransaction(ref(db,'escudo/descontosPorMes/'+mes), cur => (cur||0)+1))
-    .catch(e=>{
-      console.warn('registrarDesconto falhou (tentativa '+tentativa+'):', e);
-      if(tentativa < 3){
-        setTimeout(()=>registrarDesconto(mes, tentativa+1), 1500*tentativa);
-      } else {
-        try{
-          const pend = JSON.parse(localStorage.getItem('esc_desc_pendentes')||'[]');
-          pend.push({mes, ts:new Date().toISOString()});
-          localStorage.setItem('esc_desc_pendentes', JSON.stringify(pend));
-        }catch(e2){}
-      }
-    });
-}
-
 /* SALVAR */
 function saveAv(){
   const ptsFaltas=absAtivo?numFaltas*PONTO_FALTA:0;
@@ -906,7 +885,6 @@ function saveAv(){
   };
   }); // end targets_desc.forEach
   saveToFirebase();
-  registrarDesconto(avMonth); // 1 desconto por lançamento, não por pessoa selecionada
   document.getElementById('succ-pts').textContent='−'+fmt(total);
   document.getElementById('succ-nm').textContent=selMb.name;
   document.getElementById('succ-team').textContent=selMb.teamLabel+' · '+selMb.cargo;
@@ -1136,13 +1114,13 @@ function selectFromSearch(name, teamId, key){
 
 <script type="module">
   import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import{getDatabase,ref,set,get,onValue,runTransaction}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import{getDatabase,ref,set,get,onValue}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
   const cfg={apiKey:"AIzaSyDP74FugIertZsbbi-LjUeNowEfWPqnmHo",authDomain:"escudo-in-haus.firebaseapp.com",
     databaseURL:"https://escudo-in-haus-default-rtdb.firebaseio.com",projectId:"escudo-in-haus",
     storageBucket:"escudo-in-haus.firebasestorage.app",messagingSenderId:"961467182857",
     appId:"1:961467182857:web:1458526eca1e78fddf6dd8"};
   try{const app=initializeApp(cfg);const db=getDatabase(app);
-    window.$FB={db,ref,set,get,onValue,runTransaction};
+    window.$FB={db,ref,set,get,onValue};
     if(typeof window._onFbReady==='function')window._onFbReady();
   }catch(e){console.error(e);}
 </script>
