@@ -778,6 +778,28 @@ function goS(n){
   curStep=typeof n==='number'?n:3;updateProgress();window.scrollTo(0,0);
 }
 
+// Conta 1 ideia por LANÇAMENTO salvo — mesmo quando várias pessoas estão
+// envolvidas na mesma ideia implementada (multi-seleção), continua contando
+// como 1 só. A pontuação em si continua sendo replicada para cada envolvido.
+function registrarIdeia(mes, tentativa){
+  tentativa = tentativa || 1;
+  if(!window.$FB || !window.$FB.runTransaction) return;
+  const {db,ref,runTransaction} = window.$FB;
+  Promise.resolve(runTransaction(ref(db,'escudo/ideiasPorMes/'+mes), cur => (cur||0)+1))
+    .catch(e=>{
+      console.warn('registrarIdeia falhou (tentativa '+tentativa+'):', e);
+      if(tentativa < 3){
+        setTimeout(()=>registrarIdeia(mes, tentativa+1), 1500*tentativa);
+      } else {
+        try{
+          const pend = JSON.parse(localStorage.getItem('esc_ideia_pendentes')||'[]');
+          pend.push({mes, ts:new Date().toISOString()});
+          localStorage.setItem('esc_ideia_pendentes', JSON.stringify(pend));
+        }catch(e2){}
+      }
+    });
+}
+
 /* SALVAR */
 function saveAv(){
   const total=counts.sst+counts.ma;
@@ -789,18 +811,19 @@ function saveAv(){
   targets_id.forEach(mb=>{
   const key=mb.name+'§'+avMonth;
   FB_IDEIAS[key]={
-    name:selMb.name,
+    name:mb.name,
     sst:counts.sst,ma:counts.ma,total,
     ideiasTexto:{sst:[...ideiasTexto.sst],ma:[...ideiasTexto.ma]},
     avaliador:document.getElementById('av-aval').value,
-    team:selMb.teamLabel,teamId:selMb.teamId,cargo:selMb.cargo,
+    team:mb.teamLabel,teamId:mb.teamId,cargo:mb.cargo,
     mes:avMonth,ts:new Date().toISOString()
   };
   }); // end targets_id.forEach
+  registrarIdeia(avMonth); // 1 ideia por lançamento, não por pessoa envolvida
   saveToFirebase();
   document.getElementById('succ-pts').textContent='+'+total;
-  document.getElementById('succ-nm').textContent=selMb.name;
-  document.getElementById('succ-team').textContent=selMb.teamLabel+' · '+selMb.cargo;
+  document.getElementById('succ-nm').textContent=targets_id.length>1 ? targets_id.length+' profissionais envolvidos' : selMb.name;
+  document.getElementById('succ-team').textContent=targets_id.length>1 ? targets_id.map(m=>m.name).join(', ') : selMb.teamLabel+' · '+selMb.cargo;
   const badges=[];
   if(counts.sst>0)badges.push(`<span class="sbadge sbadge-sst">🦺 ${counts.sst} SST</span>`);
   if(counts.ma>0)badges.push(`<span class="sbadge sbadge-ma">🌿 ${counts.ma} MA</span>`);
@@ -1022,13 +1045,13 @@ function selectFromSearch(name, teamId, key){
 
 <script type="module">
   import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import{getDatabase,ref,set,get,onValue}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+  import{getDatabase,ref,set,get,onValue,runTransaction}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
   const cfg={apiKey:"AIzaSyDP74FugIertZsbbi-LjUeNowEfWPqnmHo",authDomain:"escudo-in-haus.firebaseapp.com",
     databaseURL:"https://escudo-in-haus-default-rtdb.firebaseio.com",projectId:"escudo-in-haus",
     storageBucket:"escudo-in-haus.firebasestorage.app",messagingSenderId:"961467182857",
     appId:"1:961467182857:web:1458526eca1e78fddf6dd8"};
   try{const app=initializeApp(cfg);const db=getDatabase(app);
-    window.$FB={db,ref,set,get,onValue};
+    window.$FB={db,ref,set,get,onValue,runTransaction};
     if(typeof window._onFbReady==='function')window._onFbReady();
   }catch(e){console.error(e);}
 </script>
