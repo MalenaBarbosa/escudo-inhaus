@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ESCUDO — Programa de Reconhecimento em Segurança</title>
+<style>
+:root{--navy:#1e3a5f;--navy2:#0d1b2a;--gold:#d97706;--gold2:#fbbf24;--bg:#eef1f6;--ink3:#8ea8c0;}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;background:var(--navy2);font-family:Arial,Helvetica,sans-serif;}
+body{display:flex;flex-direction:column;height:100dvh;}
+.top{flex:0 0 auto;background:var(--navy2);color:#fff;display:flex;align-items:center;gap:10px;padding:8px 14px;padding-top:calc(8px + env(safe-area-inset-top));border-bottom:2px solid var(--gold);}
+.top .logo{font-size:18px}
+.top b{font-size:13px;letter-spacing:2px;color:var(--gold2)}
+.top small{font-size:9px;color:var(--ink3);letter-spacing:1px;margin-left:auto}
+.stage{flex:1 1 auto;position:relative;background:var(--bg);min-height:0}
+.stage iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:none;background:var(--bg)}
+.stage iframe.on{display:block}
+.nav{flex:0 0 auto;display:grid;grid-template-columns:repeat(6,1fr);background:var(--navy2);border-top:1px solid #2a4a70;padding-bottom:env(safe-area-inset-bottom)}
+.nav button{background:none;border:0;color:var(--ink3);padding:8px 2px 7px;font-size:9px;font-weight:700;letter-spacing:.4px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;text-transform:uppercase}
+.nav button .i{font-size:18px;line-height:1}
+.nav button.on{color:var(--gold2);box-shadow:inset 0 2px 0 var(--gold)}
+</style>
+</head>
+<body>
+<div class="top"><span class="logo">🛡️</span><b>ESCUDO</b><small id="ver">In-Haus · Samarco</small></div>
+<div class="stage" id="stage"></div>
+<nav class="nav" id="nav"></nav>
+
+<script>
+// Um único endereço para o programa inteiro. Cada aba carrega a tela só no primeiro uso.
+const TELAS = [
+  {id:'ranking',  nome:'Ranking',   ico:'🏆', src:'ESCUDO_Ranking_Mobile.html'},
+  {id:'equipes',  nome:'Equipes',   ico:'👥', src:'ESCUDO_Ranking_Equipes.html'},
+  {id:'avaliar',  nome:'Avaliar',   ico:'✅', src:'ESCUDO_Avaliacao_Mobile.html'},
+  {id:'feedback', nome:'Feedback',  ico:'💬', src:'ESCUDO_Feedback_Planejamento.html'},
+  {id:'ideias',   nome:'Ideias',    ico:'💡', src:'ESCUDO_Ideias_Valor.html'},
+  {id:'descontos',nome:'Descontos', ico:'⚠️', src:'ESCUDO_Desconto_Pontos.html'},
+];
+const stage = document.getElementById('stage'), nav = document.getElementById('nav');
+const frames = {};
+function abrir(id){
+  const t = TELAS.find(x=>x.id===id) || TELAS[0];
+  if(!frames[t.id]){
+    const f = document.createElement('iframe');
+    f.title = t.nome; f.src = t.src; stage.appendChild(f); frames[t.id] = f;
+  }
+  Object.entries(frames).forEach(([k,f])=>f.classList.toggle('on', k===t.id));
+  [...nav.children].forEach(b=>b.classList.toggle('on', b.dataset.id===t.id));
+  try{ history.replaceState(null,'','#'+t.id); }catch(e){}
+}
+TELAS.forEach(t=>{
+  const b = document.createElement('button');
+  b.dataset.id = t.id; b.innerHTML = '<span class="i">'+t.ico+'</span>'+t.nome;
+  b.onclick = ()=>abrir(t.id); nav.appendChild(b);
+});
+abrir(location.hash.replace('#',''));
+</script>
+<script src="escudo-core.js"></script>
+<script>document.getElementById('ver').textContent = 'In-Haus · Samarco · ' + ESCUDO.VERSION;</script>
+</body>
+</html>
