@@ -311,6 +311,7 @@ input:checked+.tgl-track::before{transform:translateX(18px);}
   <span class="sync-txt-s" id="sync-txt">Conectando ao Firebase…</span>
 </div>
 
+<script src="escudo-core.js"></script>
 <script>
 /* ══════════════════════════════════════════
    ESCUDO — Avaliação em Campo
@@ -575,6 +576,15 @@ function goS(n){
     });
     saveToFirebase();
     const avg=nums.reduce((a,b)=>a+b,0)/nums.length;
+    // V0: 1 lançamento por inspeção (id fixo por preenchimento → toque duplo não duplica)
+    window.__subId = window.__subId || ESCUDO.newId();
+    ESCUDO.log({
+      id:window.__subId, tipo:'inspecao', mes:avMonth, equipe:tid,
+      avaliador:document.getElementById('av-aval').value,
+      local:document.getElementById('av-local').value,
+      pessoas:targets.map(key=> key==='enc' ? t.enc.n : t.members[parseInt(key)].n),
+      notas:nums, nota:avg
+    });
     const naCount=crits.filter(cr=>avS[cr.k]==='na').length;
     const mainInfo=getMemberInfo();
     document.getElementById('succ-score').textContent=avg.toFixed(1);
@@ -621,7 +631,7 @@ function saveToFirebase(){
 }
 
 function resetAv(){
-  avS={}; selMb=null;
+  avS={}; selMb=null; selMbs=[]; window.__subId=null;
   document.getElementById('av-eq').value='';
   document.getElementById('av-aval').value='';
   document.getElementById('av-local').value='';
