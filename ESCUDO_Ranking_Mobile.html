@@ -256,6 +256,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
   <div class="footer">In-Haus Industrial · Samarco Mineração<br>Programa ESCUDO · Histórico de reconhecimentos</div>
 </div>
 
+<script src="escudo-core.js"></script>
 <script>
 /* ══════════════════════════════════════════
    ESCUDO — Ranking Mobile
@@ -289,7 +290,8 @@ let S_BONUS = {};   // bônus ideias de valor
 let S_DESC  = {};   // descontos (absenteísmo / NC)
 let INSP_COUNTS = {}; // nº de inspeções (visitas) por mês — 1 por registro salvo, não por pessoa avaliada
 let DESC_COUNTS = {}; // nº de descontos (lançamentos) por mês — 1 por registro salvo, não por pessoa atingida
-let IDEIAS_COUNTS = {}; // nº de ideias (lançamentos) por mês — 1 por registro salvo, não por pessoa envolvida
+let LANC = {};          // V0: lançamentos (1 por formulário salvo) — fonte dos totais e da média
+let IDEIAS_VALOR = {};  // legado: cópias por pessoa das ideias (agrupadas para achar o nº real)
 let isDemo  = true;
 let curEq   = 'all';   // filtro equipe
 let curMes  = -1;      // -1 = todos os meses
@@ -358,11 +360,9 @@ function setSP(st, msg) {
     dot.className = 'ldot' + (st==='ok' ? '' : ' off');
     document.getElementById('ltxt').textContent =
       st==='ok' ? (isDemo ? 'Modo demonstração' : (() => {
-      const insp  = TOTAL_APRESENTACAO_INSP;
-      const ideias = Object.values(IDEIAS_COUNTS).reduce((s,v) => s + (v||0), 0) || Object.keys(S_BONUS).length;
-      const desc   = TOTAL_APRESENTACAO_DESC;
-      const total  = insp + ideias + desc;
-      return `${total} lançamentos · ${insp} inspeções · ${ideias} ideias · ${desc} descontos`;
+      const st2 = statsAtuais(-1);
+      const total = st2.insp + st2.ideias + st2.desc;
+      return `${total} lançamentos · ${st2.insp} inspeções · ${st2.ideias} ideias · ${st2.desc} descontos`;
     })())
       : st==='w' ? 'Conectando ao Firebase…' : 'Offline — dados locais';
   }
@@ -387,15 +387,9 @@ function getRankData(eqFilter, mesFilter) {
       if (!m || !m.n) return;
       if (eqFilter !== 'all' && t.id !== eqFilter) return;
 
-      // Busca scores de inspeção — usa nome sanitizado para compatibilidade com Firebase
-      const safeNInsp = (m.n||'').replace(/[ .#$§\[\]]/g,'_');
-      let keys;
-      if (mesFilter >= 0) {
-        const k = safeNInsp + '§' + mesFilter;
-        keys = S[k] ? [k] : [];
-      } else {
-        keys = Object.keys(S).filter(k => k.startsWith(safeNInsp + '§'));
-      }
+      // Notas de inspeção — V0: 1 amostra por lançamento (cai no legado se não houver)
+      const un = ESCUDO.unidadesPessoa(m.n, mesFilter, LANC, S);
+      const keys = un.n ? new Array(un.n).fill(0) : [];
 
       // Bônus de ideias de valor — busca por chave sanitizada
       const safeN = (m.n||'').replace(/[ .#$§\[\]]/g,'_');
@@ -414,7 +408,7 @@ function getRankData(eqFilter, mesFilter) {
       if (!keys.length && totalBonus === 0 && totalDesc === 0) return;
 
       // Média bruta das inspeções (0 se não houver)
-      const inspNums = keys.flatMap(k => (S[k]||[]).filter(v => v != null && v > 0));
+      const inspNums = un.nums;
       const baseAvg  = inspNums.length ? inspNums.reduce((a,b) => a+b,0) / inspNums.length : 0;
       const nInsp    = keys.length; // número de inspeções
 
@@ -465,6 +459,7 @@ function getMesesComDados() {
     const parts = k.split('§');
     if (parts.length === 2) meses.add(parseInt(parts[1]));
   });
+  ESCUDO.eventos(LANC).forEach(e => { if (ESCUDO.isInsp(e)) meses.add(parseInt(e.mes, 10)); });
   return [...meses].sort((a,b) => a-b);
 }
 
@@ -556,36 +551,22 @@ function buildList(data) {
   }).join('');
 }
 
-/* ── Stats ── */
+/* ── Stats (V0) — tudo vem do núcleo escudo-core.js ── */
+function statsAtuais(mes, nomes) {
+  return ESCUDO.stats({
+    lancs: LANC, mes: mes, S: S, S_BONUS: S_BONUS, S_DESC: S_DESC,
+    ideiasValor: IDEIAS_VALOR, counters: { insp: INSP_COUNTS, desc: DESC_COUNTS }, nomes: nomes
+  });
+}
 function buildStats(data) {
-  // Inspeções — 1 por visita/registro salvo, não por pessoa avaliada na visita
-  // (meses sem contador real ainda caem para a contagem antiga como aproximação —
-  // ver nota de AJUSTE TEMPORÁRIO acima de buildLiveBar)
-  const totalInsp = curMes >= 0
-    ? (INSP_COUNTS[curMes] || Object.keys(S).filter(k => k.endsWith('§'+curMes)).length)
-    : TOTAL_APRESENTACAO_INSP;
-
-  // Ideias — 1 por lançamento, não por pessoa envolvida na ideia
-  // (meses sem contador real ainda caem para a contagem antiga por pessoa como aproximação)
-  const totalIdeias = curMes >= 0
-    ? (IDEIAS_COUNTS[curMes] || Object.keys(S_BONUS).filter(k => k.endsWith('__'+curMes)).length)
-    : (Object.values(IDEIAS_COUNTS).reduce((s,v) => s + (v||0), 0) || Object.keys(S_BONUS).length);
-
-  // Descontos — 1 por lançamento, não por pessoa atingida no lançamento
-  // (meses sem contador real ainda caem para a contagem antiga como aproximação —
-  // mesmo ajuste temporário aplicado às inspeções acima)
-  const totalDesc = curMes >= 0
-    ? (DESC_COUNTS[curMes] || Object.keys(S_DESC).filter(k => k.endsWith('__'+curMes)).length)
-    : TOTAL_APRESENTACAO_DESC;
-
-  document.getElementById('st-av').textContent = totalInsp;
-  document.getElementById('st-id').textContent = totalIdeias;
-  document.getElementById('st-dc').textContent = totalDesc;
-
-  if (data.length) {
-    const avg = data.reduce((s,[,d]) => s+d.total/d.n, 0) / data.length;
-    document.getElementById('st-md').textContent = avg.toFixed(1);
-  } else document.getElementById('st-md').textContent = '—';
+  const nomes = curEq === 'all' ? null
+    : (T[curEq] ? [T[curEq].enc, ...T[curEq].members].filter(m => m && m.n).map(m => m.n) : null);
+  const st = statsAtuais(curMes, nomes);
+  const fmt = (v, est) => (est && v ? '~' : '') + v;
+  document.getElementById('st-av').textContent = fmt(st.insp, st.est.insp);
+  document.getElementById('st-id').textContent = fmt(st.ideias, st.est.ideias);
+  document.getElementById('st-dc').textContent = fmt(st.desc, st.est.desc);
+  document.getElementById('st-md').textContent = st.media != null ? st.media.toFixed(1) : '—';
 }
 
 /* ── Legenda ── */
@@ -597,22 +578,14 @@ function buildLegend() {
 }
 
 /* ── Live bar ── */
-// ⚠ AJUSTE TEMPORÁRIO (14/10) — enquanto o histórico de meses anteriores à correção
-// não é reconciliado, usamos o contador real quando ele existe para o mês e caímos
-// para a contagem antiga (por pessoa) só como aproximação dos meses que ainda não
-// têm o contador real. O total "Todos os meses" está fixado em 195 para a
-// apresentação de hoje — remover o TOTAL_APRESENTACAO depois e voltar à soma real.
-const TOTAL_APRESENTACAO_INSP = 195;
-const TOTAL_APRESENTACAO_DESC = 21;
 function buildLiveBar() {
   const txt = document.getElementById('ltxt');
   if (!txt) return;
-  const total = TOTAL_APRESENTACAO_INSP;
+  const st = statsAtuais(curMes);
   if (curMes >= 0) {
-    const ct = INSP_COUNTS[curMes] || Object.keys(S).filter(k => k.endsWith('§'+curMes)).length;
-    txt.textContent = `${ct} avaliações em ${MESES_F[curMes]}`;
+    txt.textContent = `${st.est.insp ? '~' : ''}${st.insp} inspeções em ${MESES_F[curMes]}`;
   } else {
-    txt.textContent = isDemo ? 'Modo demonstração' : `${total} avaliações · ao vivo`;
+    txt.textContent = isDemo ? 'Modo demonstração' : `${st.insp} inspeções · ao vivo`;
   }
   const m = document.getElementById('lmonth');
   if (m) m.textContent = curMes >= 0 ? MESES_F[curMes] : MESES_F[now.getMonth()] + ' ' + now.getFullYear();
@@ -654,7 +627,8 @@ function renderHistorico() {
     const data = getRankData('all', mes);
     const top3 = data.slice(0, 3);
     // Número real de inspeções do mês — 1 por visita/registro salvo, não por pessoa avaliada
-    const total = INSP_COUNTS[mes] || Object.keys(S).filter(k => k.endsWith('§'+mes)).length;
+    const pm = ESCUDO.inspPorMes(mes, LANC, S, { insp: INSP_COUNTS });
+    const total = (pm.est ? '~' : '') + pm.n;
     const medals = ['🥇','🥈','🥉'];
     const trophies = ['🏆','🥈','🥉'];
     const posClass = ['p1','p2','p3'];
@@ -676,7 +650,7 @@ function renderHistorico() {
       <div class="hist-month-hd">
         <span style="font-size:18px;">📅</span>
         <span class="hist-month-nm">${MESES_F[mes]}</span>
-        <span class="hist-month-ct">${total} avaliações · ${data.length} avaliados</span>
+        <span class="hist-month-ct">${total} inspeções · ${data.length} avaliados</span>
       </div>
       <div class="hist-body">
         ${top3.length ? rows : '<div class="hist-empty" style="padding:.5rem 0;">Sem dados suficientes.</div>'}
@@ -751,13 +725,15 @@ window._onFbReady = async () => {
     if (sb.exists()) S_BONUS = normalizeFirebaseKeys(sb.val());
     const sd = await get(ref(db, 'escudo/scores_desconto'));
     if (sd.exists()) S_DESC = normalizeFirebaseKeys(sd.val());
-    // Contadores reais por evento — 1 por visita/lançamento, não por pessoa incluída
+    // Contadores antigos (somente leitura, usados como estimativa de meses pré-V0)
     const sinsp = await get(ref(db, 'escudo/inspecoesPorMes'));
     if (sinsp.exists()) INSP_COUNTS = sinsp.val();
     const sdesc = await get(ref(db, 'escudo/descontosPorMes'));
     if (sdesc.exists()) DESC_COUNTS = sdesc.val();
-    const sideias = await get(ref(db, 'escudo/ideiasPorMes'));
-    if (sideias.exists()) IDEIAS_COUNTS = sideias.val();
+    const siv = await get(ref(db, 'escudo/ideias_valor'));
+    if (siv.exists()) IDEIAS_VALOR = siv.val();
+    const slanc = await get(ref(db, 'escudo/lancamentos'));
+    if (slanc.exists()) LANC = slanc.val();
     setSP('ok', '● Ao vivo');
     render();
     if (curTab === 'historico') renderHistorico();
@@ -786,18 +762,10 @@ window._onFbReady = async () => {
     onValue(ref(db, 'escudo/scores_desconto'), snap => {
       if (snap.exists()) { S_DESC = normalizeFirebaseKeys(snap.val()); render(); }
     });
-    // Contadores reais de inspeções/descontos em tempo real
-    onValue(ref(db, 'escudo/inspecoesPorMes'), snap => {
-      INSP_COUNTS = snap.exists() ? snap.val() : {};
-      render();
-    });
-    onValue(ref(db, 'escudo/descontosPorMes'), snap => {
-      DESC_COUNTS = snap.exists() ? snap.val() : {};
-      render();
-    });
-    onValue(ref(db, 'escudo/ideiasPorMes'), snap => {
-      IDEIAS_COUNTS = snap.exists() ? snap.val() : {};
-      render();
+    // V0: lançamentos em tempo real
+    ESCUDO.watch(l => { LANC = l; render(); if (curTab === 'historico') renderHistorico(); });
+    onValue(ref(db, 'escudo/ideias_valor'), snap => {
+      IDEIAS_VALOR = snap.exists() ? snap.val() : {}; render();
     });
   } catch(e) {
     setSP('e', '⚠️');
@@ -812,7 +780,7 @@ setTimeout(() => {
 /* ── Init ── */
 const footerEl = document.getElementById('footer-txt');
 if (footerEl) footerEl.innerHTML =
-  `In-Haus Industrial · Samarco Mineração<br>Programa ESCUDO · ${now.toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'})}`;
+  `In-Haus Industrial · Samarco Mineração<br>Programa ESCUDO · ${now.toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'})} · ${ESCUDO.VERSION}`;
 
 loadLocal();
 render();
