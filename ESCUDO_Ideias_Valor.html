@@ -479,6 +479,7 @@ textarea{resize:none;}
   <span class="sy-txt" id="sy-txt">Conectando ao Firebase…</span>
 </div>
 
+<script src="escudo-core.js"></script>
 <script>
 const MESES   = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 const MESES_F = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
@@ -778,28 +779,6 @@ function goS(n){
   curStep=typeof n==='number'?n:3;updateProgress();window.scrollTo(0,0);
 }
 
-// Conta 1 ideia por LANÇAMENTO salvo — mesmo quando várias pessoas estão
-// envolvidas na mesma ideia implementada (multi-seleção), continua contando
-// como 1 só. A pontuação em si continua sendo replicada para cada envolvido.
-function registrarIdeia(mes, tentativa){
-  tentativa = tentativa || 1;
-  if(!window.$FB || !window.$FB.runTransaction) return;
-  const {db,ref,runTransaction} = window.$FB;
-  Promise.resolve(runTransaction(ref(db,'escudo/ideiasPorMes/'+mes), cur => (cur||0)+1))
-    .catch(e=>{
-      console.warn('registrarIdeia falhou (tentativa '+tentativa+'):', e);
-      if(tentativa < 3){
-        setTimeout(()=>registrarIdeia(mes, tentativa+1), 1500*tentativa);
-      } else {
-        try{
-          const pend = JSON.parse(localStorage.getItem('esc_ideia_pendentes')||'[]');
-          pend.push({mes, ts:new Date().toISOString()});
-          localStorage.setItem('esc_ideia_pendentes', JSON.stringify(pend));
-        }catch(e2){}
-      }
-    });
-}
-
 /* SALVAR */
 function saveAv(){
   const total=counts.sst+counts.ma;
@@ -819,7 +798,15 @@ function saveAv(){
     mes:avMonth,ts:new Date().toISOString()
   };
   }); // end targets_id.forEach
-  registrarIdeia(avMonth); // 1 ideia por lançamento, não por pessoa envolvida
+  // V0: 1 lançamento por ideia, independente de quantas pessoas envolvidas
+  window.__subId = window.__subId || ESCUDO.newId();
+  ESCUDO.log({
+    id:window.__subId, tipo:'ideia', mes:avMonth,
+    avaliador:document.getElementById('av-aval').value,
+    pessoas:targets_id.map(m=>m.name),
+    sst:counts.sst, ma:counts.ma, total,
+    textos:{sst:[...ideiasTexto.sst], ma:[...ideiasTexto.ma]}
+  });
   saveToFirebase();
   document.getElementById('succ-pts').textContent='+'+total;
   document.getElementById('succ-nm').textContent=targets_id.length>1 ? targets_id.length+' profissionais envolvidos' : selMb.name;
@@ -873,7 +860,7 @@ function buildBonusScores(){
 }
 
 function resetAv(){
-  selMb=null;counts={sst:0,ma:0};ideiasTexto={sst:[],ma:[]};areasSel={sst:false,ma:false};
+  selMb=null;selMbs=[];window.__subId=null;counts={sst:0,ma:0};ideiasTexto={sst:[],ma:[]};areasSel={sst:false,ma:false};
   document.getElementById('av-aval').value='';
   buildEquipeSel();
   document.getElementById('mem-grid-wrap').innerHTML='<div class="no-data" style="padding:.5rem;">Selecione a equipe acima.</div>';
