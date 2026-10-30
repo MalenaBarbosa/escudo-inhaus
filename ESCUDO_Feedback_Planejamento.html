@@ -621,6 +621,7 @@ input:checked+.tgl-track::before{transform:translateX(18px);}
   <span class="sy-txt" id="sy-txt">Conectando ao Firebase…</span>
 </div>
 
+<script src="escudo-core.js"></script>
 <script>
 /* ══════════════════════════════════════════════════════
    ESCUDO — Feedback de Atividades (Planejamento avalia)
@@ -990,6 +991,13 @@ function saveAv() {
   }); // end targets_fb.forEach
 
   saveToFirebase();
+  // V0: 1 lançamento por feedback (conta como inspeção; id fixo evita duplicar)
+  window.__subId = window.__subId || ESCUDO.newId();
+  ESCUDO.log({
+    id:window.__subId, tipo:'feedback', mes:avMonth,
+    avaliador, equipe:selMb && selMb.teamId, local:codLocal, equip:codEquip,
+    pessoas:targets_fb.map(m=>m.name), notas:nums, nota:avg
+  });
 
   document.getElementById('succ-score').textContent = avg.toFixed(1);
   document.getElementById('succ-sub').textContent = `/ 5.0 · ${MESES_F[avMonth]} · Feedback de Atividade`;
@@ -1057,7 +1065,7 @@ function saveToFirebase() {
 
 /* ── Reset ── */
 function resetAv() {
-  avS = {}; selMb = null;
+  avS = {}; selMb = null; selMbs = []; window.__subId = null;
   document.getElementById('av-planejador').value = '';
   document.getElementById('cod-equip').value = '';
   document.getElementById('cod-local').value = '';
