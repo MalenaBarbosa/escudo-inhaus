@@ -550,6 +550,7 @@ input:checked+.tgl-track::before{transform:translateX(22px);}
   <span class="sy-txt" id="sy-txt">Conectando ao Firebase…</span>
 </div>
 
+<script src="escudo-core.js"></script>
 <script>
 const MESES   = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 const MESES_F = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
@@ -885,6 +886,14 @@ function saveAv(){
   };
   }); // end targets_desc.forEach
   saveToFirebase();
+  // V0: 1 lançamento por desconto, independente de quantas pessoas atingidas
+  window.__subId = window.__subId || ESCUDO.newId();
+  ESCUDO.log({
+    id:window.__subId, tipo:'desconto', mes:avMonth,
+    avaliador:document.getElementById('av-aval').value,
+    pessoas:targets_desc.map(m=>m.name),
+    pts:total, faltas:absAtivo?numFaltas:0, nc:ncAtivo?numNC:0, ncTipo:ncTipoSel||''
+  });
   document.getElementById('succ-pts').textContent='−'+fmt(total);
   document.getElementById('succ-nm').textContent=selMb.name;
   document.getElementById('succ-team').textContent=selMb.teamLabel+' · '+selMb.cargo;
@@ -943,7 +952,7 @@ function buildDescontoScores(){
 }
 
 function resetAv(){
-  selMb=null;absAtivo=false;numFaltas=0;ncAtivo=false;ncTipoSel=null;numNC=1;
+  selMb=null;selMbs=[];window.__subId=null;absAtivo=false;numFaltas=0;ncAtivo=false;ncTipoSel=null;numNC=1;
   document.getElementById('av-aval').value='';
   buildEquipeSel();
   document.getElementById('mem-grid-wrap').innerHTML='<div class="no-data" style="padding:.5rem;">Selecione a equipe acima.</div>';
