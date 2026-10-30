@@ -132,8 +132,9 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(-
 <div class="section-title">CLASSIFICAÇÃO POR SCORE BAYESIANO</div>
 <div id="ranking-list"></div>
 
-<div class="footer">IN-HAUS INDUSTRIAL · SAMARCO MINERAÇÃO<br>PROGRAMA ESCUDO · RANKING DE EQUIPES</div>
+<div class="footer">IN-HAUS INDUSTRIAL · SAMARCO MINERAÇÃO<br>PROGRAMA ESCUDO · RANKING DE EQUIPES · <span id="ver"></span></div>
 
+<script src="escudo-core.js"></script>
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getDatabase, ref, onValue, get } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
@@ -151,9 +152,14 @@ const cfg = {
 const app  = initializeApp(cfg);
 const db   = getDatabase(app);
 
+document.getElementById('ver').textContent = ESCUDO.VERSION;
 const MESES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 
 let T = {}, S = {}, S_BONUS = {}, S_DESC = {};
+let LANC = {};          // V0: lançamentos (1 por formulário salvo)
+let IDEIAS_VALOR = {};  // legado
+// Bônus/descontos da equipe = média por membro (equipes maiores não ganham/perdem mais só por terem mais gente)
+const EQUIPE_PER_CAPITA = true;
 let curMes = new Date().getMonth(); // mês atual por padrão
 let allMeses = [];
 
@@ -187,28 +193,12 @@ function buildTeamRanking(){
     // Membros
     if(team.members) team.members.forEach(m=>{ if(m&&m.n) members.push(m.n); });
 
-    let totalPts = 0;
-    let countInsp = 0;
     let totalBonus = 0;
     let totalDesc = 0;
 
     members.forEach(name=>{
       const safeN = (name||'').replace(/[ .#$§\[\]]/g,'_');
 
-      // Inspeções deste mês (ou todos)
-      const inspKeys = curMes >= 0
-        ? Object.keys(S).filter(k=>k.startsWith(safeN+'§') && k.endsWith('§'+curMes))
-        : Object.keys(S).filter(k=>k.startsWith(safeN+'§'));
-
-      inspKeys.forEach(k=>{
-        const vals = S[k];
-        if(!vals) return;
-        const nums = vals.filter(v=>v!=null);
-        if(!nums.length) return;
-        const avg = nums.reduce((a,b)=>a+b,0)/nums.length;
-        totalPts += avg;
-        countInsp++;
-      });
 
       // Bônus ideias
       const bonusKeys = curMes >= 0
@@ -223,8 +213,11 @@ function buildTeamRanking(){
       descKeys.forEach(k=>{ totalDesc += Math.abs(S_DESC[k]?.total||0); });
     });
 
-    // Média bruta das inspeções
-    const mediaInsp = countInsp > 0 ? totalPts / countInsp : 0;
+    // V0: inspeções da equipe = lançamentos distintos (um lançamento com 5 membros conta 1)
+    const un = ESCUDO.unidadesEquipe(members, curMes, LANC, S);
+    const countInsp = un.n;
+    const mediaInsp = un.nums.length ? un.nums.reduce((a,b)=>a+b,0)/un.nums.length : 0;
+    if(EQUIPE_PER_CAPITA && members.length){ totalBonus /= members.length; totalDesc /= members.length; }
 
     teams[tid] = {
       tid,
@@ -267,6 +260,7 @@ function buildMesesFilter(){
     const m = k.split('§')[1];
     if(m !== undefined) mesesSet.add(parseInt(m));
   });
+  ESCUDO.eventos(LANC).forEach(e=>{ if(ESCUDO.isInsp(e)) mesesSet.add(parseInt(e.mes,10)); });
   allMeses = [...mesesSet].sort((a,b)=>a-b);
 
   const el = document.getElementById('fmes');
@@ -302,7 +296,9 @@ function render(){
   if(!list) return;
 
   // Stats
-  const totalInsp = ranking.reduce((s,t)=>s+t.inspTotal,0);
+  // V0: total real de inspeções (lançamentos), não soma por equipe/pessoa
+  const stG = ESCUDO.stats({ lancs:LANC, mes:curMes, S:S, S_BONUS:S_BONUS, S_DESC:S_DESC, ideiasValor:IDEIAS_VALOR, counters:{} });
+  const totalInsp = (stG.est.insp ? '~' : '') + stG.insp;
   const mediaGeral = ranking.length
     ? ranking.reduce((s,t)=>s+t.mediaFinal,0)/ranking.length
     : 0;
@@ -378,6 +374,10 @@ window._onFbReady = async()=>{
     if(ss.exists()){ const raw=ss.val(); S={}; Object.entries(raw).forEach(([k,v])=>{ S[k.replace(/__([^_]*)$/,'§$1')]=v; }); }
     if(sb.exists()) S_BONUS = normKeys(sb.val());
     if(sd.exists()) S_DESC  = normKeys(sd.val());
+    const sl = await get(ref(db,'escudo/lancamentos'));
+    if(sl.exists()) LANC = sl.val();
+    const siv = await get(ref(db,'escudo/ideias_valor'));
+    if(siv.exists()) IDEIAS_VALOR = siv.val();
 
     setSP('ok','● Ao vivo');
     buildMesesFilter();
@@ -395,6 +395,9 @@ window._onFbReady = async()=>{
     });
     onValue(ref(db,'escudo/teams'),snap=>{
       if(snap.exists()){ T=snap.val(); render(); }
+    });
+    onValue(ref(db,'escudo/lancamentos'),snap=>{
+      LANC = snap.exists() ? snap.val() : {}; render();
     });
   }catch(e){
     setSP('w','Offline');
